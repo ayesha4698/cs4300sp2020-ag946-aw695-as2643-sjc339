@@ -8,7 +8,7 @@ Information Retrieval (IR) Main Scoring + Ranking Function
 
 """
 
-from IR_helpers import *
+from app.irsystem.controllers.IR_helpers import *
 
 
 def scorePalettes(palettes, keywords, reqColors):

@@ -10,7 +10,7 @@ Information Retrieval (IR) Scoring + Ranking Helper Functions
 
 import math
 import urllib.request, json
-import rgb2lab
+from app.irsystem.controllers.rgb2lab import *
 
 
 def deltaE(lab1, lab2):

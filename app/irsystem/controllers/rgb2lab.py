@@ -7,7 +7,6 @@
 # Step 2: XYZ to Lab
 #         http://www.easyrgb.com/index.php?X=MATH&H=07#text7
 
-
 def rgb2lab(inputColor):
 
     num = 0
