@@ -9,14 +9,14 @@ Information Retrieval (IR) Main Scoring + Ranking Function
 """
 
 import csv
-from IR_helpers import *
+from app.irsystem.controllers.IR_helpers import *
 
 
 # dataset globals
 cymColorsInvInd = {}
 cymData = {}
-
-with open('Cymbolism.csv', mode='r') as infile:
+# /Users/ayesha/cs4300sp2020-ag946-aw695-as2643-sjc339/app/irsystem/controllers/IR_main.py
+with open('data/Cymbolism.csv', mode='r') as infile:
     reader = csv.reader(infile)
     cymData = {rows[0]:rows[1:] for rows in reader}
 
