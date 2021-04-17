@@ -68,7 +68,7 @@ def scorePalettes(palettes, keywords, reqColors):
         1. RGB Euclidian Distance to Required Color                        25%
         2. HSV Cartesian Distance to Required Color                        25%
         3. Delta-E Distance to Required Color?                             0%
-        4. Average Percentage of Palette Association to Keyword Colors     50%
+        4. Cymbolism Keyword Close Color Percentages                       50%
 
     Final dictionary will be of the following format:
         { paletteID: (List of Colors in Palette, Score),
@@ -87,10 +87,10 @@ def scorePalettes(palettes, keywords, reqColors):
     percDists = {}
 
     # weights
-    rgbW = .4
-    hsvW = .4
-    percW = .2
-    keyW = 0
+    rgbW = .25
+    hsvW = .25
+    percW = 0
+    keyW = .5
 
     # maximums
     maxRGB = colorDiff((0,0,0), (255,255,255), 'rgb')
@@ -122,14 +122,14 @@ def scorePalettes(palettes, keywords, reqColors):
             else:
                 percDists[id] += avg/len(reqColors)
 
-    # keywordAvgs = getKeywordAvgs(keywords, palettes)
+    keywordAvgs = keyword(keywords, palettes)
 
     # weighted average of scores
     for id,palette in palettes.items():
         score = (1 - rgbDists[id]/maxRGB)*rgbW
         score += (1 - hsvDists[id]/maxHSV)*hsvW
         score += (1 - percDists[id]/maxPerc)*percW
-        # score += keywordAvgs[id]*keyW
+        score += keywordAvgs[id]*keyW
 
         scoreDict[id] = (palette, score)
 
