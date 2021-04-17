@@ -3,15 +3,16 @@
     max-width: 970px;
 }
 }
-@media (min-width:400px){
+
+@media (min-width:400px) {
 .global-search {
 padding: 20px 0;
 text-align:center;
 }
-body {
-padding-top: 15%;
+/* body {
+padding: 15%;
 padding-bottom: 15px;
-}
+} */
 .global-search {
 text-align:center;
 padding:10px;
@@ -24,6 +25,7 @@ display:inline-block;
 margin-bottom:0;
 }
 }
+
 .topcorner{
 position:absolute;
 top:2%;
@@ -35,4 +37,42 @@ border: none
 }
 .step-links a{
 color: #4285F4;
+}
+
+/** HERE */
+body {
+    font-family: "Futura"; 
+}
+
+.hidden {
+    display: none;
+}
+
+/* Search Styling */
+
+#search-form {
+    border: 1px solid black;
+    padding: 20px;
+}
+
+.subtext {
+    color: grey;
+    font-style: italic;
+    font-size: 80%;
+}
+
+#search-form button {
+    width: 100px;
+    margin-left: 457px;
+}
+
+div#form-container {
+    width: 600px;
+    margin: auto;
+}
+
+.error {
+    color: red;
+    font-size: 80%;
+    font-style: italic;
 }
