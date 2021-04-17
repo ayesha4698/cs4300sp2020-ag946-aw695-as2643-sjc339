@@ -156,32 +156,6 @@ def getPerceptualDists(reqColor, palettes):
     return deltaEDists
 
 
-def getAvgPercepDists(reqColor, palettes):
-    """
-    Returns a dictionary where the keys are palette IDs and the values are
-        the average perceptual distance of the required color to every
-        color on the palette.
-
-    Params: reqColor    user-inputted clean hexcode color [String]
-            palettes    palette IDs to Lists of clean hexcodes [Dict of Lists of Strings]
-    """
-
-    deltaEDists = {}
-
-    reqLAB = convertColor(reqColor, 'hex', 'rgb')
-    reqLAB = convertColor(reqLAB, 'rgb', 'lab')
-
-    for id,palette in palettes.items():
-        sumDist = 0
-        for c in palette:
-            cLAB = convertColor(c, 'hex', 'rgb')
-            cLAB = convertColor(cLAB, 'rgb', 'lab')
-            sumDist += colorDiff(reqLAB, cLAB, 'lab')
-        deltaEDists[id] = sumDist/len(palette)
-
-    return deltaEDists
-
-
 def CloseColorHelper( cymColors, colorToMatch): 
   """
     Gets the closest color to the Cymbolism list of colors 
