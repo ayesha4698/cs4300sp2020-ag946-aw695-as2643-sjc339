@@ -9,7 +9,8 @@ Information Retrieval (IR) Scoring + Ranking Helper Functions
 """
 
 import math
-import urllib.request, json
+import urllib.request
+import json
 from app.irsystem.controllers.rgb2lab import *
 from app.irsystem.controllers.IR_main import *
 
@@ -40,7 +41,7 @@ def deltaE(lab1, lab2):
     sc = 1.0 + 0.045 * c1
     sh = 1.0 + 0.015 * c1
 
-    dLKlsl = float(dL);
+    dLKlsl = float(dL)
     dCkcsc = dC/sc
     dHkhsh = dH/sh
 
@@ -88,7 +89,7 @@ def getRGBDists(reqColor, palettes):
 
     reqRGB = convertColor(reqColor, 'hex', 'rgb')
 
-    for id,palette in palettes.items():
+    for id, palette in palettes.items():
         minDist = 500
         for c in palette:
             cRGB = convertColor(c, 'hex', 'rgb')
@@ -115,7 +116,7 @@ def getHSVDists(reqColor, palettes):
     reqHSV = convertColor(reqColor, 'hex', 'hsl')
     reqHSV = convertColor(reqHSV, 'hsl', 'hsv')
 
-    for id,palette in palettes.items():
+    for id, palette in palettes.items():
         minDist = 500
         for c in palette:
             cHSV = convertColor(c, 'hex', 'hsl')
@@ -143,7 +144,7 @@ def getPerceptualDists(reqColor, palettes):
     reqLAB = convertColor(reqColor, 'hex', 'rgb')
     reqLAB = convertColor(reqLAB, 'rgb', 'lab')
 
-    for id,palette in palettes.items():
+    for id, palette in palettes.items():
         minDist = 500
         for c in palette:
             cLAB = convertColor(c, 'hex', 'rgb')
@@ -156,57 +157,57 @@ def getPerceptualDists(reqColor, palettes):
     return deltaEDists
 
 
-def CloseColorHelper( cymColors, colorToMatch): 
-  """
-    Gets the closest color to the Cymbolism list of colors 
-    based on the RGB distance
-
-    Params: cymColors: list of 19 colors from the Cymbolism website (hexcodes)  = Clean - without hashtag 
-            colorToMatch: one color from the palette to match 
-
-    Returns: one of the 19 colors ( hexcode)
-
+def CloseColorHelper(cymColors, colorToMatch):
     """
+      Gets the closest color to the Cymbolism list of colors 
+      based on the RGB distance
 
-  returnlist = {}
-  for x in range(len(cymColors)): 
-    rgbcolor = convertColor(cymColors[x], 'hex', 'rgb')
-    distance = colorDiff(cymColors[x], colorToMatch,'rgb' )
-    returnlist[cymColors[x]] = distance
+      Params: cymColors: list of 19 colors from the Cymbolism website (hexcodes)  = Clean - without hashtag 
+              colorToMatch: one color from the palette to match 
 
-  larg = 0 
-  ret = ""
-  for k,v in returnlist.items():
-    if v > larg:
-      ret = k 
-  return convertColor(ret, 'rgb','hex')
+      Returns: one of the 19 colors ( hexcode)
+
+      """
+
+    returnlist = {}
+    for x in range(len(cymColors)):
+        rgbcolor = convertColor(cymColors[x], 'hex', 'rgb')
+        distance = colorDiff(cymColors[x], colorToMatch, 'rgb')
+        returnlist[cymColors[x]] = distance
+
+    larg = 0
+    ret = ""
+    for k, v in returnlist.items():
+        if v > larg:
+            ret = k
+    return convertColor(ret, 'rgb', 'hex')
 
 
-def keyword ( userWords, paletteDict): 
-  """
-    Returns a dictionary that includes the percentage score based on the colors and keywords 
-
-    Params: userWords: the keywords that the user inputted matched 
-    to a cymbolism words 
-            paletteDict: dictionary of the palettes 
-            data is dictionary where the key is the keyword, the value is list where each c
-
-    Returns: Dictionary in format: {palette_id: average,...}
+def keyword(userWords, paletteDict):
     """
+      Returns a dictionary that includes the percentage score based on the colors and keywords 
 
-  colordict = {} 
-  for palette in paletteDict.keys(): 
-      score = 0 
-      for word in userWords: 
-          lst = [] 
-          for color in palette: 
-              closecolor = CloseColorHelper(cymColors, color)
-              lst = cymData[word]
-              ind = cymColorsInvInd[closecolor]
-              colorScore = lst[ind]
-          score +=colorScore
-      colordict[palette] = score
-  return colordict
+      Params: userWords: the keywords that the user inputted matched 
+      to a cymbolism words 
+              paletteDict: dictionary of the palettes 
+              data is dictionary where the key is the keyword, the value is list where each c
+
+      Returns: Dictionary in format: {palette_id: average,...}
+      """
+
+    colordict = {}
+    for palette in paletteDict.keys():
+        score = 0
+        for word in userWords:
+            lst = []
+            for color in palette:
+                closecolor = CloseColorHelper(cymColors, color)
+                lst = cymData[word]
+                ind = cymColorsInvInd[closecolor]
+                colorScore = lst[ind]
+            score += colorScore
+        colordict[palette] = score
+    return colordict
 
 
 def convertColor(color, fromCode, toCode):
@@ -249,19 +250,12 @@ def convertColor(color, fromCode, toCode):
         return color_json['hex']['clean']
     elif toCode == 'rgb':
         return (int(color_json['rgb']['r']), int(color_json['rgb']['g']),
-            int(color_json['rgb']['b']))
+                int(color_json['rgb']['b']))
     elif toCode == 'hsl':
-        return (int(color_json['hsv']['h']), int(color_json['hsv']['s']),
-            int(color_json['hsv']['v']))
+        return (int(color_json['hsl']['h']), int(color_json['hsl']['s']),
+                int(color_json['hsl']['l']))
     else:
         return None
-
-
-
-
-
-
-
 
 
 #
