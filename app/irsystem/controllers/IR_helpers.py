@@ -11,6 +11,7 @@ Information Retrieval (IR) Scoring + Ranking Helper Functions
 import math
 import urllib.request, json
 from app.irsystem.controllers.rgb2lab import *
+from app.irsystem.controllers.IR_main import *
 
 
 def deltaE(lab1, lab2):
@@ -155,30 +156,57 @@ def getPerceptualDists(reqColor, palettes):
     return deltaEDists
 
 
-def getAvgPercepDists(reqColor, palettes):
+def CloseColorHelper( cymColors, colorToMatch): 
+  """
+    Gets the closest color to the Cymbolism list of colors 
+    based on the RGB distance
+
+    Params: cymColors: list of 19 colors from the Cymbolism website (hexcodes)  = Clean - without hashtag 
+            colorToMatch: one color from the palette to match 
+
+    Returns: one of the 19 colors ( hexcode)
+
     """
-    Returns a dictionary where the keys are palette IDs and the values are
-        the average perceptual distance of the required color to every
-        color on the palette.
 
-    Params: reqColor    user-inputted clean hexcode color [String]
-            palettes    palette IDs to Lists of clean hexcodes [Dict of Lists of Strings]
+  returnlist = {}
+  for x in range(len(cymColors)): 
+    rgbcolor = convertColor(cymColors[x], 'hex', 'rgb')
+    distance = colorDiff(cymColors[x], colorToMatch,'rgb' )
+    returnlist[cymColors[x]] = distance
+
+  larg = 0 
+  ret = ""
+  for k,v in returnlist.items():
+    if v > larg:
+      ret = k 
+  return convertColor(ret, 'rgb','hex')
+
+
+def keyword ( userWords, paletteDict): 
+  """
+    Returns a dictionary that includes the percentage score based on the colors and keywords 
+
+    Params: userWords: the keywords that the user inputted matched 
+    to a cymbolism words 
+            paletteDict: dictionary of the palettes 
+            data is dictionary where the key is the keyword, the value is list where each c
+
+    Returns: Dictionary in format: {palette_id: average,...}
     """
 
-    deltaEDists = {}
-
-    reqLAB = convertColor(reqColor, 'hex', 'rgb')
-    reqLAB = convertColor(reqLAB, 'rgb', 'lab')
-
-    for id,palette in palettes.items():
-        sumDist = 0
-        for c in palette:
-            cLAB = convertColor(c, 'hex', 'rgb')
-            cLAB = convertColor(cLAB, 'rgb', 'lab')
-            sumDist += colorDiff(reqLAB, cLAB, 'lab')
-        deltaEDists[id] = sumDist/len(palette)
-
-    return deltaEDists
+  colordict = {} 
+  for palette in paletteDict.keys(): 
+      score = 0 
+      for word in userWords: 
+          lst = [] 
+          for color in palette: 
+              closecolor = CloseColorHelper(cymColors, color)
+              lst = cymData[word]
+              ind = cymColorsInvInd[closecolor]
+              colorScore = lst[ind]
+          score +=colorScore
+      colordict[palette] = score
+  return colordict
 
 
 def convertColor(color, fromCode, toCode):

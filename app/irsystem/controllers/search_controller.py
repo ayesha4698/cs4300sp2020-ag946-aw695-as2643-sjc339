@@ -2,7 +2,12 @@ from . import *
 from app.irsystem.models.helpers import *
 from app.irsystem.models.helpers import NumpyEncoder as NumpyEncoder
 from app.irsystem.controllers.IR_main import *
+from quickjs import Function
+from colormap import rgb2hex
+from PIL import ImageColor
 import re
+import requests
+import json
 
 project_name = "Version 1: Color Palette"
 net_id = "Ayesha Gagguturi(ag946)"
@@ -37,26 +42,53 @@ def top_colors_from_keywords(keywords, energy):
     """	
 	return []
 
-def palette_generator(hex, n):
+
+def palette_generator(hex_codes, n):
 	""" Adds on the “N” values to the list of input colors and outputs the api generated palette 
 	need to convert inputs to rgb and outputs to hex
-    :param hex: list of hex colors (up to three)
+    :param hex_codes: list of hex colors (up to three)
 	:param n: number of colors
     :return: list of hex color codes computed from the Colormind API
     """	
-	return []
+	
+	url = "http://colormind.io/api/"
+
+	input_lst = []
+	if n <= 3:
+		for hex in hex_codes:
+			input_lst.append(ImageColor.getcolor(hex, "RGB"))
+
+	for add_color in range(n,5):
+		input_lst.append("N")
+	
+
+	data = {
+		"model" : "default",
+		"input" : input_lst
+	}
+	res = requests.post(url, data=json.dumps(data))
+
+	hex = []
+	for rgb in res.json()['result']:
+		hex.append(rgb2hex(rgb[0], rgb[1], rgb[2]))
+
+	return hex
 
 
 
-def create_combo_hex_codes(top_keywords_colors, necessary_color):
+def create_combo_hex_codes(top_keywords_color_lst, necessary_color_lst):
 	""" Calls the palette generator helper
-    :param keywords: list of top keywords colors
-    :param necessary_color: list of hex codes 
+    :param keywords: list of list top keywords colors
+    :param necessary_color: list of list hex codes 
 	:param 
     :return: a list of lists of hex color codes
     """	
-
-	return [[]]
+	combo_hex_code_lst = []
+	for i in range(len(top_keywords_color_lst)):
+		n = len(top_keywords_color_lst)+len(necessary_color_lst)
+		hex_codes = top_keywords_color_lst + necessary_color_lst
+		combo_hex_code_lst.append(palette_generator(hex_codes, n))
+	return combo_hex_code_lst
 
 
 def input_to_color(keyword, necessary_color, energy ):
@@ -68,16 +100,6 @@ def input_to_color(keyword, necessary_color, energy ):
     """
 	return 	{}
 
-# @irsystem.route('/', methods=['GET'])
-# def search():
-# 	query = request.args.get('search')
-# 	if not query:
-# 		data = []
-# 		output_message = ''
-# 	else:
-# 		output_message = "Your search: " + query
-# 		data = range(5)
-# 	return render_template('search.html', name=project_name, netid=net_id, output_message=output_message, data=data)
 
 @irsystem.route("/", methods=["GET", "POST"])
 def validate():
@@ -131,8 +153,4 @@ def validate():
 		return render_template('search.html', errors=errors, keywords=keywordString, energy=energy, color1=color1, color2=color2, numcolors=numcolors)
 
 	
-
-
-
-
 
