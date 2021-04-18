@@ -13,8 +13,7 @@ import csv
 import json
 import colorsys
 
-project_name = "Version 1: Color Palette"
-net_id = "Ayesha Gagguturi(ag946)"
+netid = "Ayesha Gagguturi (ag946), Joy Thean (jct263), Skylar Capasso (sjc339), Anishka Singh (as2643), Alisa Wong (aw695)"
 
 #### IR HELPERS #####
 def deltaE(lab1, lab2):
@@ -258,7 +257,7 @@ def convertColor(color, fromCode, toCode):
     else:
         raise ValueError('Invalid inputs to convertColor: ' + str(color) + ', '
             + fromCode + ', ' + toCode)
-            
+
 # def convertColor(color, fromCode, toCode):
 #     """
 #     Returns a color converted from one code system to another. None if any
@@ -672,9 +671,9 @@ def search():
         if len(errors) == 0:
             # call function to return palettes
             results = getPalettes(keywords, reqColors, energy, numcolors)
-            return render_template('search.html', results=results, keywords=keywordString, energy=energy, color1=color1, color2=color2, numcolors=numcolors)
+            return render_template('search.html', netid=netid, results=results, keywords=keywordString, energy=energy, color1=color1, color2=color2, numcolors=numcolors)
         # show error messages in form
         else:
-            return render_template('search.html', errors=errors, keywords=keywordString, energy=energy, color1=color1, color2=color2, numcolors=numcolors)
+            return render_template('search.html', netid=netid, errors=errors, keywords=keywordString, energy=energy, color1=color1, color2=color2, numcolors=numcolors)
     
-    return render_template('search.html')
+    return render_template('search.html', netid=netid)

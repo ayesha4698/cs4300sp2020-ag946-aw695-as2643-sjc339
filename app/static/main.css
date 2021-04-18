@@ -90,3 +90,12 @@ div#form-container {
     border: 1px solid black;
     margin-right: 20px;
 }
+
+#results-container {
+    margin-top: 40px;
+    margin-left: 40px
+}
+
+.names {
+    font-size: 8px !important;
+}
