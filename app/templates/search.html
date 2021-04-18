@@ -12,13 +12,13 @@
 
         <div id="form-container" class="mt-5mb-5">
             <h1 class="mt-5">Find My Palette</h1>
-            <form id="search-form" action="" method="POST">
+            <form id="search-form" action="" method="GET" onsubmit="validate()">
                 <div class="form-group mb-4">
                     <label>Keywords*</label>
                     <p class="subtext">What words do you associate with your brand/project? Separate keywords with commas.</p>
                     <!-- <input type="text" class="form-control" name="keywords" placeholder="keyword, keyword" value="test1, test2"> -->
-                    <input type="text" class="form-control" name="keywords" placeholder="keyword, keyword" value={% if keywords %}{{ keywords }}{% endif %}>
-                    {% if "keywords" in errors %}
+                    <input id="keywordsInput" type="text" class="form-control" name="keywords" placeholder="keyword, keyword" value={% if keywords %}{{ keywords }}{% endif %}>
+                    {% if submit and "keywords" in errors %}
                         <p class="error">Please input at least one keyword.</p>
                     {% endif %}
                 </div>
@@ -26,8 +26,8 @@
                 <div class="form-group mb-4">
                     <label>Energy*</label>
                     <p class="subtext">Do you want your palettes to be more muted (1) or bright (10)?</p>
-                    <input type="number" name="energy" class="form-control" min=1 max=10 value={% if energy %}{{ energy }}{% endif %}>
-                    {% if "energy" in errors %}
+                    <input id="energyInput" type="number" name="energy" class="form-control" min=1 max=10 value={% if energy %}{{ energy }}{% endif %}>
+                    {% if submit and "energy" in errors %}
                         <p class="error">Please select an energy level.</p>
                     {% endif %}
                 </div>
@@ -39,32 +39,32 @@
                     <p class="mb-0">HEX</p>
                     <div class="input-group">
                         <span class="input-group-text">#</span>
-                        <input type="text" name="color1" class="form-control" value={% if color1 %}{{ color1 }}{% endif %}>
+                        <input id="color1Input" type="text" name="color1" class="form-control" value={% if color1 %}{{ color1 }}{% endif %}>
                     </div>
-                    {% if "color1" in errors %}
+                    {% if submit and "color1" in errors %}
                         <p class="error">Please select a valid HEX code.</p>
                     {% endif %}
 
                     <p class="mt-2 mb-0">HEX</p>
                     <div class="input-group">
                         <span class="input-group-text">#</span>
-                        <input type="text" name="color2" class="form-control" value={% if color2 %}{{ color2 }}{% endif %}>
+                        <input id="color2Input" type="text" name="color2" class="form-control" value={% if color2 %}{{ color2 }}{% endif %}>
                     </div>
-                    {% if "color2" in errors %}
+                    {% if submit and "color2" in errors %}
                         <p class="error">Please select a valid HEX code.</p>
                     {% endif %}
                 </div>
 
                 <div class="form-group mb-4">
                     <label>Number of Colors*</label>
-                    <p class="subtext">How many colors do you want to include in the palette?</p>
-                    <input type="number" name="numcolors" class="form-control" min=2 max=6 value={% if numcolors %}{{ numcolors }}{% endif %}>
-                    {% if "numcolors" in errors %}    
-                        <p class="error">Please select a number.</p>
+                    <p class="subtext">How many colors do you want to include in the palette? Maximum is 6 colors.</p>
+                    <input id="numColorInput" type="number" name="numcolors" class="form-control" min=2 max=6 value={% if numcolors %}{{ numcolors }}{% endif %}>
+                    {% if submit and "numcolors" in errors %}
+                        <p class="error">Please select a number between 2-6.</p>
                     {% endif %}
                 </div>
 
-                <button type="submit" class="align-self-end btn btn-primary">Generate</button>
+                <button type="submit" class="align-self-end btn btn-primary" id="submitBtn">Generate</button>
             </form>          
         </div>
 

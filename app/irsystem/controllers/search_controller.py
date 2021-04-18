@@ -619,61 +619,57 @@ def scorePalettes(palettes, keywords, reqColors):
     return scoreDict
 
 
-@irsystem.route("/", methods=["GET", "POST"])
+@irsystem.route("/", methods=["GET"])
 def search():
-    keywords = ""
-    energy = ""
-    color1 = ""
-    color2 = ""
-    numcolors = ""
-    reqColors = []
+    valid = True
 
+    keywords = request.args.get("keywords")
+    energy = request.args.get("energy")
+    color1 = request.args.get("color1")
+    color2 = request.args.get("color2")
+    numcolors = request.args.get("numcolors")
+
+    keywordString = ""
     errors = []
-    results = ""
 
-    if request.method == "POST":
-        # form validation
-        keywords = request.form["keywords"]
-        energy = request.form["energy"]
-        color1 = request.form["color1"]
-        color2 = request.form["color2"]
-        numcolors = request.form["numcolors"]
+    submit = True
+    if (keywords == None and energy == None and color1 == None and color2 == None and numcolors == None):
+        submit = False
 
-        print(keywords)
-        print(energy)
-        print(color1)
-        print(color2)
-        print(numcolors)
-
-        if not keywords:
-            errors.append("keywords")
-        if keywords:
-            keywords = keywords.replace(" ", "").split(",")
-            if len(keywords) == 0:
-                errors.append(keywords)
-        if not energy:
-            errors.append("energy")
-
-        if color1 and re.search("^([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", color1) == None:
-            errors.append("color1")
-        if color2 and re.search("^([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", color2) == None:
-            errors.append("color2")
-        if not numcolors:
-            errors.append("numcolors")
-        
-        if color1:
-            reqColors.append(color1)
-        if color2:
-            reqColors.append(color2)
-
-        keywordString = ", ".join(map(str, keywords))
-        # valid form, run search
-        if len(errors) == 0:
-            # call function to return palettes
-            results = getPalettes(keywords, reqColors, energy, numcolors)
-            return render_template('search.html', netid=netid, results=results, keywords=keywordString, energy=energy, color1=color1, color2=color2, numcolors=numcolors)
-        # show error messages in form
-        else:
-            return render_template('search.html', netid=netid, errors=errors, keywords=keywordString, energy=energy, color1=color1, color2=color2, numcolors=numcolors)
+    print(keywords)
+    print(energy)
+    print(color1)
+    print(color2)
+    print(numcolors)
     
-    return render_template('search.html', netid=netid)
+    if not keywords:
+        errors.append("keywords")
+    if keywords:
+        keywords = keywords.replace(" ", "").split(",")
+        if len(keywords) == 0:
+            errors.append("keywords")
+        else:
+            keywordString = ",".join(map(str, keywords))
+
+    if not energy:
+        errors.append("energy")
+
+    if color1 and re.search("^([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", color1) == None:
+        errors.append("color1")
+    if color2 and re.search("^([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", color2) == None:
+        errors.append("color2")
+
+    if not numcolors:
+        errors.append("numcolors")
+    
+    reqColors = []
+    if color1:
+        reqColors.append(color1)
+    if color2:
+        reqColors.append(color2)
+
+    results = ""
+    if len(errors) == 0:
+        results = getPalettes(keywords, reqColors, energy, numcolors)
+
+    return render_template('search.html', netid=netid, results=results, keywords=keywordString, energy=energy, color1=color1, color2=color2, numcolors=numcolors, errors=errors, submit=submit)
