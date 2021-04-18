@@ -7,6 +7,7 @@ from colormap import rgb2hex
 from PIL import ImageColor
 import re
 import requests
+import csv
 import json
 
 project_name = "Version 1: Color Palette"
@@ -17,7 +18,7 @@ def hue_adjuster():
     return 0
 
 
-def energy_adjust(hex, brightness):
+def energy_adjust(color, energy):
     """ adjusts a hex code so that it’s brighter or more muted
     :param hex: string
     :param brightness: decimal for the percentage of how bright
@@ -208,14 +209,22 @@ def create_combo_hex_codes(top_keywords_color_lst, necessary_color_lst):
     return combo_hex_code_lst
 
 
-def input_to_color(keyword, necessary_color, energy):
+def backend_main(keywords, necessary_colors, energy, num_colors):
     """ compute the colors from the user input
 :param keywords: list of words 
 :param necessary_color: list of hex codes 
     :param energy: 
 :return: dict with the format {palette_id: [list of hexcodes, ...],...}}
 """
-    return {}
+    palette_dict = {}
+    top_colors = top_colors_from_keywords(keywords, energy)
+
+    palettes = create_combo_hex_codes([top_colors], necessary_colors)
+
+    index = 0
+    for p in palettes:
+        palette_dict[index] = p
+        index += 1
 
 
 @irsystem.route("/", methods=["GET", "POST"])
