@@ -11,6 +11,7 @@ import re
 import requests
 import csv
 import json
+import colorsys
 
 project_name = "Version 1: Color Palette"
 net_id = "Ayesha Gagguturi(ag946)"
@@ -62,9 +63,6 @@ def colorDiff(c1, c2, code):
             c2      color in RGB, HSL, or LAB code [Tuple of Ints]
             code    'rgb', 'hsv' [String]
     """
-    print("color diff")
-    print(c1)
-    print(c2)
     if code == 'rgb':
         return math.sqrt((c1[0] - c2[0])**2 + (c1[1] - c2[1])**2 + (c1[2] - c2[2])**2)
 
@@ -184,7 +182,7 @@ def CloseColorHelper(cymColors, colorToMatch):
     for k, v in returnlist.items():
         if v > larg:
             ret = k
-    return convertColor(ret, 'rgb', 'hex')
+    return ret
 
 
 def keyword(userWords, paletteDict):
@@ -209,11 +207,10 @@ def keyword(userWords, paletteDict):
                 closecolor = CloseColorHelper(cymColors, color)
                 lst = cymData[word]
                 ind = cymColorsInvInd[closecolor]
-                colorScore = lst[ind]
+                colorScore = float(lst[ind])
             score += colorScore
         colordict[palette] = score
     return colordict
-
 
 def convertColor(color, fromCode, toCode):
     """
@@ -240,36 +237,79 @@ def convertColor(color, fromCode, toCode):
     elif fromCode == 'rgb' and toCode == 'lab':
         return tuple(rgb2lab(color))
 
-    query = '/id?' + fromCode + '=' + color
-    url = 'https://www.thecolorapi.com' + query + '&format=json'
-    print("URL")
-    print(url)
+    elif fromCode == 'rgb' and toCode == 'hsv':
+        return colorsys.rgb_to_hsv(color[0], color[1], color[2])
 
-    context = ssl._create_unverified_context()
-    response = urllib.request.urlopen(url, context=context)
-    print("chekcing here")
-    print(response)
-    color_json = json.loads(response.read().decode())
+    elif fromCode == 'rgb' and toCode == 'hsl':
+        newcolor = colorsys.rgb_to_hsv(color[0], color[1], color[2])
+        return (newcolor[0], newcolor[2], newcolor[1])
 
-    if None in color_json['rgb'].values():
-        query = '/id?' + fromCode + '=' + color_json['hex']['clean']
-        url = 'https://www.thecolorapi.com' + query + '&format=json'
+    elif fromCode == 'rgb' and toCode == 'hex':
+        return '%02x%02x%02x' % color
 
-        context = ssl._create_unverified_context()
-        response = urllib.request.urlopen(url, context=context)
-        color_json = json.loads(response.read().decode())
+    elif fromCode == 'hex' and toCode == 'rgb':
+        return tuple(int(color[i:i+2], 16) for i in (0, 2, 4))
 
-    if toCode == 'hex':
-        return color_json['hex']['clean']
-    elif toCode == 'rgb':
-        return (int(color_json['rgb']['r']), int(color_json['rgb']['g']),
-                int(color_json['rgb']['b']))
-    elif toCode == 'hsl':
-        return (int(color_json['hsl']['h']), int(color_json['hsl']['s']),
-                int(color_json['hsl']['l']))
+    elif fromCode == 'hex' and toCode == 'hsl':
+        rgb = tuple(int(color[i:i+2], 16) for i in (0, 2, 4))
+        newcolor = colorsys.rgb_to_hsv(rgb[0], rgb[1], rgb[2])
+        return (newcolor[0], newcolor[2], newcolor[1])
+
     else:
-        return None
-        
+        raise ValueError('Invalid inputs to convertColor: ' + str(color) + ', '
+            + fromCode + ', ' + toCode)
+            
+# def convertColor(color, fromCode, toCode):
+#     """
+#     Returns a color converted from one code system to another. None if any
+#         params are incorrectly formatted.
+
+#     Ex: convertColor('(255,255,255)', 'rgb', 'hex') -> 'FFFFFF'
+
+#     Params: color       clean hexcode, rgb, hsl [String or Tuple of Ints]
+#             fromCode    'hex', 'rgb', 'hsl' [String]
+#             toCode      'hex', 'rgb', 'hsl', 'hsv', 'lab' [String]
+#     """
+#     if type(color) == str and "#" in color:
+#         color = clean_hex(color)
+
+#     if fromCode == 'hsl' and toCode == 'hsv':
+#         v = color[2]/100 + color[1]/100*min(color[2]/100, 1-color[2]/100)
+#         if v == 0:
+#             s = 0
+#         else:
+#             s = 2*(1 - color[2]/100/v)
+#         return (color[0], s, v)
+
+#     elif fromCode == 'rgb' and toCode == 'lab':
+#         return tuple(rgb2lab(color))
+
+#     query = '/id?' + fromCode + '=' + color
+#     url = 'https://www.thecolorapi.com' + query + '&format=json'
+
+#     context = ssl._create_unverified_context()
+#     response = urllib.request.urlopen(url, context=context)
+#     color_json = json.loads(response.read().decode())
+
+#     if None in color_json['rgb'].values():
+#         query = '/id?' + fromCode + '=' + color_json['hex']['clean']
+#         url = 'https://www.thecolorapi.com' + query + '&format=json'
+
+#         context = ssl._create_unverified_context()
+#         response = urllib.request.urlopen(url, context=context)
+#         color_json = json.loads(response.read().decode())
+
+#     if toCode == 'hex':
+#         return color_json['hex']['clean']
+#     elif toCode == 'rgb':
+#         return (int(color_json['rgb']['r']), int(color_json['rgb']['g']),
+#                 int(color_json['rgb']['b']))
+#     elif toCode == 'hsl':
+#         return (int(color_json['hsl']['h']), int(color_json['hsl']['s']),
+#                 int(color_json['hsl']['l']))
+#     else:
+#         return None
+
 ### END IR HELPERS ####
 
 def hue_adjuster():
@@ -378,8 +418,9 @@ def top_colors_from_keywords(keywords, energy):
         if word in sorted_word_dict:
             tup = sorted_word_dict[word][0]
             color = tup[1]
-            adj_color = energy_adjust(color, energy)
-            top_colors.append(adj_color)
+            # adj_color = energy_adjust(color, energy)
+            # top_colors.append(adj_color)
+            top_colors.append(color)
 
     return top_colors
 
@@ -397,7 +438,6 @@ def palette_generator(hex_codes, n):
     input_lst = []
     if n <= 3:
         for hex in hex_codes:
-            print(hex_codes)
             input_lst.append(convertColor(hex, "hex", "rgb"))
             # input_lst.append(ImageColor.getcolor(hex, "RGB"))
 
@@ -443,6 +483,8 @@ def input_to_color(keywords, necessary_colors, energy, num_colors):
     num_colors = int(num_colors)
     palette_dict = {}
     top_colors = top_colors_from_keywords(keywords, energy)
+    print("top colors")
+    print(top_colors)
 
     palettes = create_combo_hex_codes([top_colors], necessary_colors)
 
@@ -454,7 +496,7 @@ def input_to_color(keywords, necessary_colors, energy, num_colors):
     return palette_dict
 
 
-# IR MAIN!!!!!!!!!!!!!
+#### IR MAIN!!!!!!!!!!!!! ######
 
 # dataset globals
 cymColorsInvInd = {}
@@ -562,7 +604,6 @@ def scorePalettes(palettes, keywords, reqColors):
     keywordAvgs = keyword(keywords, palettes)
 
     # weighted average of scores
-    print(palettes)
     for id,palette in palettes.items():
         score = 0
         if (rgbDists != {}):
@@ -614,7 +655,6 @@ def search():
         if not energy:
             errors.append("energy")
 
-        print(re.search("^([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", color1))
         if color1 and re.search("^([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", color1) == None:
             errors.append("color1")
         if color2 and re.search("^([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", color2) == None:
@@ -626,19 +666,15 @@ def search():
             reqColors.append(color1)
         if color2:
             reqColors.append(color2)
-        print("here")
-        print(reqColors)
 
+        keywordString = ", ".join(map(str, keywords))
         # valid form, run search
         if len(errors) == 0:
             # call function to return palettes
             results = getPalettes(keywords, reqColors, energy, numcolors)
-            return render_template('search.html', results=results, keywords=keywords, energy=energy, color1=color1, color2=color2, numcolors=numcolors)
+            return render_template('search.html', results=results, keywords=keywordString, energy=energy, color1=color1, color2=color2, numcolors=numcolors)
         # show error messages in form
         else:
-            print("there")
-            keywordString = ", ".join(map(str, keywords))
-            print(keywordString)
             return render_template('search.html', errors=errors, keywords=keywordString, energy=energy, color1=color1, color2=color2, numcolors=numcolors)
     
     return render_template('search.html')
