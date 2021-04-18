@@ -11,8 +11,10 @@ Information Retrieval (IR) Scoring + Ranking Helper Functions
 import math
 import urllib.request
 import json
+import ssl
 from app.irsystem.controllers.rgb2lab import *
 from app.irsystem.controllers.IR_main import *
+from app.irsystem.controllers.search_controller import *
 
 
 def deltaE(lab1, lab2):
@@ -61,7 +63,9 @@ def colorDiff(c1, c2, code):
             c2      color in RGB, HSL, or LAB code [Tuple of Ints]
             code    'rgb', 'hsv' [String]
     """
-
+    print("color diff")
+    print(c1)
+    print(c2)
     if code == 'rgb':
         return math.sqrt((c1[0] - c2[0])**2 + (c1[1] - c2[1])**2 + (c1[2] - c2[2])**2)
 
@@ -170,9 +174,10 @@ def CloseColorHelper(cymColors, colorToMatch):
       """
 
     returnlist = {}
+    colorToMatch = convertColor(colorToMatch, 'hex', 'rgb')
     for x in range(len(cymColors)):
         rgbcolor = convertColor(cymColors[x], 'hex', 'rgb')
-        distance = colorDiff(cymColors[x], colorToMatch, 'rgb')
+        distance = colorDiff(rgbcolor, colorToMatch, 'rgb')
         returnlist[cymColors[x]] = distance
 
     larg = 0
@@ -196,11 +201,12 @@ def keyword(userWords, paletteDict):
       """
 
     colordict = {}
+    cymColors = list(cymColorsInvInd.keys())
     for palette in paletteDict.keys():
         score = 0
         for word in userWords:
             lst = []
-            for color in palette:
+            for color in paletteDict[palette]:
                 closecolor = CloseColorHelper(cymColors, color)
                 lst = cymData[word]
                 ind = cymColorsInvInd[closecolor]
@@ -221,6 +227,8 @@ def convertColor(color, fromCode, toCode):
             fromCode    'hex', 'rgb', 'hsl' [String]
             toCode      'hex', 'rgb', 'hsl', 'hsv', 'lab' [String]
     """
+    if type(color) == str and "#" in color:
+        color = clean_hex(color)
 
     if fromCode == 'hsl' and toCode == 'hsv':
         v = color[2]/100 + color[1]/100*min(color[2]/100, 1-color[2]/100)
@@ -231,19 +239,25 @@ def convertColor(color, fromCode, toCode):
         return (color[0], s, v)
 
     elif fromCode == 'rgb' and toCode == 'lab':
-        return tuple(rgb2lab.rgb2lab(color))
+        return tuple(rgb2lab(color))
 
     query = '/id?' + fromCode + '=' + color
     url = 'https://www.thecolorapi.com' + query + '&format=json'
+    print("URL")
+    print(url)
 
-    response = urllib.request.urlopen(url)
+    context = ssl._create_unverified_context()
+    response = urllib.request.urlopen(url, context=context)
+    print("chekcing here")
+    print(response)
     color_json = json.loads(response.read().decode())
 
     if None in color_json['rgb'].values():
         query = '/id?' + fromCode + '=' + color_json['hex']['clean']
         url = 'https://www.thecolorapi.com' + query + '&format=json'
 
-        response = urllib.request.urlopen(url)
+        context = ssl._create_unverified_context()
+        response = urllib.request.urlopen(url, context=context)
         color_json = json.loads(response.read().decode())
 
     if toCode == 'hex':
