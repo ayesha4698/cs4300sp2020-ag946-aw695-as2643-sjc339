@@ -182,7 +182,7 @@ def create_combo_hex_codes(top_keywords_color_lst, necessary_color_lst):
     return combo_hex_code_lst
 
 
-def backend_main(keywords, necessary_colors, energy, num_colors):
+def input_to_color(keywords, necessary_colors, energy, num_colors):
     """ compute the colors from the user input
 :param keywords: list of words 
 :param necessary_color: list of hex codes 
