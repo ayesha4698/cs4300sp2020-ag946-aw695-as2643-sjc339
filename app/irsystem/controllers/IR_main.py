@@ -10,6 +10,8 @@ Information Retrieval (IR) Main Scoring + Ranking Function
 
 import csv
 from app.irsystem.controllers.IR_helpers import *
+from app.irsystem.controllers.search_controller import *
+
 
 
 # dataset globals
@@ -41,15 +43,8 @@ def getPalettes(keywords, reqColors, energy, numColors):
     """
 
     ranked = []
-
-    palettes = {
-        0: ['24B1E0', 'F0F3F4', 'E8DAEF', 'EDBB99'],     # one identical match
-        1: ['B3B6B7', 'F39C12', 'D35400', 'F4D03F'],     # no blues
-        2: ['85C1E9', '2E86C1', 'D4E6F1', '1B4F72'],     # shades of blue
-        3: ['2ECC71', '7B241C', '0E6655', '1FACDB']      # one close match
-    }
-
-    # palettes = generatePalettes(keywords, reqColors, energy, numColors)
+    
+    palettes = input_to_color(keywords, reqColors, energy, numColors)
     scored = scorePalettes(palettes, keywords, reqColors)
 
     sortedScored = sorted(scored.items(), key=lambda scored: scored[1][1])
