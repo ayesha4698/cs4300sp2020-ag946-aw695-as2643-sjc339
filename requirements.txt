@@ -53,3 +53,9 @@ SQLAlchemy==1.3.13
 urllib3==1.25.8
 Werkzeug==0.16.1
 WTForms==2.2.1
+easydev
+quickjs==1.16.0
+pillow
+colormap
+
+
