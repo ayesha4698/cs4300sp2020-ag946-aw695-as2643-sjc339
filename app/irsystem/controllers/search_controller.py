@@ -27,30 +27,19 @@ def energy_adjust(color, energy):
 """
 
     energy -= 5
-    print(energy)
+    # print(energy)
 
     rgb = convertColor(color, 'hex', 'rgb')
-    print(rgb)
-
-    # r = rgb[0]
-    # g = rgb[1]
-    # b = rgb[2]
+    # print(rgb)
 
     hsl = convertColor(color, 'hex', 'hsl')
-    # print(hsl)
-
-    # print(hsl[0])
-    # print(hsl[1])
-    # print(hsl[2])
 
     newBrightness = hsl[2] + hsl[2] * ((energy * 20) // 100)
 
     # print(newBrightness)
 
     new_rgb = str(hsl[0]) + ',' + str(hsl[1]) + ',' + str(newBrightness)
-    # print(hsl[0])
-    # print(hsl[1])
-    # print(newBrightness)
+
     updated_color = convertColor(new_rgb, 'rgb', 'hex')
     return updated_color
 
@@ -81,20 +70,9 @@ def parse_data():
         word_dict = {}
         count = 0
         color_index = {}
-        # for row in spamreader:
-        #     if count == 0:
-        #         index = 0
-        #         for color in row:
-        #             if color != 'word':
-        #                 color_index[color] = index
-        #                 index += 1
-        #     else:
-        #         word_dict[row[0]] = row[1:]
-
-        #     count += 1
 
         for row in spamreader:
-            # print('here')
+
             if count == 0:
                 index = 0
                 for color in row:
@@ -102,7 +80,7 @@ def parse_data():
                         color_index[index + 1] = color
                         index += 1
             else:
-                # print('here')
+
                 index = 0
                 word = ''
                 for value in row:
@@ -118,8 +96,7 @@ def parse_data():
                     index += 1
 
             count += 1
-        # print(color_index)
-        # print(word_dict)
+
     return word_dict
 
 
@@ -145,21 +122,17 @@ def top_colors_from_keywords(keywords, energy):
     sorted_word_dict = {}
 
     for word, lst in word_dict.items():
-        # print(lst)
         sort = sorted(lst, reverse=True)
 
         sorted_word_dict[word] = sort
-    # print(sorted_word_dict)
 
     for word in keywords:
         if word in sorted_word_dict:
-            # print('here')
             tup = sorted_word_dict[word][0]
             color = tup[1]
             adj_color = energy_adjust(color, energy)
             top_colors.append(adj_color)
 
-    # print(top_colors)
     return top_colors
 
 
