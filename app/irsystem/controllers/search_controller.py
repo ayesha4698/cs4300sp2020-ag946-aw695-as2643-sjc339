@@ -159,11 +159,11 @@ def getPerceptualDists(reqColor, palettes):
 
 def CloseColorHelper(cymColors, colorToMatch):
     """
-      Gets the closest color to the Cymbolism list of colors 
+      Gets the closest color to the Cymbolism list of colors
       based on the RGB distance
 
-      Params: cymColors: list of 19 colors from the Cymbolism website (hexcodes)  = Clean - without hashtag 
-              colorToMatch: one color from the palette to match 
+      Params: cymColors: list of 19 colors from the Cymbolism website (hexcodes)  = Clean - without hashtag
+              colorToMatch: one color from the palette to match
 
       Returns: one of the 19 colors ( hexcode)
 
@@ -186,11 +186,11 @@ def CloseColorHelper(cymColors, colorToMatch):
 
 def keyword(userWords, paletteDict):
     """
-      Returns a dictionary that includes the percentage score based on the colors and keywords 
+      Returns a dictionary that includes the percentage score based on the colors and keywords
 
-      Params: userWords: the keywords that the user inputted matched 
-      to a cymbolism words 
-              paletteDict: dictionary of the palettes 
+      Params: userWords: the keywords that the user inputted matched
+      to a cymbolism words
+              paletteDict: dictionary of the palettes
               data is dictionary where the key is the keyword, the value is list where each c
 
       Returns: Dictionary in format: {palette_id: average,...}
@@ -345,7 +345,7 @@ def clean_hex(color):
     """
 
       This function converts the color names in the dataset to just be a hex number
-      For example: 
+      For example:
         'olive #808000' -> 808000
 
       Params: color     string of form 'color #hex'
@@ -357,10 +357,10 @@ def clean_hex(color):
 
 def parse_data():
     """
-      This function parses the dataset. It returns a dictionary in which the 
-      keys are the words from Cymbolism. The values of each key is a list 
+      This function parses the dataset. It returns a dictionary in which the
+      keys are the words from Cymbolism. The values of each key is a list
       of tuples (unsorted) where the second element of the tuple is a color
-      and the first element is the score of that color. 
+      and the first element is the score of that color.
     """
     with open("data/Cymbolism.csv", newline="") as csvfile:
         spamreader = csv.reader(csvfile, delimiter=",")
@@ -399,7 +399,7 @@ def parse_data():
 
 def top_colors_from_keywords(keywords, energy):
     """ Generating each keywords top color from the dataset
-:param keywords: list of words 
+:param keywords: list of words
     :param energy: string of energy level
 :return: list of top colors with energy adjusted (hex codes)
 """
@@ -425,7 +425,7 @@ def top_colors_from_keywords(keywords, energy):
 
 
 def palette_generator(hex_codes, n):
-    """ Adds on the “N” values to the list of input colors and outputs the api generated palette 
+    """ Adds on the “N” values to the list of input colors and outputs the api generated palette
     need to convert inputs to rgb and outputs to hex
 :param hex_codes: list of hex colors (up to three)
     :param n: number of colors
@@ -459,23 +459,23 @@ def palette_generator(hex_codes, n):
 def create_combo_hex_codes(top_keywords_color_lst, necessary_color_lst):
     """ Calls the palette generator helper
 :param keywords: list of list top keywords colors
-:param necessary_color: list of list hex codes 
-    :param 
+:param necessary_color: list of list hex codes
+    :param
 :return: a list of lists of hex color codes
 """
     combo_hex_code_lst = []
     for i in range(len(top_keywords_color_lst)):
         n = len(top_keywords_color_lst)+len(necessary_color_lst)
-        hex_codes = top_keywords_color_lst[i] + necessary_color_lst  
+        hex_codes = top_keywords_color_lst[i] + necessary_color_lst
         combo_hex_code_lst.append(palette_generator(hex_codes, n))
     return combo_hex_code_lst
 
 
 def input_to_color(keywords, necessary_colors, energy, num_colors):
     """ compute the colors from the user input
-:param keywords: list of words 
-:param necessary_color: list of hex codes 
-    :param energy: 
+:param keywords: list of words
+:param necessary_color: list of hex codes
+    :param energy:
 :return: dict with the format {palette_id: [list of hexcodes, ...],...}}
 """
     energy = int(energy)
@@ -491,7 +491,7 @@ def input_to_color(keywords, necessary_colors, energy, num_colors):
     for p in palettes:
         palette_dict[index] = p
         index += 1
-        
+
     return palette_dict
 
 
@@ -500,10 +500,14 @@ def input_to_color(keywords, necessary_colors, energy, num_colors):
 # dataset globals
 cymColorsInvInd = {}
 cymData = {}
+cymVotes = {}
+
 # /Users/ayesha/cs4300sp2020-ag946-aw695-as2643-sjc339/app/irsystem/controllers/IR_main.py
 with open('data/Cymbolism.csv', mode='r') as infile:
     reader = csv.reader(infile)
-    cymData = {rows[0]:rows[1:] for rows in reader}
+    for rows in reader:
+        cymData[rows[0]] = rows[1:-1]
+        cymVotes[rows[0]] = rows[-1]
 
 for i in range(len(cymData['word'])):
     color = cymData['word'][i]
@@ -526,7 +530,7 @@ def getPalettes(keywords, reqColors, energy, numColors):
     """
 
     ranked = []
-    
+
     palettes = input_to_color(keywords, reqColors, energy, numColors)
     scored = scorePalettes(palettes, keywords, reqColors)
 
@@ -641,7 +645,7 @@ def search():
     print(color1)
     print(color2)
     print(numcolors)
-    
+
     if not keywords:
         errors.append("keywords")
     if keywords:
@@ -661,7 +665,7 @@ def search():
 
     if not numcolors:
         errors.append("numcolors")
-    
+
     reqColors = []
     if color1:
         reqColors.append(color1)
