@@ -655,9 +655,6 @@ def search():
         else:
             keywordString = ",".join(map(str, keywords))
 
-    if not energy:
-        errors.append("energy")
-
     if color1 and re.search("^([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", color1) == None:
         errors.append("color1")
     if color2 and re.search("^([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", color2) == None:

@@ -18,18 +18,31 @@
                     <p class="subtext">What words do you associate with your brand/project? Separate keywords with commas.</p>
                     <!-- <input type="text" class="form-control" name="keywords" placeholder="keyword, keyword" value="test1, test2"> -->
                     <input id="keywordsInput" type="text" class="form-control" name="keywords" placeholder="keyword, keyword" value={% if keywords %}{{ keywords }}{% endif %}>
+                    <p></p>
                     {% if submit and "keywords" in errors %}
                         <p class="error">Please input at least one keyword.</p>
                     {% endif %}
                 </div>
 
                 <div class="form-group mb-4">
-                    <label>Energy*</label>
-                    <p class="subtext">Do you want your palettes to be more muted (1) or bright (10)?</p>
-                    <input id="energyInput" type="number" name="energy" class="form-control" min=1 max=10 value={% if energy %}{{ energy }}{% endif %}>
-                    {% if submit and "energy" in errors %}
-                        <p class="error">Please select an energy level.</p>
-                    {% endif %}
+                    <label>Energy</label>
+                    <p class="subtext">Do you want your palettes to be more muted (0) or bright (10)?</p>
+                    <!-- <label for="customRange3" class="form-label">Example range</label> -->
+                    <input id="energyInput" name="energy" type="range" class="form-range" min="0" max="10" step="1" value={% if energy %}{{ energy }}{% else %}{{ 5 }}{% endif %}>
+                    <!-- <input id="energyInput" type="number" name="energy" class="form-control" min=1 max=10 value={% if energy %}{{ energy }}{% endif %}> -->
+                    <ul id="energy-labels">
+                        <li id="e0" class="e-label">0</li>
+                        <li id="e1" class="e-label">1</li>
+                        <li id="e2" class="e-label">2</li>
+                        <li id="e3" class="e-label">3</li>
+                        <li id="e4" class="e-label">4</li>
+                        <li id="e5" class="e-label">5</li>
+                        <li id="e6" class="e-label">6</li>
+                        <li id="e7" class="e-label">7</li>
+                        <li id="e8" class="e-label">8</li>
+                        <li id="e9" class="e-label">9</li>
+                        <li id="e10" class="e-label p-0">10</li>
+                    </ul>
                 </div>
 
                 <div class="form-group mb-4">
