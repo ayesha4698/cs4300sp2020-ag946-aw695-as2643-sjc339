@@ -99,3 +99,22 @@ div#form-container {
 .names {
     font-size: 8px !important;
 }
+
+#energy-labels {
+    padding-left: 0px;
+    list-style: none;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+#energy-labels li {
+    color: grey;
+    width: 15px;
+    font-size: 80%;
+    padding-left: 3px;
+}
+
+.active {
+    color: #0d6efd !important;
+}
