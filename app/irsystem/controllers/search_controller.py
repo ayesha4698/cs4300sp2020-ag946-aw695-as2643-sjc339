@@ -1,9 +1,12 @@
 from . import *
 from app.irsystem.models.helpers import *
 from app.irsystem.models.helpers import NumpyEncoder as NumpyEncoder
+
 # from app.irsystem.controllers.IR_main import *
-from app.irsystem.controllers.IR_helpers import *
+# from app.irsystem.controllers.IR_helpers import *
 from app.irsystem.controllers.rgb2lab import *
+from cossim import *
+
 from quickjs import Function
 from colormap import rgb2hex
 from PIL import ImageColor
@@ -12,10 +15,73 @@ import requests
 import csv
 import json
 import colorsys
+from nltk.corpus import wordnet
+
+
+###########################################################################################
+#                                          GLOBALS                                        #
+###########################################################################################
+
+# dataset globals
+cymData = {}
+cymColorsInvInd = {}
+cymVotes = {}
+
+# /Users/ayesha/cs4300sp2020-ag946-aw695-as2643-sjc339/app/irsystem/controllers/IR_main.py
+with open('data/Cymbolism.csv', mode='r') as infile:
+    reader = csv.reader(infile)
+    for rows in reader:
+        cymData[rows[0]] = rows[1:-1]
+        cymVotes[rows[0]] = rows[-1]
+
+for i in range(len(cymData['word'])):
+    color = cymData['word'][i]
+    colorName = color[color.index(' ')+2:]
+    cymColorsInvInd[colorName] = i
 
 netid = "Ayesha Gagguturi (ag946), Joy Thean (jct263), Skylar Capasso (sjc339), Anishka Singh (as2643), Alisa Wong (aw695)"
 
-#### IR HELPERS #####
+
+###########################################################################################
+#                                       IR HELPERS                                        #
+###########################################################################################
+
+def keywordMatch(dfns):
+    """
+    Returns a list of Cymbolism keywords that match to each keyword of the user's input.
+
+    Params: dfns    List of user's keywords where each string is formatted:
+                        word - definition [List of Strings]
+    """
+    synwords = []
+    keywords = []
+
+    for dfn in dfns:
+        kw = dfn[:dfn.index("-")-1]                     # skip the space
+        query = dfn[dfn.index("-")+2:]                  # skip the space
+        syns = wordnet.synsets(kw.replace(" ", "_"))
+
+        msgs = []
+        for syn in syns:
+            toks = tokenize(syn.definition())
+            msgs.append({'toks': toks})
+
+        inv_idx = build_inverted_index(msgs)
+        idf = compute_idf(inv_idx, len(msgs))
+        inv_idx = {key: val for key, val in inv_idx.items()
+                   if key in idf}
+        doc_norms = compute_doc_norms(inv_idx, idf, len(msgs))
+
+        ind_search = index_search(query, inv_idx, idf, doc_norms)
+        msg_id = ind_search[0][1]
+        synwords.append(syns[msg_id])
+
+    for syn in synwords:
+        pass
+
+    return keywords
+
+
 def deltaE(lab1, lab2):
     """
     Returns the perceptual distance between two colors in CIELAB.
@@ -186,7 +252,9 @@ def CloseColorHelper(cymColors, colorToMatch):
 
 def keyword(userWords, paletteDict):
     """
-      Returns a dictionary that includes the percentage score based on the colors and keywords
+      Returns one dictionary that includes the percentage score based on the colors and keywords
+      Returns another dictionary that also includes the keyword and the corresponding percentage score 
+      for each palette 
 
       Params: userWords: the keywords that the user inputted matched
       to a cymbolism words
@@ -194,12 +262,15 @@ def keyword(userWords, paletteDict):
               data is dictionary where the key is the keyword, the value is list where each c
 
       Returns: Dictionary in format: {palette_id: average,...}
+                                    {palette_id: [(keyword, percent), (keyword, percent),...],...}
       """
 
     colordict = {}
+    keywordDict = {}
     cymColors = list(cymColorsInvInd.keys())
     for palette in paletteDict.keys():
         score = 0
+        keywordDict[palette] = []
         for word in userWords:
             lst = []
             for color in paletteDict[palette]:
@@ -208,13 +279,15 @@ def keyword(userWords, paletteDict):
                 ind = cymColorsInvInd[closecolor]
                 colorScore = float(lst[ind])
             score += colorScore
+            keywordDict[palette].append((word, colorScore))
         colordict[palette] = score
-    return colordict
+    return colordict, keywordDict
+
 
 def convertColor(color, fromCode, toCode):
     """
     Returns a color converted from one code system to another. None if any
-        params are incorrectly formatted.
+        params are incorrectly formatted. (all clean hexcodes)
 
     Ex: convertColor('(255,255,255)', 'rgb', 'hex') -> 'FFFFFF'
 
@@ -256,60 +329,8 @@ def convertColor(color, fromCode, toCode):
 
     else:
         raise ValueError('Invalid inputs to convertColor: ' + str(color) + ', '
-            + fromCode + ', ' + toCode)
+                         + fromCode + ', ' + toCode)
 
-# def convertColor(color, fromCode, toCode):
-#     """
-#     Returns a color converted from one code system to another. None if any
-#         params are incorrectly formatted.
-
-#     Ex: convertColor('(255,255,255)', 'rgb', 'hex') -> 'FFFFFF'
-
-#     Params: color       clean hexcode, rgb, hsl [String or Tuple of Ints]
-#             fromCode    'hex', 'rgb', 'hsl' [String]
-#             toCode      'hex', 'rgb', 'hsl', 'hsv', 'lab' [String]
-#     """
-#     if type(color) == str and "#" in color:
-#         color = clean_hex(color)
-
-#     if fromCode == 'hsl' and toCode == 'hsv':
-#         v = color[2]/100 + color[1]/100*min(color[2]/100, 1-color[2]/100)
-#         if v == 0:
-#             s = 0
-#         else:
-#             s = 2*(1 - color[2]/100/v)
-#         return (color[0], s, v)
-
-#     elif fromCode == 'rgb' and toCode == 'lab':
-#         return tuple(rgb2lab(color))
-
-#     query = '/id?' + fromCode + '=' + color
-#     url = 'https://www.thecolorapi.com' + query + '&format=json'
-
-#     context = ssl._create_unverified_context()
-#     response = urllib.request.urlopen(url, context=context)
-#     color_json = json.loads(response.read().decode())
-
-#     if None in color_json['rgb'].values():
-#         query = '/id?' + fromCode + '=' + color_json['hex']['clean']
-#         url = 'https://www.thecolorapi.com' + query + '&format=json'
-
-#         context = ssl._create_unverified_context()
-#         response = urllib.request.urlopen(url, context=context)
-#         color_json = json.loads(response.read().decode())
-
-#     if toCode == 'hex':
-#         return color_json['hex']['clean']
-#     elif toCode == 'rgb':
-#         return (int(color_json['rgb']['r']), int(color_json['rgb']['g']),
-#                 int(color_json['rgb']['b']))
-#     elif toCode == 'hsl':
-#         return (int(color_json['hsl']['h']), int(color_json['hsl']['s']),
-#                 int(color_json['hsl']['l']))
-#     else:
-#         return None
-
-### END IR HELPERS ####
 
 def hue_adjuster():
     return 0
@@ -401,25 +422,26 @@ def top_colors_from_keywords(keywords, energy):
     """ Generating each keywords top color from the dataset
 :param keywords: list of words
     :param energy: string of energy level
-:return: list of top colors with energy adjusted (hex codes)
+:return: list of list top colors combinations  with energy adjusted (hex codes)(opt?)
 """
     top_colors = []
-
     word_dict = parse_data()
     sorted_word_dict = {}
-
+    print(word_dict)
     for word, lst in word_dict.items():
+        lst = lst[:-1]
         sort = sorted(lst, reverse=True)
-
         sorted_word_dict[word] = sort
 
+    colors_combos = []
     for word in keywords:
         if word in sorted_word_dict:
+
             tup = sorted_word_dict[word][0]
             color = tup[1]
+            top_colors.append(color)
             # adj_color = energy_adjust(color, energy)
             # top_colors.append(adj_color)
-            top_colors.append(color)
 
     return top_colors
 
@@ -482,9 +504,6 @@ def input_to_color(keywords, necessary_colors, energy, num_colors):
     num_colors = int(num_colors)
     palette_dict = {}
     top_colors = top_colors_from_keywords(keywords, energy)
-    print("top colors")
-    print(top_colors)
-
     palettes = create_combo_hex_codes([top_colors], necessary_colors)
 
     index = 0
@@ -495,33 +514,17 @@ def input_to_color(keywords, necessary_colors, energy, num_colors):
     return palette_dict
 
 
-#### IR MAIN!!!!!!!!!!!!! ######
-
-# dataset globals
-cymColorsInvInd = {}
-cymData = {}
-cymVotes = {}
-
-# /Users/ayesha/cs4300sp2020-ag946-aw695-as2643-sjc339/app/irsystem/controllers/IR_main.py
-with open('data/Cymbolism.csv', mode='r') as infile:
-    reader = csv.reader(infile)
-    for rows in reader:
-        cymData[rows[0]] = rows[1:-1]
-        cymVotes[rows[0]] = rows[-1]
-
-for i in range(len(cymData['word'])):
-    color = cymData['word'][i]
-    colorName = color[color.index(' ')+2:]
-    cymColorsInvInd[colorName] = i
-
-
 def getPalettes(keywords, reqColors, energy, numColors):
     """
-    Returns a list of palettes sorted from highest to lowest ranked. Calls the
-        following backend/IR helper functions:
+    Returns a list of palettes sorted from highest to lowest ranked.
 
-        1. input_to_color
-        2. scorePalettes
+    Returns a dictionary of the following format: (all clean hexcodes)
+        { paletteID: (List of Colors in Palette, Score),
+          ...
+          paletteID: (List of Colors in Palette, Score) }
+
+    Returns another dictionary that also includes the keyword and the corresponding percentage score 
+      for each palette
 
     Params: keywords    Cymbolism words matched to user input [List of Strings]
             reqColors   list of user-inputted clean hexcode color [List of String]
@@ -532,14 +535,14 @@ def getPalettes(keywords, reqColors, energy, numColors):
     ranked = []
 
     palettes = input_to_color(keywords, reqColors, energy, numColors)
-    scored = scorePalettes(palettes, keywords, reqColors)
+    scored, keywordBreakdown = scorePalettes(palettes, keywords, reqColors)
 
     sortedScored = sorted(scored.items(), key=lambda scored: scored[1][1])
 
     for tup in sortedScored:
         ranked.append(tup[1][0])
 
-    return ranked
+    return ranked, scored, keywordBreakdown
 
 
 def scorePalettes(palettes, keywords, reqColors):
@@ -552,7 +555,10 @@ def scorePalettes(palettes, keywords, reqColors):
         3. Delta-E Distance to Required Color?                             0%
         4. Cymbolism Keyword Close Color Percentages                       50%
 
-    Final dictionary will be of the following format:
+    Returns another dictionary that also includes the keyword and the corresponding percentage score 
+      for each palette
+
+    Final dictionary will be of the following format: (all clean hexcodes)
         { paletteID: (List of Colors in Palette, Score),
           ...
           paletteID: (List of Colors in Palette, Score) }
@@ -575,10 +581,10 @@ def scorePalettes(palettes, keywords, reqColors):
     keyW = .5
 
     # maximums
-    maxRGB = colorDiff((0,0,0), (255,255,255), 'rgb')
-    maxHSV = colorDiff((0,0,0), (0,0,100), 'hsv')
-    maxPerc = colorDiff(convertColor((0,0,0), 'rgb', 'lab'),
-        convertColor((255,255,255), 'rgb', 'lab'), 'lab')
+    maxRGB = colorDiff((0, 0, 0), (255, 255, 255), 'rgb')
+    maxHSV = colorDiff((0, 0, 0), (0, 0, 100), 'hsv')
+    maxPerc = colorDiff(convertColor((0, 0, 0), 'rgb', 'lab'),
+                        convertColor((255, 255, 255), 'rgb', 'lab'), 'lab')
 
     for rc in reqColors:
         rgb = getRGBDists(rc, palettes)
@@ -604,10 +610,10 @@ def scorePalettes(palettes, keywords, reqColors):
             else:
                 percDists[id] += avg/len(reqColors)
 
-    keywordAvgs = keyword(keywords, palettes)
+    keywordAvgs, keywordBreakdown = keyword(keywords, palettes)
 
     # weighted average of scores
-    for id,palette in palettes.items():
+    for id, palette in palettes.items():
         score = 0
         if (rgbDists != {}):
             score += (1 - rgbDists[id]/maxRGB)*rgbW
@@ -620,7 +626,7 @@ def scorePalettes(palettes, keywords, reqColors):
 
         scoreDict[id] = (palette, score)
 
-    return scoreDict
+    return scoreDict, keywordBreakdown
 
 
 @irsystem.route("/", methods=["GET"])
@@ -671,6 +677,7 @@ def search():
 
     results = ""
     if len(errors) == 0:
-        results = getPalettes(keywords, reqColors, energy, numcolors)
+        results, scores, breakdown = getPalettes(
+            keywords, reqColors, energy, numcolors)
 
     return render_template('search.html', netid=netid, results=results, keywords=keywordString, energy=energy, color1=color1, color2=color2, numcolors=numcolors, errors=errors, submit=submit)
