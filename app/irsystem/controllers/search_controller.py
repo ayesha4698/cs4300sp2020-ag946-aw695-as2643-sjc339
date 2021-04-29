@@ -736,15 +736,17 @@ def getPalettes(keywords, reqColors, energy, numColors):
     Returns another dictionary that also includes the keyword and the corresponding percentage score
       for each palette
 
-    Params: keywords    Cymbolism words matched to user input [List of Strings]
+    Params: keywords    List of user's keywords where each string is formatted:
+                            'word - definition' [List of Strings]
             reqColors   list of user-inputted clean hexcode color [List of String]
             energy      user-input on the muted to bright scale [Int]
             numColors   number of colors the user wants in their palette [Int]
     """
 
     ranked = []
-
-    palettes = input_to_color(keywords, reqColors, energy, numColors)
+    
+    cymKeywords = keywordMatch(keywords)
+    palettes = input_to_color(cymKeywords, reqColors, energy, numColors)
     scored, keywordBreakdown = scorePalettes(palettes, keywords, reqColors)
 
     sortedScored = sorted(scored.items(), key=lambda scored: scored[1][1])
