@@ -5,11 +5,11 @@ from app.irsystem.models.helpers import NumpyEncoder as NumpyEncoder
 # from app.irsystem.controllers.IR_main import *
 # from app.irsystem.controllers.IR_helpers import *
 from app.irsystem.controllers.rgb2lab import *
-# from cossim import *
+from cossim import *
 
-# from quickjs import Function
+from quickjs import Function
 from colormap import rgb2hex
-# from PIL import ImageColor
+from PIL import ImageColor
 import re
 import requests
 import csv
