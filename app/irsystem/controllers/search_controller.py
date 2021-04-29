@@ -389,8 +389,10 @@ def parse_data():
         count = 0
         color_index = {}
 
+        total_votes = {}
         for row in spamreader:
 
+            votes_index = len(row) - 1
             if count == 0:
                 index = 0
                 for color in row:
@@ -404,6 +406,8 @@ def parse_data():
                 for value in row:
                     if index == 0:
                         word = row[0]
+                    elif index == votes_index:
+                        total_votes[word] = float(value)
                     else:
                         if word in word_dict:
                             word_dict[word].append(
@@ -415,35 +419,66 @@ def parse_data():
 
             count += 1
 
-    return word_dict
+    return word_dict, total_votes
+
+
+def normalize_score(score, num_votes, total_votes):
+    """
+        :param score: float 
+        :param necessary_color: list of hex codes
+        :param energy:
+        :return: normalized score (float)
+    """
+    # print((score * num_votes) / total_votes)
+    return (score * num_votes) / total_votes
 
 
 def top_colors_from_keywords(keywords, energy):
     """ Generating each keywords top color from the dataset
-:param keywords: list of words
-    :param energy: string of energy level
-:return: list of list top colors combinations  with energy adjusted (hex codes)(opt?)
-"""
-    top_colors = []
-    word_dict = parse_data()
+        :param keywords: tuple (keyword (str), similarity score (float))
+        :param energy: string of energy level
+        :return: list tuples (top colors with energy adjusted (hex codes), score of color)
+    """
+    top_colors = {}
+
+    word_dict, total_votes = parse_data()
     sorted_word_dict = {}
-    print(word_dict)
+
     for word, lst in word_dict.items():
-        lst = lst[:-1]
         sort = sorted(lst, reverse=True)
         sorted_word_dict[word] = sort
 
-    colors_combos = []
-    for word in keywords:
-        if word in sorted_word_dict:
+    total_votes_num = 0
+    for tup in keywords:
+        word = tup[0]
+        total_votes_num += total_votes[word]
 
-            tup = sorted_word_dict[word][0]
-            color = tup[1]
-            top_colors.append(color)
-            # adj_color = energy_adjust(color, energy)
-            # top_colors.append(adj_color)
+    for tup in keywords:
+        word = tup[0]
+        sim_score = tup[1]
+        if word in sorted_word_dict:
+            above_thresh = True
+            while above_thresh:
+                tups = sorted_word_dict[word]
+                for tup in tups:
+                    score = tup[0]
+                    color = tup[1]
+                    if score >= 10:
+                        if color in top_colors:
+                            top_colors[color] += sim_score * normalize_score(
+                                (score), total_votes[word], total_votes_num)
+                        else:
+                            top_colors[color] = sim_score * normalize_score(
+                                (score), total_votes[word], total_votes_num)
+                    else:
+                        above_thresh = False
 
     return top_colors
+
+# top_colors_from_keywords([('beach', 1), ('beauty', 1)], 5)
+# top_colors_from_keywords([('baby', 0.5), ('beach', 1)], 5)
+# top_colors_from_keywords([('abuse', 1)], 5)
+# top_colors_from_keywords([('cold', 1), ('snorkel', 1)], 5)
 
 
 def palette_generator(hex_codes, n):
