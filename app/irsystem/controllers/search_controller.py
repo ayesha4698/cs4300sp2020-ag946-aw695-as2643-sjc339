@@ -5,11 +5,11 @@ from app.irsystem.models.helpers import NumpyEncoder as NumpyEncoder
 # from app.irsystem.controllers.IR_main import *
 # from app.irsystem.controllers.IR_helpers import *
 from app.irsystem.controllers.rgb2lab import *
-from cossim import *
+# from cossim import *
 
-from quickjs import Function
+# from quickjs import Function
 from colormap import rgb2hex
-from PIL import ImageColor
+# from PIL import ImageColor
 import re
 import requests
 import csv
@@ -523,7 +523,7 @@ def create_combo_hex_codes(top_keywords_color_lst, necessary_color_lst):
     combo_hex_code_lst = []
     for i in range(len(top_keywords_color_lst)):
         n = len(top_keywords_color_lst)+len(necessary_color_lst)
-        hex_codes = top_keywords_color_lst[i] + necessary_color_lst
+        hex_codes = necessary_color_lst + top_keywords_color_lst[i]
         combo_hex_code_lst.append(palette_generator(hex_codes, n))
     return combo_hex_code_lst
 
@@ -539,7 +539,14 @@ def input_to_color(keywords, necessary_colors, energy, num_colors):
     num_colors = int(num_colors)
     palette_dict = {}
     top_colors = top_colors_from_keywords(keywords, energy)
+    print("top colors")
+    print(top_colors)
+
     palettes = create_combo_hex_codes([top_colors], necessary_colors)
+    # palettes is a list of lists - - so loop and change for necesarrycolors
+    for x in palettes:
+        for y in range(len(necessary_colors)):
+            palettes[y] = necessary_colors[y]
 
     index = 0
     for p in palettes:
