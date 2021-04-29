@@ -1,3 +1,4 @@
+    
 from . import *
 from app.irsystem.models.helpers import *
 from app.irsystem.models.helpers import NumpyEncoder as NumpyEncoder
@@ -5,11 +6,9 @@ from app.irsystem.models.helpers import NumpyEncoder as NumpyEncoder
 # from app.irsystem.controllers.IR_main import *
 # from app.irsystem.controllers.IR_helpers import *
 from app.irsystem.controllers.rgb2lab import *
-from cossim import *
+#from cossim import *
 
-# from quickjs import Function
 from colormap import rgb2hex
-# from PIL import ImageColor
 import re
 import requests
 import csv
@@ -51,7 +50,6 @@ netid = "Ayesha Gagguturi (ag946), Joy Thean (jct263), Skylar Capasso (sjc339), 
 def to_wordnet(tag):
     """
     Returns a wordnet PartOfSpeech object. None if no valid wordnet tag.
-
     Params: tag     wordnet PartOfSpeech string
     """
     if tag.startswith('J'):
@@ -69,11 +67,9 @@ def keywordMatch(dfns):
     """
     Returns a list of Cymbolism keywords that match to each keyword of the user's
         input, of the following format:
-
         [(keyword, similarity score),
         ...
         (keyword, similarity score)]
-
     Params: dfns    List of user's keywords where each string is formatted:
                         word - definition [List of Strings]
     """
@@ -191,7 +187,6 @@ def keywordMatch(dfns):
 def deltaE(lab1, lab2):
     """
     Returns the perceptual distance between two colors in CIELAB.
-
     Params: lab1    color in LAB code [Tuple of Ints]
             lab2    color in LAB code [Tuple of Ints]
     """
@@ -229,7 +224,6 @@ def deltaE(lab1, lab2):
 def colorDiff(c1, c2, code):
     """
     Returns the distance between two colors in either RGB space or HSL space.
-
     Params: c1      color in RGB, HSL, or LAB code [Tuple of Ints]
             c2      color in RGB, HSL, or LAB code [Tuple of Ints]
             code    'rgb', 'hsv' [String]
@@ -252,7 +246,6 @@ def getRGBDists(reqColor, palettes):
     Returns a dictionary where the keys are palette IDs and the values are
         the minimum RGB euclidian distances from the required color to every
         color on the palette.
-
     Params: reqColor    user-inputted clean hexcode color [String]
             palettes    palette IDs to Lists of clean hexcodes [Dict of Lists of Strings]
     """
@@ -278,7 +271,6 @@ def getHSVDists(reqColor, palettes):
     Returns a dictionary where the keys are palette IDs and the values are
         the minimum HSV cartesian distances from the required color to every
         color on the palette.
-
     Params: reqColor    user-inputted clean hexcode color [String]
             palettes    palette IDs to Lists of clean hexcodes [Dict of Lists of Strings]
     """
@@ -306,7 +298,6 @@ def getPerceptualDists(reqColor, palettes):
     Returns a dictionary where the keys are palette IDs and the values are
         the minimum perceptual distance of the required color to every
         color on the palette.
-
     Params: reqColor    user-inputted clean hexcode color [String]
             palettes    palette IDs to Lists of clean hexcodes [Dict of Lists of Strings]
     """
@@ -333,12 +324,9 @@ def CloseColorHelper(cymColors, colorToMatch):
     """
       Gets the closest color to the Cymbolism list of colors
       based on the RGB distance
-
       Params: cymColors: list of 19 colors from the Cymbolism website (hexcodes)  = Clean - without hashtag
               colorToMatch: one color from the palette to match
-
       Returns: one of the 19 colors ( hexcode)
-
       """
 
     returnlist = {}
@@ -361,12 +349,10 @@ def keyword(userWords, paletteDict):
       Returns one dictionary that includes the percentage score based on the colors and keywords
       Returns another dictionary that also includes the keyword and the corresponding percentage score
       for each palette
-
       Params: userWords: the keywords that the user inputted matched
       to a cymbolism words
               paletteDict: dictionary of the palettes
               data is dictionary where the key is the keyword, the value is list where each c
-
       Returns: Dictionary in format: {palette_id: average,...}
                                     {palette_id: [(keyword, percent), (keyword, percent),...],...}
       """
@@ -394,9 +380,7 @@ def convertColor(color, fromCode, toCode):
     """
     Returns a color converted from one code system to another. None if any
         params are incorrectly formatted. (all clean hexcodes)
-
     Ex: convertColor('(255,255,255)', 'rgb', 'hex') -> 'FFFFFF'
-
     Params: color       clean hexcode, rgb, hsl [String or Tuple of Ints]
             fromCode    'hex', 'rgb', 'hsl' [String]
             toCode      'hex', 'rgb', 'hsl', 'hsv', 'lab' [String]
@@ -470,13 +454,10 @@ def energy_adjust(color, energy):
 
 def clean_hex(color):
     """
-
       This function converts the color names in the dataset to just be a hex number
       For example:
         'olive #808000' -> 808000
-
       Params: color     string of form 'color #hex'
-
     """
     split = color.find('#')
     return color[split+1:]
@@ -665,15 +646,12 @@ def input_to_color(keywords, necessary_colors, energy, num_colors):
 def getPalettes(keywords, reqColors, energy, numColors):
     """
     Returns a list of palettes sorted from highest to lowest ranked.
-
     Returns a dictionary of the following format: (all clean hexcodes)
         { paletteID: (List of Colors in Palette, Score),
           ...
           paletteID: (List of Colors in Palette, Score) }
-
     Returns another dictionary that also includes the keyword and the corresponding percentage score
       for each palette
-
     Params: keywords    Cymbolism words matched to user input [List of Strings]
             reqColors   list of user-inputted clean hexcode color [List of String]
             energy      user-input on the muted to bright scale [Int]
@@ -697,20 +675,16 @@ def scorePalettes(palettes, keywords, reqColors):
     """
     Returns a new dictionary that scores and ranks each palette based on the
         following factors and weights:
-
         1. RGB Euclidian Distance to Required Color                        25%
         2. HSV Cartesian Distance to Required Color                        25%
         3. Delta-E Distance to Required Color?                             0%
         4. Cymbolism Keyword Close Color Percentages                       50%
-
     Returns another dictionary that also includes the keyword and the corresponding percentage score
       for each palette
-
     Final dictionary will be of the following format: (all clean hexcodes)
         { paletteID: (List of Colors in Palette, Score),
           ...
           paletteID: (List of Colors in Palette, Score) }
-
     Params: palettes    palette IDs to Lists of clean hexcodes [Dict of Lists of Strings]
             keywords    Cymbolism words matched to user input [List of Strings]
             reqColors   list of user-inputted clean hexcode color [List of String]
