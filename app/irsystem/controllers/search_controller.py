@@ -17,6 +17,7 @@ import json
 import colorsys
 from nltk.corpus import wordnet, stopwords
 from nltk.stem import WordNetLemmatizer
+from nltk.stem.snowball import SnowballStemmer
 import nltk
 
 
@@ -40,6 +41,9 @@ for i in range(len(cymData['word'])):
     color = cymData['word'][i]
     colorName = color[color.index(' ')+2:]
     cymColorsInvInd[colorName] = i
+
+stop_words = set(stopwords.words('english'))
+stemmer = SnowballStemmer("english")
 
 netid = "Ayesha Gagguturi (ag946), Joy Thean (jct263), Skylar Capasso (sjc339), Anishka Singh (as2643), Alisa Wong (aw695)"
 
@@ -65,123 +69,181 @@ def to_wordnet(tag):
     return None
 
 
+def searchCymDfns(w1):
+    """
+    Returns the similarity score and Cymbolism word match for a given Synset object.
+    This function searches all the definitions of all the Cymbolism words to
+    find the highest similarity score with the given keyword.
+
+    Params: w1      Synset object
+    """
+    maxSim = 0
+    # dummy run for speed
+    wt = wordnet.synsets('cool')[-1]    # arbitrary word that doesn't have match in dataset
+    for cymW in cymData.keys():
+        cymW = cymW.replace(" ", "_")
+        for w2 in wordnet.synsets(cymW):
+            sim = wt.wup_similarity(w2)
+            if sim is None:
+                sim = wt.path_similarity(w2)
+            if sim is not None and sim > maxSim:
+                maxSim = sim
+                match = cymW
+
+    # real run
+    for cymW in cymData.keys():
+        cymW = cymW.replace(" ", "_")
+        for w2 in wordnet.synsets(cymW):
+            sim = w1.wup_similarity(w2)
+            if sim is None:
+                sim = w1.path_similarity(w2)
+            if sim is not None and sim > maxSim:
+                maxSim = sim
+                match = cymW
+
+    # maxSim = max([0, maxSim - .1])                  # adjust? fix later
+    return maxSim, match
+
+
+def searchKeywordDfn(w1):
+    """
+    Returns the similarity score and Cymbolism word match for a given Synset object.
+    This function searches all the definitions of all the Cymbolism words to
+    find the highest similarity score with the given keyword.
+
+    Params: w1      Synset object
+    """
+    maxSim = 0
+    toks = tokenize(w1.definition())
+    toks = [w for w in toks if not w in stop_words]
+
+    tagged = nltk.pos_tag(toks)
+    lemmatzr = WordNetLemmatizer()
+
+    synsets = []
+    n = []
+    v = []
+    a = []
+    r = []
+    s = []
+
+    for tok in tagged:
+        wn_tag = to_wordnet(tok[1])
+        if not wn_tag:
+            continue
+
+        lemma = lemmatzr.lemmatize(tok[0], pos=wn_tag)
+        if wordnet.synsets(lemma, pos=wn_tag) != []:
+            word = wordnet.synsets(lemma, pos=wn_tag)[0]
+        else:
+            word = wordnet.synsets(lemma)[0]
+
+        if word.pos() == 'n':
+            n = n + [word]
+        elif word.pos() == 'v':
+            v = v + [word]
+        elif word.pos() == 'a':
+            a = a + [word]
+        elif word.pos() == 'r':
+            r = r + [word]
+        elif word.pos() == 's':
+            s = s + [word]
+        else:
+            synsets = synsets + [word]
+
+    synsets = a + n + s + r + v + synsets
+
+    for w3 in synsets:
+        for cymW in cymData.keys():
+            cymW = cymW.replace(" ", "_")
+            for w2 in wordnet.synsets(cymW):
+                sim = w3.wup_similarity(w2)
+                if sim is None:
+                    sim = w3.path_similarity(w2)
+                if sim is not None and sim > maxSim:
+                    maxSim = sim
+                    match = cymW
+
+    # maxSim = max([0, maxSim - .2])                  # adjust? fix later
+    return maxSim, match
+
+
+def getSynset(dfn):
+    """
+    Returns the Synset object that matches the word and
+        definition inputted by the user.
+
+    Params: dfn     User's keyword in the format:
+                        'word - definition' [String]
+    """
+    try:
+        kw = dfn[:dfn.index("-")-1]         # skip the space
+        kw = stemmer.stem(kw)
+        syns = wordnet.synsets(kw.replace(" ", "_"))
+
+        if syns == []:
+            kw = dfn[:dfn.index("-")-1]
+            syns = wordnet.synsets(kw.replace(" ", "_"))
+
+        query = dfn[dfn.index("-")+2:]      # skip the space
+    
+    except:
+        return None
+
+    # find Synset object based on definition
+    msgs = []
+    for syn in syns:
+        toks = tokenize(syn.definition())
+        msgs.append({'toks': toks})
+
+    inv_idx = build_inverted_index(msgs)
+    idf = compute_idf(inv_idx, len(msgs))
+    inv_idx = {key: val for key, val in inv_idx.items()
+                if key in idf}
+    doc_norms = compute_doc_norms(inv_idx, idf, len(msgs))
+    ind_search = index_search(query, inv_idx, idf, doc_norms)
+
+    msg_id = ind_search[0][1]
+    return syns[msg_id]
+
+
 def keywordMatch(dfns):
     """
     Returns a list of Cymbolism keywords that match to each keyword of the user's
         input, of the following format:
-
         [(keyword, similarity score),
         ...
         (keyword, similarity score)]
-
     Params: dfns    List of user's keywords where each string is formatted:
-                        word - definition [List of Strings]
+                        'word - definition' [List of Strings]
     """
     synwords = []
     keywords = []
 
-    stop_words = set(stopwords.words('english'))
-
     for dfn in dfns:
-        kw = dfn[:dfn.index("-")-1]                     # skip the space
-        query = dfn[dfn.index("-")+2:]                  # skip the space
-        syns = wordnet.synsets(kw.replace(" ", "_"))
-
-        # find Synset object based on definition
-        msgs = []
-        for syn in syns:
-            toks = tokenize(syn.definition())
-            msgs.append({'toks': toks})
-
-        inv_idx = build_inverted_index(msgs)
-        idf = compute_idf(inv_idx, len(msgs))
-        inv_idx = {key: val for key, val in inv_idx.items()
-                   if key in idf}
-        doc_norms = compute_doc_norms(inv_idx, idf, len(msgs))
-        ind_search = index_search(query, inv_idx, idf, doc_norms)
-
-        msg_id = ind_search[0][1]
-        synwords.append(syns[msg_id])
+        s = getSynset(dfn)
+        if s is not None:
+            synwords.append(s)
 
     for w1 in synwords:
         match = ''
         maxSim = 0
-
+        
         # keyword or keyword's synonyms are in Cymbolism
-        for lem in w1.lemmas():
-            if lem.name() in cymData.keys():
-                maxSim = 1.0
-                match = lem.name()
-                break
+        if maxSim == 0:
+            for lem in w1.lemmas():
+                if lem.name() in cymData.keys():
+                    maxSim = 1.0
+                    match = lem.name()
+                    break
 
         # keyword matches Cymbolism word's meanings
         if maxSim == 0:
-            for cymW in cymData.keys():
-                cymW = cymW.replace(" ", "_")
-
-                for w2 in wordnet.synsets(cymW):
-                    sim = w1.wup_similarity(w2)
-                    if sim is None:
-                        sim = w1.path_similarity(w2)
-                    if sim is not None and sim > maxSim:
-                        maxSim = sim
-                        match = cymW
-
-            maxSim = max([0, maxSim - .1])                  # adjust? fix later
+            maxSim, match = searchCymDfns(w1)
 
         # keyword's definition matches Cymbolism word's meanings
         if maxSim == 0:
-            toks = tokenize(w1.definition())
-            toks = [w for w in toks if not w in stop_words]
-
-            tagged = nltk.pos_tag(toks)
-            lemmatzr = WordNetLemmatizer()
-
-            synsets = []
-            n = []
-            v = []
-            a = []
-            r = []
-            s = []
-
-            for tok in tagged:
-                wn_tag = to_wordnet(tok[1])
-                if not wn_tag:
-                    continue
-
-                lemma = lemmatzr.lemmatize(tok[0], pos=wn_tag)
-                if wordnet.synsets(lemma, pos=wn_tag) != []:
-                    word = wordnet.synsets(lemma, pos=wn_tag)[0]
-                else:
-                    word = wordnet.synsets(lemma)[0]
-
-                if word.pos() == 'n':
-                    n = n + [word]
-                elif word.pos() == 'v':
-                    v = v + [word]
-                elif word.pos() == 'a':
-                    a = a + [word]
-                elif word.pos() == 'r':
-                    r = r + [word]
-                elif word.pos() == 's':
-                    s = s + [word]
-                else:
-                    synsets = synsets + [word]
-
-            synsets = a + n + s + r + v + synsets
-
-            for w3 in synsets:
-                for cymW in cymData.keys():
-                    cymW = cymW.replace(" ", "_")
-                    for w2 in wordnet.synsets(cymW):
-                        sim = w3.wup_similarity(w2)
-                        if sim is None:
-                            sim = w3.path_similarity(w2)
-                        if sim is not None and sim > maxSim:
-                            maxSim = sim
-                            match = cymW
-
-            maxSim = max([0, maxSim - .2])                  # adjust? fix later
+            maxSim, match = searchKeywordDfn(w1)
 
         keywords.append((match, maxSim))
 
