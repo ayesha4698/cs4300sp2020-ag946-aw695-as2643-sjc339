@@ -5,7 +5,7 @@ from app.irsystem.models.helpers import NumpyEncoder as NumpyEncoder
 # from app.irsystem.controllers.IR_main import *
 # from app.irsystem.controllers.IR_helpers import *
 from app.irsystem.controllers.rgb2lab import *
-# from cossim import *
+from cossim import *
 
 # from quickjs import Function
 from colormap import rgb2hex
@@ -15,7 +15,9 @@ import requests
 import csv
 import json
 import colorsys
-from nltk.corpus import wordnet
+from nltk.corpus import wordnet, stopwords
+from nltk.stem import WordNetLemmatizer
+import nltk
 
 
 ###########################################################################################
@@ -46,9 +48,31 @@ netid = "Ayesha Gagguturi (ag946), Joy Thean (jct263), Skylar Capasso (sjc339), 
 #                                       IR HELPERS                                        #
 ###########################################################################################
 
+def to_wordnet(tag):
+    """
+    Returns a wordnet PartOfSpeech object. None if no valid wordnet tag.
+
+    Params: tag     wordnet PartOfSpeech string
+    """
+    if tag.startswith('J'):
+        return wordnet.ADJ
+    elif tag.startswith('N'):
+        return wordnet.NOUN
+    elif tag.startswith('R'):
+        return wordnet.ADV
+    elif tag.startswith('V'):
+        return wordnet.VERB
+    return None
+
+
 def keywordMatch(dfns):
     """
-    Returns a list of Cymbolism keywords that match to each keyword of the user's input.
+    Returns a list of Cymbolism keywords that match to each keyword of the user's
+        input, of the following format:
+
+        [(keyword, similarity score),
+        ...
+        (keyword, similarity score)]
 
     Params: dfns    List of user's keywords where each string is formatted:
                         word - definition [List of Strings]
@@ -56,11 +80,14 @@ def keywordMatch(dfns):
     synwords = []
     keywords = []
 
+    stop_words = set(stopwords.words('english'))
+
     for dfn in dfns:
         kw = dfn[:dfn.index("-")-1]                     # skip the space
         query = dfn[dfn.index("-")+2:]                  # skip the space
         syns = wordnet.synsets(kw.replace(" ", "_"))
 
+        # find Synset object based on definition
         msgs = []
         for syn in syns:
             toks = tokenize(syn.definition())
@@ -71,13 +98,92 @@ def keywordMatch(dfns):
         inv_idx = {key: val for key, val in inv_idx.items()
                    if key in idf}
         doc_norms = compute_doc_norms(inv_idx, idf, len(msgs))
-
         ind_search = index_search(query, inv_idx, idf, doc_norms)
+
         msg_id = ind_search[0][1]
         synwords.append(syns[msg_id])
 
-    for syn in synwords:
-        pass
+    for w1 in synwords:
+        match = ''
+        maxSim = 0
+
+        # keyword or keyword's synonyms are in Cymbolism
+        for lem in w1.lemmas():
+            if lem.name() in cymData.keys():
+                maxSim = 1.0
+                match = lem.name()
+                break
+
+        # keyword matches Cymbolism word's meanings
+        if maxSim == 0:
+            for cymW in cymData.keys():
+                cymW = cymW.replace(" ", "_")
+
+                for w2 in wordnet.synsets(cymW):
+                    sim = w1.wup_similarity(w2)
+                    if sim is None:
+                        sim = w1.path_similarity(w2)
+                    if sim is not None and sim > maxSim:
+                        maxSim = sim
+                        match = cymW
+
+            maxSim = max([0, maxSim - .1])                  # adjust? fix later
+
+        # keyword's definition matches Cymbolism word's meanings
+        if maxSim == 0:
+            toks = tokenize(w1.definition())
+            toks = [w for w in toks if not w in stop_words]
+
+            tagged = nltk.pos_tag(toks)
+            lemmatzr = WordNetLemmatizer()
+
+            synsets = []
+            n = []
+            v = []
+            a = []
+            r = []
+            s = []
+
+            for tok in tagged:
+                wn_tag = to_wordnet(tok[1])
+                if not wn_tag:
+                    continue
+
+                lemma = lemmatzr.lemmatize(tok[0], pos=wn_tag)
+                if wordnet.synsets(lemma, pos=wn_tag) != []:
+                    word = wordnet.synsets(lemma, pos=wn_tag)[0]
+                else:
+                    word = wordnet.synsets(lemma)[0]
+
+                if word.pos() == 'n':
+                    n = n + [word]
+                elif word.pos() == 'v':
+                    v = v + [word]
+                elif word.pos() == 'a':
+                    a = a + [word]
+                elif word.pos() == 'r':
+                    r = r + [word]
+                elif word.pos() == 's':
+                    s = s + [word]
+                else:
+                    synsets = synsets + [word]
+
+            synsets = a + n + s + r + v + synsets
+
+            for w3 in synsets:
+                for cymW in cymData.keys():
+                    cymW = cymW.replace(" ", "_")
+                    for w2 in wordnet.synsets(cymW):
+                        sim = w3.wup_similarity(w2)
+                        if sim is None:
+                            sim = w3.path_similarity(w2)
+                        if sim is not None and sim > maxSim:
+                            maxSim = sim
+                            match = cymW
+
+            maxSim = max([0, maxSim - .2])                  # adjust? fix later
+
+        keywords.append((match, maxSim))
 
     return keywords
 
@@ -253,8 +359,8 @@ def CloseColorHelper(cymColors, colorToMatch):
 def keyword(userWords, paletteDict):
     """
       Returns one dictionary that includes the percentage score based on the colors and keywords
-      Returns another dictionary that also includes the keyword and the corresponding percentage score 
-      for each palette 
+      Returns another dictionary that also includes the keyword and the corresponding percentage score
+      for each palette
 
       Params: userWords: the keywords that the user inputted matched
       to a cymbolism words
@@ -424,7 +530,7 @@ def parse_data():
 
 def normalize_score(score, num_votes, total_votes):
     """
-        :param score: float 
+        :param score: float
         :param necessary_color: list of hex codes
         :param energy:
         :return: normalized score (float)
@@ -565,7 +671,7 @@ def getPalettes(keywords, reqColors, energy, numColors):
           ...
           paletteID: (List of Colors in Palette, Score) }
 
-    Returns another dictionary that also includes the keyword and the corresponding percentage score 
+    Returns another dictionary that also includes the keyword and the corresponding percentage score
       for each palette
 
     Params: keywords    Cymbolism words matched to user input [List of Strings]
@@ -597,7 +703,7 @@ def scorePalettes(palettes, keywords, reqColors):
         3. Delta-E Distance to Required Color?                             0%
         4. Cymbolism Keyword Close Color Percentages                       50%
 
-    Returns another dictionary that also includes the keyword and the corresponding percentage score 
+    Returns another dictionary that also includes the keyword and the corresponding percentage score
       for each palette
 
     Final dictionary will be of the following format: (all clean hexcodes)
