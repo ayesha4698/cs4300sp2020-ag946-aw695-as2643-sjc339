@@ -932,7 +932,6 @@ def search():
         energy = request.form.get("energy")
         color1 = request.form.get("color1")
         color2 = request.form.get("color2")
-        # numcolors = request.args.get("numcolors")
         multiDefs = request.form.get("multiDefs")
         invalidWords = request.form.get("invalidWords")
         submit = True
@@ -976,29 +975,25 @@ def search():
             multiDefList = multiDefs.split(",")
             for d in multiDefList:
                 try:
-                    print("radio button?")
+                    print("testing1")
                     print(request.form[d])
-                    print(request.form.getlist(d))
-                    if request.form[d]:
-                        print("radio selected")
+                    print(len(request.form[d]))
+                    print("ok")
+                    if len(request.form[d]) > 0:
+                        print("testing2")
                         keywordDefs.append(
                             d + " - " + request.form[d].replace("%", " "))
                     else:
-                        print("missing def")
                         errors.append("multi")
-                        print(errors)
+                        print("hello!!")
                         return render_template('search.html', netid=netid, results=None, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit, multiDefs=multiDefs)
                 except:
                     if len(errors) == 0:
-                        print('SHOW RULE')
                         return render_template('search.html', netid=netid, results=None, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit, multiDefs=multiDefs, showModal=True)
-                    print('HELLLLLLLLLLLLLLLLO')
                     return render_template('search.html', netid=netid, results=None, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit, multiDefs=multiDefs)
         for k in keywords.split(","):
             if k not in multiDefList:
                 keywordDefs.append(k)
-        print('keyword defs')
-        print(keywordDefs)
 
         reqColors = []
         if color1:
@@ -1006,20 +1001,16 @@ def search():
         if color2:
             reqColors.append(color2)
 
+        results = []
+        scored = {}
+        keywordBreakdown = {}
         if len(errors) == 0:
-            #results = {}
-            print('HERE ----------')
-            print(keywordDefs)
-            print(reqColors)
-            print(energy)
-
             results, scored, keywordBreakdown = getPalettes(
                 keywordDefs, reqColors, energy)
 
             if len(results) > 5:
                 results = results[:5]
-        print("RESULTS")
-        print(results)
-        return render_template('search.html', netid=netid, results=results, scored=scored, keywordBreakdown=keywordBreakdown, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit)
+
+        return render_template('search.html', netid=netid, results=results, scored=scored, keywordBreakdown=keywordBreakdown, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit, reset=True)
 
     return render_template('search.html', netid=netid)

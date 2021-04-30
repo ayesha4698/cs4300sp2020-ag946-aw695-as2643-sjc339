@@ -39,15 +39,19 @@ $(document).ready(function () {
                         },
                         async: false,
                         success: function (results) {
+                            console.log("hello???");
+                            console.log(results);
                             // filter on adjectives + nouns
                             definitions = results["definitions"];
                             if (definitions.length > 1) {
                                 valid = true;
-                                let divHTML = $("#options").append("<div id='" + word + "-options' class='mt-3'></div>")
-                                $(divHTML).append("<label for=''>" + word + "</label><br>");
+                                $("#options").append("<div id='" + word + "-options' class='mt-3'></div>");
+                                // console.log($("#testing"));
+                                // console.log(document.getElementById("testing"));
+                                $("#" + word + "-options").append("<label class='options-label' for='" + word + "'>" + word + "</label><br>");
                                 definitions.forEach(d => {
-                                    let radio = '<input type="radio" name=' + word + ' value=' + d["definition"].replaceAll(" ", "%") + '>  ' + d["definition"] + '</input><br>';
-                                    $("#options").append(radio);
+                                    let radio = '<div class="radio-input d-flex flex-row"><input class="radio-button" type="radio" name=' + word + ' value=' + d["definition"].replaceAll(" ", "%") + '><p class="def-text mb-1 ms-2">' + d["definition"] + '</p></input></div>';
+                                    $("#" + word + "-options").append(radio);
                                 })
 
                                 let multiDefs = $("#multiDefWords").val();
@@ -79,7 +83,7 @@ $(document).ready(function () {
                 }
             }
         },
-        create: function (input) {
+        create: function(input) {
             return {
                 value: input,
                 text: input
@@ -199,4 +203,8 @@ function createWord(arg) {
     let selectize = $keywords[0].selectize;
     selectize.removeItem(txt.substring(0, i));
     selectize.createItem(txt);
+}
+
+function closeModal() {
+    $("#background").addClass("hidden");
 }
