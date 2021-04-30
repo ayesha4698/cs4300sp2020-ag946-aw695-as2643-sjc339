@@ -1,8 +1,8 @@
-
-import math
-from nltk.stem.snowball import SnowballStemmer
-from nltk.stem import WordNetLemmatizer
 from nltk.corpus import wordnet, stopwords
+from nltk.stem import WordNetLemmatizer
+from nltk.stem.snowball import SnowballStemmer
+import time
+import math
 from . import *
 from app.irsystem.models.helpers import *
 from app.irsystem.models.helpers import NumpyEncoder as NumpyEncoder
@@ -23,7 +23,6 @@ import itertools
 nltk.download('stopwords')
 nltk.download('wordnet')
 nltk.download('averaged_perceptron_tagger')
-
 
 ###########################################################################################
 #                                          GLOBALS                                        #
@@ -188,7 +187,7 @@ def getSynset(dfn):
         kw = stemmer.stem(kw)
         print(kw)
         syns = wordnet.synsets(kw.replace(" ", "_"))
-        #print(syns, kw)
+        print(syns, kw)
         if syns == []:
             kw = dfn[:dfn.index("-")-1]
             syns = wordnet.synsets(kw.replace(" ", "_"))
@@ -230,9 +229,12 @@ def keywordMatch(dfns):
     keywords = []
 
     for dfn in dfns:
-        s = getSynset(dfn)
-        if s is not None:
-            synwords.append(s)
+        if dfn in cymData.keys():
+            synwords.append(wordnet.synsets(dfn)[0])
+        else:
+            s = getSynset(dfn)
+            if s is not None:
+                synwords.append(s)
     print('syn', synwords)
     for w1 in synwords:
         match = ''
@@ -700,20 +702,41 @@ def create_combo_hex_codes(top_keywords_color_lst, necessary_color_lst):
 
     keyword_lst = list(set(top_keywords_color_lst.keys()))
 
+    start = time.time()
     combinations_object = list(itertools.combinations(keyword_lst, 2))
-    if(len(combinations_object) > 100):
-        combinations_object = combinations_object[:100]
+    print('combinations time')
+    print(time.time() - start)
+
+    combo_short = combinations_object[:5]
+
+    # if(len(combinations_object) > 100):
+    #     combinations_object = combinations_object[:100]
 
     print(len(combinations_object))
 
-    for i in range(len(combinations_object)):
-        n = len(combinations_object)+len(necessary_color_lst)
-        hex_codes = necessary_color_lst + list(combinations_object[i])
+    # for i in range(len(combinations_object)):
+    #     n = len(combinations_object)+len(necessary_color_lst)
+    #     hex_codes = necessary_color_lst + list(combinations_object[i])
+
+    #     start = time.time()
+
+    #     combo_hex_code_lst.append(palette_generator(hex_codes, n))
+    #     print('palette generator time')
+    #     print(time.time() - start)
+    for i in range(len(combo_short)):
+        n = len(combo_short)+len(necessary_color_lst)
+        hex_codes = necessary_color_lst + list(combo_short[i])
+
+        start = time.time()
+
         combo_hex_code_lst.append(palette_generator(hex_codes, n))
+        print('palette generator time')
+        print(time.time() - start)
+
     return combo_hex_code_lst
 
 
-def input_to_color(keywords, necessary_colors, energy, num_colors):
+def input_to_color(keywords, necessary_colors, energy):
     """ compute the colors from the user input
 :param keywords: list of words
 :param necessary_color: list of hex codes
@@ -721,12 +744,20 @@ def input_to_color(keywords, necessary_colors, energy, num_colors):
 :return: dict with the format {palette_id: [list of hexcodes, ...],...}}
 """
     energy = int(energy)
-    num_colors = int(num_colors)
+    # num_colors = int(num_colors)
     palette_dict = {}
-    print('keywords', keywords)
-    top_colors = top_colors_from_keywords(keywords, energy)
+    # print('keywords', keywords)
 
+    start = time.time()
+    top_colors = top_colors_from_keywords(keywords, energy)
+    print('top colors time')
+    print(time.time() - start)
+
+    start = time.time()
     palettes = create_combo_hex_codes(top_colors, necessary_colors)
+    print('combo hex codes time')
+    print(time.time() - start)
+
     # palettes is a list of lists - - so loop and change for necesarrycolors
     for x in palettes:
         for y in range(len(necessary_colors)):
@@ -740,7 +771,7 @@ def input_to_color(keywords, necessary_colors, energy, num_colors):
     return palette_dict
 
 
-def getPalettes(keywords, reqColors, energy, numColors):
+def getPalettes(keywords, reqColors, energy):
     """
     Returns a list of palettes sorted from highest to lowest ranked.
     Returns a dictionary of the following format: (all clean hexcodes)
@@ -756,14 +787,26 @@ def getPalettes(keywords, reqColors, energy, numColors):
             energy      user-input on the muted to bright scale [Int]
             numColors   number of colors the user wants in their palette [Int]
     """
-
+    start = time.time()
     ranked = []
-    print("key", keywords)
+    # print("key", keywords)
     cymKeywords = keywordMatch(keywords)
-    print(cymKeywords)
-    palettes = input_to_color(cymKeywords, reqColors, energy, numColors)
+    # print(cymKeywords)
+    print('keyword match time')
+    print(time.time() - start)
+    start = time.time()
+
+    palettes = input_to_color(cymKeywords, reqColors, energy)
+    print('input to color time')
+    print(time.time() - start)
     keywords = [i[0] for i in cymKeywords]
+
+    start = time.time()
+
     scored, keywordBreakdown = scorePalettes(palettes, keywords, reqColors)
+
+    print('score palettes time')
+    print(time.time() - start)
 
     sortedScored = sorted(scored.items(), key=lambda scored: scored[1][1])
 
@@ -862,7 +905,7 @@ def search():
         energy = request.form.get("energy")
         color1 = request.form.get("color1")
         color2 = request.form.get("color2")
-        numcolors = request.args.get("numcolors")
+        # numcolors = request.args.get("numcolors")
         multiDefs = request.form.get("multiDefs")
         invalidWords = request.form.get("invalidWords")
         submit = True
@@ -898,9 +941,11 @@ def search():
         if color2 and re.search("^([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", color2) is None:
             errors.append("color2")
 
+        multiDefList = []
+
         if multiDefs:
-            multiDefs = multiDefs.split(",")
-            for d in multiDefs:
+            multiDefList = multiDefs.split(",")
+            for d in multiDefList:
                 try:
                     print("radio button?")
                     print(request.form[d])
@@ -918,9 +963,10 @@ def search():
                     if len(errors) == 0:
                         return render_template('search.html', netid=netid, results=None, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit, multiDefs=multiDefs, showModal=True)
                     return render_template('search.html', netid=netid, results=None, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit, multiDefs=multiDefs)
-            for k in keywords.split(","):
-                if k not in multiDefs:
-                    keywordDefs.append(k)
+        for k in keywords.split(","):
+            if k not in multiDefList:
+                keywordDefs.append(k)
+        print('keyword defs')
         print(keywordDefs)
 
         reqColors = []
@@ -931,7 +977,13 @@ def search():
 
         if len(errors) == 0:
             #results = {}
-            results = getPalettes(keywordDefs, reqColors, energy, numcolors)
+            print('HERE ----------')
+            print(keywordDefs)
+            print(reqColors)
+            print(energy)
+
+            results, scored, keywordBreakdown = getPalettes(
+                keywordDefs, reqColors, energy)
 
         return render_template('search.html', netid=netid, results=results, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit, multiDefs=multiDefs)
 
