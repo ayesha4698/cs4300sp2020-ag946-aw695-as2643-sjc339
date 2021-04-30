@@ -1,4 +1,8 @@
-    
+
+import math
+from nltk.stem.snowball import SnowballStemmer
+from nltk.stem import WordNetLemmatizer
+from nltk.corpus import wordnet, stopwords
 from . import *
 from app.irsystem.models.helpers import *
 from app.irsystem.models.helpers import NumpyEncoder as NumpyEncoder
@@ -19,11 +23,7 @@ import itertools
 nltk.download('stopwords')
 nltk.download('wordnet')
 nltk.download('averaged_perceptron_tagger')
-from nltk.corpus import wordnet, stopwords
-from nltk.stem import WordNetLemmatizer
-from nltk.stem.snowball import SnowballStemmer
 
-import math
 
 ###########################################################################################
 #                                          GLOBALS                                        #
@@ -83,7 +83,8 @@ def searchCymDfns(w1):
     match = ''
     maxSim = 0
     # dummy run for speed
-    wt = wordnet.synsets('cool')[-1]    # arbitrary word that doesn't have match in dataset
+    # arbitrary word that doesn't have match in dataset
+    wt = wordnet.synsets('cool')[-1]
     for cymW in cymData.keys():
         cymW = cymW.replace(" ", "_")
         for w2 in wordnet.synsets(cymW):
@@ -183,7 +184,7 @@ def getSynset(dfn):
     """
     try:
         kw = dfn[:dfn.index("-")-1]         # skip the space
-        
+
         kw = stemmer.stem(kw)
         print(kw)
         syns = wordnet.synsets(kw.replace(" ", "_"))
@@ -193,7 +194,7 @@ def getSynset(dfn):
             syns = wordnet.synsets(kw.replace(" ", "_"))
 
         query = dfn[dfn.index("-")+2:]      # skip the space
-    
+
     except:
         print("failure")
         return None
@@ -207,7 +208,7 @@ def getSynset(dfn):
     inv_idx = build_inverted_index(msgs)
     idf = compute_idf(inv_idx, len(msgs))
     inv_idx = {key: val for key, val in inv_idx.items()
-                if key in idf}
+               if key in idf}
     doc_norms = compute_doc_norms(inv_idx, idf, len(msgs))
     ind_search = index_search(query, inv_idx, idf, doc_norms)
 
@@ -236,7 +237,7 @@ def keywordMatch(dfns):
     for w1 in synwords:
         match = ''
         maxSim = 0
-        
+
         # keyword or keyword's synonyms are in Cymbolism
         if maxSim == 0:
             for lem in w1.lemmas():
@@ -509,21 +510,33 @@ def energy_adjust(color, energy):
 """
 
     energy -= 5
-    # print(energy)
 
     rgb = convertColor(color, 'hex', 'rgb')
-    # print(rgb)
 
-    hsl = convertColor(color, 'hex', 'hsl')
+    r = rgb[0]
+    g = rgb[1]
+    b = rgb[2]
 
-    newBrightness = hsl[2] + hsl[2] * ((energy * 20) // 100)
+    if energy > 0:
+        energy *= 10
+        newR = r + (256 - r) * energy // 100
+        newG = g + (256 - g) * energy // 100
+        newB = b + (256 - b) * energy // 100
 
-    # print(newBrightness)
+        newRGB = (abs(newR), abs(newG), abs(newB))
+    elif energy < 0:
+        energy /= 10
+        newR = round(min(max(0, r + (r * energy)), 255))
+        newG = round(min(max(0, g + (g * energy)), 255))
+        newB = round(min(max(0, b + (b * energy)), 255))
 
-    new_rgb = str(hsl[0]) + ',' + str(hsl[1]) + ',' + str(newBrightness)
+        newRGB = (abs(newR), abs(newG), abs(newB))
+    else:
+        newRGB = rgb
 
-    updated_color = convertColor(new_rgb, 'rgb', 'hex')
-    return updated_color
+    newHex = convertColor(newRGB, 'rgb', 'hex')
+
+    return newHex
 
 
 def clean_hex(color):
@@ -684,11 +697,11 @@ def create_combo_hex_codes(top_keywords_color_lst, necessary_color_lst):
     combo_hex_code_lst = []
 
     print('necc', necessary_color_lst)
-   
+
     keyword_lst = list(set(top_keywords_color_lst.keys()))
-    
+
     combinations_object = list(itertools.combinations(keyword_lst, 2))
-    if(len(combinations_object) > 100): 
+    if(len(combinations_object) > 100):
         combinations_object = combinations_object[:100]
 
     print(len(combinations_object))
@@ -851,7 +864,7 @@ def search():
         color2 = request.form.get("color2")
         numcolors = request.args.get("numcolors")
         multiDefs = request.form.get("multiDefs")
-        invalidWords = request.form.get("invalidWords") 
+        invalidWords = request.form.get("invalidWords")
         submit = True
         results = None
         showModal = False
@@ -875,7 +888,7 @@ def search():
                 for w in invalidWordsList:
                     if w not in keywordsList:
                         invalidWordsList.remove(w)
-                
+
                 if len(invalidWordsList) > 0:
                     print("hello?????")
                     errors.append("keywords3")
@@ -894,7 +907,8 @@ def search():
                     print(request.form.getlist(d))
                     if request.form[d]:
                         print("radio selected")
-                        keywordDefs.append(d + " - " + request.form[d].replace("%", " "))
+                        keywordDefs.append(
+                            d + " - " + request.form[d].replace("%", " "))
                     else:
                         print("missing def")
                         errors.append("multi")
@@ -908,7 +922,6 @@ def search():
                 if k not in multiDefs:
                     keywordDefs.append(k)
         print(keywordDefs)
-
 
         reqColors = []
         if color1:
