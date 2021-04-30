@@ -840,59 +840,86 @@ def scorePalettes(palettes, keywords, reqColors):
     return scoreDict, keywordBreakdown
 
 
-@irsystem.route("/", methods=["GET"])
+@irsystem.route("/", methods=["GET", "POST"])
 def search():
-    valid = True
+    if request.method == "POST":
+        errors = []
+        keywords = request.form.get("keywords")
+        keywordDefs = []
+        energy = request.form.get("energy")
+        color1 = request.form.get("color1")
+        color2 = request.form.get("color2")
+        numcolors = request.args.get("numcolors")
+        multiDefs = request.form.get("multiDefs")
+        invalidWords = request.form.get("invalidWords") 
+        submit = True
+        results = None
+        showModal = False
 
-    keywords = request.args.get("keywords")
-    energy = request.args.get("energy")
-    color1 = request.args.get("color1")
-    color2 = request.args.get("color2")
-    numcolors = request.args.get("numcolors")
+        print(keywords)
+        print(multiDefs)
 
-    keywordString = ""
-    errors = []
+        if (keywords is None and energy is None and color1 is None and color2 is None):
+            submit = False
 
-    submit = True
-    if (keywords == None and energy == None and color1 == None and color2 == None and numcolors == None):
-        submit = False
+        if not keywords:
+            errors.append("keywords1")
+        if keywords:
+            keywordsList = keywords.split(",")
+            if len(keywordsList) == 0:
+                errors.append("keywords1")
+            elif len(keywordsList) > 5:
+                errors.append("keywords2")
+            elif invalidWords:
+                invalidWordsList = invalidWords.split(",")
+                for w in invalidWordsList:
+                    if w not in keywordsList:
+                        invalidWordsList.remove(w)
+                
+                if len(invalidWordsList) > 0:
+                    print("hello?????")
+                    errors.append("keywords3")
 
-    # print(keywords)
-    # print(energy)
-    # print(color1)
-    # print(color2)
-    # print(numcolors)
+        if color1 and re.search("^([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", color1) is None:
+            errors.append("color1")
+        if color2 and re.search("^([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", color2) is None:
+            errors.append("color2")
 
-    if not keywords:
-        errors.append("keywords")
-    if keywords:
-        keywords = keywords.replace(" ", "").split(",")
-        if len(keywords) == 0:
-            errors.append("keywords")
-        else:
-            keywordString = ",".join(map(str, keywords))
+        if multiDefs:
+            multiDefs = multiDefs.split(",")
+            for d in multiDefs:
+                try:
+                    print("radio button?")
+                    print(request.form[d])
+                    print(request.form.getlist(d))
+                    if request.form[d]:
+                        print("radio selected")
+                        keywordDefs.append(d + " - " + request.form[d].replace("%", " "))
+                    else:
+                        print("missing def")
+                        errors.append("multi")
+                        print(errors)
+                        return render_template('search.html', netid=netid, results=None, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit, multiDefs=multiDefs)
+                except:
+                    if len(errors) == 0:
+                        return render_template('search.html', netid=netid, results=None, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit, multiDefs=multiDefs, showModal=True)
+                    return render_template('search.html', netid=netid, results=None, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit, multiDefs=multiDefs)
+            for k in keywords.split(","):
+                if k not in multiDefs:
+                    keywordDefs.append(k)
+        print(keywordDefs)
 
-    if color1 and re.search("^([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", color1) == None:
-        errors.append("color1")
-    if color2 and re.search("^([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", color2) == None:
-        errors.append("color2")
 
-    if not numcolors:
-        errors.append("numcolors")
+        reqColors = []
+        if color1:
+            reqColors.append(color1)
+        if color2:
+            reqColors.append(color2)
 
-    reqColors = []
-    if color1:
-        reqColors.append(color1)
-    if color2:
-        reqColors.append(color2)
+        if len(errors) == 0:
+            #results = {}
+            results = getPalettes(keywordDefs, reqColors, energy, numcolors)
 
-    results = ""
-    if len(errors) == 0:
-        keywords = [
-        'cool - great coolness and composure under strain',
-        'danger - a cause of pain or injury or loss']
+        return render_template('search.html', netid=netid, results=results, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit, multiDefs=multiDefs)
 
-        results, scores, breakdown = getPalettes(
-            keywords, reqColors, energy, numcolors)
-
-    return render_template('search.html', netid=netid, results=results, keywords=keywordString, energy=energy, color1=color1, color2=color2, numcolors=numcolors, errors=errors, submit=submit)
+    return render_template('search.html', netid=netid)
