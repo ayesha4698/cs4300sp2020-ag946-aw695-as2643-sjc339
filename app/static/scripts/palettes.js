@@ -1,5 +1,3 @@
-// var keywords;
-
 $(document).ready(function () {
     var cymbolism = ['abuse', 'accessible', 'addiction', 'agile', 'amusing', 'anger', 'anticipation', 'art deco', 'authentic', 'authority', 'average', 'baby', 'beach', 'beauty', 'beer', 'benign', 'bitter', 'blend', 'blissful', 'bold', 'book', 'boss', 'brooklyn', 'busy', 'calming', 'capable', 'car', 'cat', 'certain', 'charity', 'cheerful', 'chicago', 'classic', 'classy', 'clean', 'cold', 'colonial', 'comfort', 'commerce', 'compelling', 'competent', 'confident', 'consequence', 'conservative', 'contemporary', 'cookie', 'corporate', 'cottage', 'crass', 'creative', 'cute', 'dance', 'dangerous', 'decadent', 'decisive', 'deep', 'devil', 'discount', 'disgust', 'dismal', 'dog', 'drunk', 'dublin', 'duty', 'dynamic', 'earthy', 'easy', 'eclectic', 'efficient', 'elegant', 'elite', 'enduring', 'energetic', 'entrepreneur', 'environmental', 'erotic', 'excited', 'expensive', 'experience', 'fall', 'familiar', 'fast', 'fear', 'female', 'football', 'freedom', 'fresh', 'friendly', 'fun', 'furniture', 'future', 'gay', 'generic', 'georgian', 'gloomy', 'god', 'good', 'goth', 'government', 'grace', 'great', 'grow', 'happy', 'hard', 'hate', 'hazardous', 'hippie', 'hockey', 'honor', 'hope', 'hot', 'hunting', 'hurt', 'hygienic', 'ignorant', 'imagination', 'impossible', 'improbable', 'influence', 'influential', 'insecure', 'inviting', 'invulnerable', 'jacobean', 'jealous', 'joy', 'jubilant', 'junkie', 'knowledge', 'kudos', 'launch', 'lazy', 'leader', 'liberal', 'library', 'light', 'likely', 'lonely', 'love', 'magic', 'marriage', 'maximal', 'mean', 'medicine', 'melancholy', 'mellow', 'minimal', 'mission', 'modern', 'moment', 'money', 'music', 'mystical', 'narcissist', 'natural', 'naughty', 'new', 'nimble', 'now', 'objective', 'old', 'optimistic', 'organic', 'paradise', 'party', 'passion', 'passive', 'peace', 'peaceful', 'personal', 'playful', 'pleasing', 'possible', 'powerful', 'preceding', 'predatory', 'prime', 'probable', 'productive', 'professional', 'profit', 'progress', 'public', 'pure', 'radical', 'railway', 'rain', 'real', 'rebellious', 'recession', 'reconciliation', 'recovery', 'relaxed', 'reliability', 'retro', 'rich', 'risk', 'rococo', 'romantic', 'royal', 'rustic', 'sad', 'sadness', 'safe', 'sarcasm', 'secure', 'sensible', 'sensual', 'sex', 'shabby', 'silly', 'simple', 'slow', 'smart', 'smooth', 'snorkel', 'soft', 'solar', 'sold', 'solid', 'somber', 'spiffy', 'sport', 'spring', 'stability', 'star', 'strong', 'studio', 'style', 'stylish', 'submit', 'suburban', 'success', 'summer', 'sun', 'sunny', 'surprise', 'sweet', 'symbol', 'tasty', 'therapeutic', 'threat', 'time', 'tomorrow', 'treason', 'trust', 'trustworthy', 'uncertain', 'uniform', 'unlikely', 'unsafe', 'urban', 'value', 'vanity', 'victorian', 'vitamin', 'vulnerability', 'vulnerable', 'war', 'warm', 'winter', 'wise', 'wish', 'work', 'worm', 'young'];
 
@@ -16,16 +14,8 @@ $(document).ready(function () {
         colorLabel();
     })
 
-    // console.log("invalid");
-    // console.log($(".invalid-word"));
-    // if ($(".invalid-word").length == 0) {
-    //     $("#invalidWords").removeAttr('value');
-    // }
-
-
-
     var xhr;
-    $("#tagsInput").selectize({
+    var $select = $("#tagsInput").selectize({
         plugins: ["remove_button", "restore_on_backspace"],
         delimiter: ",",
         persist: false,
@@ -49,10 +39,8 @@ $(document).ready(function () {
                         },
                         async: false,
                         success: function (results) {
-                            console.log('API CALL');
                             // filter on adjectives + nouns
                             definitions = results["definitions"];
-                            console.log(definitions);
                             if (definitions.length > 1) {
                                 valid = true;
                                 let divHTML = $("#options").append("<div id='" + word + "-options' class='mt-3'></div>")
@@ -65,8 +53,6 @@ $(document).ready(function () {
                                 let multiDefs = $("#multiDefWords").val();
                                 if (multiDefs == "") {
                                     $("#multiDefWords").val(word);
-                                    console.log("here");
-                                    console.log($("#multiDefWords").val());
                                 } else {
                                     $("#multiDefWords").val(multiDefs + "," + word);
                                 }
@@ -76,17 +62,9 @@ $(document).ready(function () {
                                     valid = true;
                                 }
                             }
-
-                            // if (!valid) {
-                            //     $("#invalidWords").val(0);
-                            //     console.log("invalidd words exist");
-                            // } else {
-                            //     $("#invalidWords").val(1);
-                            //     console.log("no invalid words");
-                            // }
                         },
                         error: function () {
-                            console.log("erroring");
+                            console.log("invalid word");
                             let curr = $("#invalidWords").val();
                             if (curr == "") {
                                 $("#invalidWords").val(word);
@@ -96,7 +74,6 @@ $(document).ready(function () {
                         }
                     });
                     return "<div class='" + (valid ? "" : "invalid-word") + " item' id='w-" + word + "'>" +
-                        // (definitions.length != 0 ? "<div class='hidden' name='" + "'>" + definitions[0]["definition"] + "</div>": "") +
                         '<span class="name">' + word + '</span>' +
                         "</div>";
                 }
@@ -109,6 +86,26 @@ $(document).ready(function () {
             }
         }
     });
+    
+    // remove from multiDefs when removing item
+    var selectize = $select[0].selectize;
+    selectize.on("item_remove", function (e) {
+        let multiDefs = $("#multiDefWords").val()
+        if (multiDefs) {
+            let multiDefList = multiDefs.split(",");
+            let i = multiDefList.indexOf(e);
+            let res = "";
+            if (i != -1) {
+                for (j = 0; j < multiDefList.length; j++) {
+                    if (i != j) {
+                        if (res != "") { res += "," }
+                        res += multiDefList[j];
+                    }
+                }
+                $("#multiDefWords").val(res);
+            }
+        }
+    })
 
     // var xhr;
     // $keywords = $("#tagsInput").selectize({
@@ -202,18 +199,4 @@ function createWord(arg) {
     let selectize = $keywords[0].selectize;
     selectize.removeItem(txt.substring(0, i));
     selectize.createItem(txt);
-}
-
-function reset() {
-    let words = $("#tagsInput").val().split(',');
-    let multi = $("#multiDefWords").val().split(',');
-    console.log('RESETTING')
-    console.log(words);
-    console.log(multi);
-    multi.forEach(function (e) {
-        if (words.contains(e)) {
-            multi.remove(e);
-        }
-    });
-    console.log(multi);
 }
