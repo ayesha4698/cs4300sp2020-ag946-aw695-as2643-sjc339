@@ -85,25 +85,27 @@ def searchCymDfns(w1):
     # arbitrary word that doesn't have match in dataset
     wt = wordnet.synsets('cool')[-1]
     for cymW in cymData.keys():
-        cymW = cymW.replace(" ", "_")
-        for w2 in wordnet.synsets(cymW):
-            sim = wt.wup_similarity(w2)
-            if sim is None:
-                sim = wt.path_similarity(w2)
-            if sim is not None and sim > maxSim:
-                maxSim = sim
-                match = cymW
+        if cymW != 'word':
+            cymW = cymW.replace(" ", "_")
+            for w2 in wordnet.synsets(cymW):
+                sim = wt.wup_similarity(w2)
+                if sim is None:
+                    sim = wt.path_similarity(w2)
+                if sim is not None and sim > maxSim:
+                    maxSim = sim
+                    match = cymW
 
     # real run
     for cymW in cymData.keys():
-        cymW = cymW.replace(" ", "_")
-        for w2 in wordnet.synsets(cymW):
-            sim = w1.wup_similarity(w2)
-            if sim is None:
-                sim = w1.path_similarity(w2)
-            if sim is not None and sim > maxSim:
-                maxSim = sim
-                match = cymW
+        if cymW != 'word':
+            cymW = cymW.replace(" ", "_")
+            for w2 in wordnet.synsets(cymW):
+                sim = w1.wup_similarity(w2)
+                if sim is None:
+                    sim = w1.path_similarity(w2)
+                if sim is not None and sim > maxSim:
+                    maxSim = sim
+                    match = cymW
 
     # maxSim = max([0, maxSim - .1])                  # adjust? fix later
     return maxSim, match
@@ -160,14 +162,15 @@ def searchKeywordDfn(w1):
 
     for w3 in synsets:
         for cymW in cymData.keys():
-            cymW = cymW.replace(" ", "_")
-            for w2 in wordnet.synsets(cymW):
-                sim = w3.wup_similarity(w2)
-                if sim is None:
-                    sim = w3.path_similarity(w2)
-                if sim is not None and sim > maxSim:
-                    maxSim = sim
-                    match = cymW
+            if cymW != 'word':
+                cymW = cymW.replace(" ", "_")
+                for w2 in wordnet.synsets(cymW):
+                    sim = w3.wup_similarity(w2)
+                    if sim is None:
+                        sim = w3.path_similarity(w2)
+                    if sim is not None and sim > maxSim:
+                        maxSim = sim
+                        match = cymW
 
     # maxSim = max([0, maxSim - .2])                  # adjust? fix later
     return maxSim, match
@@ -181,7 +184,10 @@ def getSynset(dfn):
     Params: dfn     User's keyword in the format:
                         'word - definition' [String]
     """
-    try:
+    print('DFN_-----------------')
+    print(dfn)
+    print(dfn.find("-"))
+    if not dfn.find("-") == -1:
         kw = dfn[:dfn.index("-")-1]         # skip the space
 
         kw = stemmer.stem(kw)
@@ -193,10 +199,8 @@ def getSynset(dfn):
             syns = wordnet.synsets(kw.replace(" ", "_"))
 
         query = dfn[dfn.index("-")+2:]      # skip the space
-
-    except:
-        print("failure")
-        return None
+    else:
+        return wordnet.synsets(dfn)[0]
 
     # find Synset object based on definition
     msgs = []
@@ -229,12 +233,12 @@ def keywordMatch(dfns):
     keywords = []
 
     for dfn in dfns:
-        if dfn in cymData.keys():
+        if dfn in cymData.keys() and dfn != 'word':
             synwords.append(wordnet.synsets(dfn)[0])
         else:
             s = getSynset(dfn)
-            if s is not None:
-                synwords.append(s)
+            # if s is not None:
+            synwords.append(s)
     print('syn', synwords)
     for w1 in synwords:
         match = ''
@@ -243,7 +247,7 @@ def keywordMatch(dfns):
         # keyword or keyword's synonyms are in Cymbolism
         if maxSim == 0:
             for lem in w1.lemmas():
-                if lem.name() in cymData.keys():
+                if lem.name() in cymData.keys() and lem.name() != 'word':
                     maxSim = 1.0
                     match = lem.name()
                     break
@@ -537,7 +541,10 @@ def energy_adjust(color, energy):
         newRGB = rgb
 
     newHex = convertColor(newRGB, 'rgb', 'hex')
-
+    print('NEWHEX')
+    print(newHex)
+    newHex = newHex.upper()
+    print(newHex)
     return newHex
 
 
@@ -627,6 +634,10 @@ def top_colors_from_keywords(keywords, energy):
     total_votes_num = 0
     for tup in keywords:
         word = tup[0]
+        print("----------WORDS")
+        print(keywords)
+        print(total_votes)
+        print(word)
         total_votes_num += total_votes[word]
 
     for tup in keywords:
@@ -641,10 +652,10 @@ def top_colors_from_keywords(keywords, energy):
                     color = tup[1]
                     if score >= 10:
                         if color in top_colors:
-                            top_colors[color] += sim_score * normalize_score(
+                            top_colors[energy_adjust(color, energy)] += sim_score * normalize_score(
                                 (score), total_votes[word], total_votes_num)
                         else:
-                            top_colors[color] = sim_score * normalize_score(
+                            top_colors[energy_adjust(color, energy)] = sim_score * normalize_score(
                                 (score), total_votes[word], total_votes_num)
                     else:
                         above_thresh = False
@@ -665,27 +676,34 @@ def palette_generator(hex_codes, n):
 :return: list of hex color codes computed from the Colormind API
 """
 
+    print("HEX CODES")
+    print(hex_codes)
+
     url = "http://colormind.io/api/"
 
     input_lst = []
-    if n <= 3:
-        for hex in hex_codes:
-            input_lst.append(convertColor(hex, "hex", "rgb"))
-            # input_lst.append(ImageColor.getcolor(hex, "RGB"))
-
+    for hex in hex_codes:
+        input_lst.append(convertColor(hex, "hex", "rgb"))
+        # input_lst.append(ImageColor.getcolor(hex, "RGB"))
+    n = len(input_lst)
     for add_color in range(n, 5):
         input_lst.append("N")
 
+    print("INPUT LIST")
+    print(input_lst)
     data = {
         "model": "default",
         "input": input_lst
     }
+    print('DATA')
+    print(data)
     res = requests.post(url, data=json.dumps(data))
 
     hex = []
     for rgb in res.json()['result']:
         hex.append(rgb2hex(rgb[0], rgb[1], rgb[2]))
-
+    print('HEX')
+    print(hex)
     return hex
 
 
@@ -707,31 +725,31 @@ def create_combo_hex_codes(top_keywords_color_lst, necessary_color_lst):
     print('combinations time')
     print(time.time() - start)
 
-    combo_short = combinations_object[:5]
+    # combo_short = combinations_object[:5]
 
-    # if(len(combinations_object) > 100):
-    #     combinations_object = combinations_object[:100]
+    if(len(combinations_object) > 100):
+        combinations_object = combinations_object[:100]
 
     print(len(combinations_object))
 
-    # for i in range(len(combinations_object)):
-    #     n = len(combinations_object)+len(necessary_color_lst)
-    #     hex_codes = necessary_color_lst + list(combinations_object[i])
-
-    #     start = time.time()
-
-    #     combo_hex_code_lst.append(palette_generator(hex_codes, n))
-    #     print('palette generator time')
-    #     print(time.time() - start)
-    for i in range(len(combo_short)):
-        n = len(combo_short)+len(necessary_color_lst)
-        hex_codes = necessary_color_lst + list(combo_short[i])
+    for i in range(len(combinations_object)):
+        n = len(combinations_object)+len(necessary_color_lst)
+        hex_codes = necessary_color_lst + list(combinations_object[i])
 
         start = time.time()
 
         combo_hex_code_lst.append(palette_generator(hex_codes, n))
         print('palette generator time')
         print(time.time() - start)
+    # for i in range(len(combo_short)):
+    #     n = len(combo_short)+len(necessary_color_lst)
+    #     hex_codes = necessary_color_lst + list(combo_short[i])
+
+    #     start = time.time()
+
+    #     combo_hex_code_lst.append(palette_generator(hex_codes, n))
+    #     print('palette generator time')
+    #     print(time.time() - start)
 
     return combo_hex_code_lst
 
@@ -748,21 +766,28 @@ def input_to_color(keywords, necessary_colors, energy):
     palette_dict = {}
     # print('keywords', keywords)
 
-    start = time.time()
+    # start = time.time()
     top_colors = top_colors_from_keywords(keywords, energy)
-    print('top colors time')
-    print(time.time() - start)
+    # print('TOP COLORS')
+    # print(top_colors)
+    # print('top colors time')
+    # print(time.time() - start)
 
-    start = time.time()
+    # start = time.time()
     palettes = create_combo_hex_codes(top_colors, necessary_colors)
-    print('combo hex codes time')
-    print(time.time() - start)
+    # print('PALETTES')
+    # print(palettes)
+    # print('combo hex codes time')
+    # print(time.time() - start)
 
     # palettes is a list of lists - - so loop and change for necesarrycolors
-    for x in palettes:
+    print("LOOK HERE ----------")
+    print(palettes)
+    for x in range(len(palettes)):
         for y in range(len(necessary_colors)):
-            palettes[y] = necessary_colors[y]
-
+            palettes[x][y] = "#" + necessary_colors[y]
+    # print()
+    print(palettes)
     index = 0
     for p in palettes:
         palette_dict[index] = p
@@ -802,7 +827,9 @@ def getPalettes(keywords, reqColors, energy):
     keywords = [i[0] for i in cymKeywords]
 
     start = time.time()
-
+    print("SCORE PALETTES ")
+    print(keywords)
+    print(palettes)
     scored, keywordBreakdown = scorePalettes(palettes, keywords, reqColors)
 
     print('score palettes time')
@@ -912,13 +939,15 @@ def search():
         results = None
         showModal = False
 
+        print('HERE')
+        print(type(keywords))
         print(keywords)
         print(multiDefs)
 
         if (keywords is None and energy is None and color1 is None and color2 is None):
             submit = False
 
-        if not keywords:
+        if len(keywords) == 0 or keywords is None:
             errors.append("keywords1")
         if keywords:
             keywordsList = keywords.split(",")
@@ -961,7 +990,9 @@ def search():
                         return render_template('search.html', netid=netid, results=None, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit, multiDefs=multiDefs)
                 except:
                     if len(errors) == 0:
+                        print('SHOW RULE')
                         return render_template('search.html', netid=netid, results=None, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit, multiDefs=multiDefs, showModal=True)
+                    print('HELLLLLLLLLLLLLLLLO')
                     return render_template('search.html', netid=netid, results=None, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit, multiDefs=multiDefs)
         for k in keywords.split(","):
             if k not in multiDefList:
@@ -985,6 +1016,10 @@ def search():
             results, scored, keywordBreakdown = getPalettes(
                 keywordDefs, reqColors, energy)
 
-        return render_template('search.html', netid=netid, results=results, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit, multiDefs=multiDefs)
+            if len(results) > 5:
+                results = results[:5]
+        print("RESULTS")
+        print(results)
+        return render_template('search.html', netid=netid, results=results, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit)
 
     return render_template('search.html', netid=netid)

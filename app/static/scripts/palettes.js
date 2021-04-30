@@ -1,17 +1,17 @@
 // var keywords;
 
-$(document).ready(function() {
+$(document).ready(function () {
     var cymbolism = ['abuse', 'accessible', 'addiction', 'agile', 'amusing', 'anger', 'anticipation', 'art deco', 'authentic', 'authority', 'average', 'baby', 'beach', 'beauty', 'beer', 'benign', 'bitter', 'blend', 'blissful', 'bold', 'book', 'boss', 'brooklyn', 'busy', 'calming', 'capable', 'car', 'cat', 'certain', 'charity', 'cheerful', 'chicago', 'classic', 'classy', 'clean', 'cold', 'colonial', 'comfort', 'commerce', 'compelling', 'competent', 'confident', 'consequence', 'conservative', 'contemporary', 'cookie', 'corporate', 'cottage', 'crass', 'creative', 'cute', 'dance', 'dangerous', 'decadent', 'decisive', 'deep', 'devil', 'discount', 'disgust', 'dismal', 'dog', 'drunk', 'dublin', 'duty', 'dynamic', 'earthy', 'easy', 'eclectic', 'efficient', 'elegant', 'elite', 'enduring', 'energetic', 'entrepreneur', 'environmental', 'erotic', 'excited', 'expensive', 'experience', 'fall', 'familiar', 'fast', 'fear', 'female', 'football', 'freedom', 'fresh', 'friendly', 'fun', 'furniture', 'future', 'gay', 'generic', 'georgian', 'gloomy', 'god', 'good', 'goth', 'government', 'grace', 'great', 'grow', 'happy', 'hard', 'hate', 'hazardous', 'hippie', 'hockey', 'honor', 'hope', 'hot', 'hunting', 'hurt', 'hygienic', 'ignorant', 'imagination', 'impossible', 'improbable', 'influence', 'influential', 'insecure', 'inviting', 'invulnerable', 'jacobean', 'jealous', 'joy', 'jubilant', 'junkie', 'knowledge', 'kudos', 'launch', 'lazy', 'leader', 'liberal', 'library', 'light', 'likely', 'lonely', 'love', 'magic', 'marriage', 'maximal', 'mean', 'medicine', 'melancholy', 'mellow', 'minimal', 'mission', 'modern', 'moment', 'money', 'music', 'mystical', 'narcissist', 'natural', 'naughty', 'new', 'nimble', 'now', 'objective', 'old', 'optimistic', 'organic', 'paradise', 'party', 'passion', 'passive', 'peace', 'peaceful', 'personal', 'playful', 'pleasing', 'possible', 'powerful', 'preceding', 'predatory', 'prime', 'probable', 'productive', 'professional', 'profit', 'progress', 'public', 'pure', 'radical', 'railway', 'rain', 'real', 'rebellious', 'recession', 'reconciliation', 'recovery', 'relaxed', 'reliability', 'retro', 'rich', 'risk', 'rococo', 'romantic', 'royal', 'rustic', 'sad', 'sadness', 'safe', 'sarcasm', 'secure', 'sensible', 'sensual', 'sex', 'shabby', 'silly', 'simple', 'slow', 'smart', 'smooth', 'snorkel', 'soft', 'solar', 'sold', 'solid', 'somber', 'spiffy', 'sport', 'spring', 'stability', 'star', 'strong', 'studio', 'style', 'stylish', 'submit', 'suburban', 'success', 'summer', 'sun', 'sunny', 'surprise', 'sweet', 'symbol', 'tasty', 'therapeutic', 'threat', 'time', 'tomorrow', 'treason', 'trust', 'trustworthy', 'uncertain', 'uniform', 'unlikely', 'unsafe', 'urban', 'value', 'vanity', 'victorian', 'vitamin', 'vulnerability', 'vulnerable', 'war', 'warm', 'winter', 'wise', 'wish', 'work', 'worm', 'young'];
 
     // add palette swatch colors
-    $("div.color").each( function(i, e) {
+    $("div.color").each(function (i, e) {
         color = $(e).children("p").html();
         $(e).children(".swatch").css("background-color", color);
     })
 
     // energy slider active
     colorLabel();
-    $("#energyInput").change( function() {
+    $("#energyInput").change(function () {
         $(".e-label").removeClass("active");
         colorLabel();
     })
@@ -22,17 +22,19 @@ $(document).ready(function() {
     //     $("#invalidWords").removeAttr('value');
     // }
 
+
+
     var xhr;
     $("#tagsInput").selectize({
         plugins: ["remove_button", "restore_on_backspace"],
         delimiter: ",",
         persist: false,
         render: {
-            item: function(item, escape) {
+            item: function (item, escape) {
                 let word = escape(item.value)
                 $("#suggestions").html("");
                 if (cymbolism.includes(item.value)) {
-                    return "<div class='item' id='w-" + word + "'>" + 
+                    return "<div class='item' id='w-" + word + "'>" +
                         '<span class="name">' + word + '</span>' + "</div>";
                 } else {
                     let definitions = [];
@@ -46,12 +48,14 @@ $(document).ready(function() {
                             'x-rapidapi-key': 'e18e293e71msh899aee87d7816d4p1d4574jsn248bb0b951da'
                         },
                         async: false,
-                        success: function(results) {
+                        success: function (results) {
+                            console.log('API CALL');
                             // filter on adjectives + nouns
                             definitions = results["definitions"];
+                            console.log(definitions);
                             if (definitions.length > 1) {
                                 valid = true;
-                                let divHTML = $("#options").append("<div id='" + word + "-options'></div>")
+                                let divHTML = $("#options").append("<div id='" + word + "-options' class='mt-3'></div>")
                                 $(divHTML).append("<label for=''>" + word + "</label><br>");
                                 definitions.forEach(d => {
                                     let radio = '<input type="radio" name=' + word + ' value=' + d["definition"].replaceAll(" ", "%") + '>  ' + d["definition"] + '</input><br>';
@@ -81,7 +85,7 @@ $(document).ready(function() {
                             //     console.log("no invalid words");
                             // }
                         },
-                        error: function() {
+                        error: function () {
                             console.log("erroring");
                             let curr = $("#invalidWords").val();
                             if (curr == "") {
@@ -91,14 +95,14 @@ $(document).ready(function() {
                             }
                         }
                     });
-                    return "<div class='" + (valid ? "" : "invalid-word") + " item' id='w-" + word + "'>" + 
+                    return "<div class='" + (valid ? "" : "invalid-word") + " item' id='w-" + word + "'>" +
                         // (definitions.length != 0 ? "<div class='hidden' name='" + "'>" + definitions[0]["definition"] + "</div>": "") +
-                        '<span class="name">' + word + '</span>' + 
-                    "</div>";
+                        '<span class="name">' + word + '</span>' +
+                        "</div>";
                 }
             }
         },
-        create: function(input) {
+        create: function (input) {
             return {
                 value: input,
                 text: input
@@ -198,4 +202,18 @@ function createWord(arg) {
     let selectize = $keywords[0].selectize;
     selectize.removeItem(txt.substring(0, i));
     selectize.createItem(txt);
+}
+
+function reset() {
+    let words = $("#tagsInput").val().split(',');
+    let multi = $("#multiDefWords").val().split(',');
+    console.log('RESETTING')
+    console.log(words);
+    console.log(multi);
+    multi.forEach(function (e) {
+        if (words.contains(e)) {
+            multi.remove(e);
+        }
+    });
+    console.log(multi);
 }
