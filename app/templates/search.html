@@ -4,25 +4,40 @@
         <link rel="stylesheet" href="/static/main.css">
         <script type="text/javascript" src="/static/scripts/jquery-3.2.1.min.js"></script>
         <script type="text/javascript" src="/static/scripts/palettes.js"></script>
+
+        <!-- <script type="text/javascript" src="/static/scripts/selectize.js"></script>
+        <link rel="stylesheet" type="text/css" href="/static/selectize.css" /> -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.13.3/js/standalone/selectize.min.js" integrity="sha512-pF+DNRwavWMukUv/LyzDyDMn8U2uvqYQdJN0Zvilr6DDo/56xPDZdDoyPDYZRSL4aOKO/FGKXTpzDyQJ8je8Qw==" crossorigin="anonymous"></script>        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.13.3/css/selectize.default.css" integrity="sha512-J0JTRxsBEJ99DP4GamwciDi8VjALSrZneBYrv98BhqHPvlQP6gLbmmuddlYXHDB8hyLtefOIJFlpZBhksCtK8g==" crossorigin="anonymous" />
+
+        <title>Find My Palette</title>
+        <link rel="shortcut icon" type="image/jpg" href="/static/images/palette.png"/>
     </head>
     <body id="search-page">
         <div class="topcorner">
-            <p class="names">Student Name: {{ netid }}</p>
+            <p class="names">Created by: {{ netid }}</p>
         </div>
 
-        <div id="form-container" class="mt-5mb-5">
+        <div id="form-container" class="mt-5 mb-5">
             <h1 class="mt-5">Find My Palette</h1>
-            <form id="search-form" action="" method="GET" onsubmit="validate()">
+            <form id="search-form" class="box" action="" method="POST">
                 <div class="form-group mb-4">
-                    <label>Keywords*</label>
-                    <p class="subtext">What words do you associate with your brand/project? Separate keywords with commas.</p>
-                    <!-- <input type="text" class="form-control" name="keywords" placeholder="keyword, keyword" value="test1, test2"> -->
-                    <input id="keywordsInput" type="text" class="form-control" name="keywords" placeholder="keyword, keyword" value={% if keywords %}{{ keywords }}{% endif %}>
-                    <p></p>
-                    {% if submit and "keywords" in errors %}
+                    <label>Keywords</label>
+                    <p class="subtext">What words do you associate with your brand/project? Select up to 5 keywords. Think of INSERT EXAMPLES!!</p>
+                    <p>{{ keywords }}</p>
+                    <!-- <input id="tagsInput" type="text" name="keywords" value="hello [fskdf], slkdfjda - test"> -->
+                    <input id="tagsInput" type="text" name="keywords" value={% if keywords %}{% autoescape true %}{{ keywords|e }}{% endautoescape %}{% endif %}>
+                    <!-- <input id="keywordsInput" type="text" class="form-control" name="keywords" placeholder="keyword, keyword" value={% if keywords %}{{ keywords }}{% endif %}> -->
+                    <div id="suggestions"></div>
+                    {% if submit and "keywords1" in errors %}
                         <p class="error">Please input at least one keyword.</p>
+                    {% elif submit and "keywords2" in errors %}
+                        <p class="error">Please input a maximum of 5 keywords.</p>
+                    {% elif submit and "keywords3" in errors %}
+                        <p class="error">Please remove invalid keywords.</p>
                     {% endif %}
                 </div>
+                <input id="invalidWords" name="invalidWords" class="hidden">
+                <input id="multiDefWords" name="multiDefs" class="hidden" type="text">
 
                 <div class="form-group mb-4">
                     <label>Energy</label>
@@ -67,22 +82,38 @@
                         <p class="error">Please select a valid HEX code.</p>
                     {% endif %}
                 </div>
+                <input id="showdef" class="hidden" name="showdef" type="text">
 
-                <div class="form-group mb-4">
+                <!-- <div class="form-group mb-4">
                     <label>Number of Colors*</label>
                     <p class="subtext">How many colors do you want to include in the palette? Maximum is 6 colors.</p>
                     <input id="numColorInput" type="number" name="numcolors" class="form-control" min=2 max=6 value={% if numcolors %}{{ numcolors }}{% endif %}>
                     {% if submit and "numcolors" in errors %}
                         <p class="error">Please select a number between 2-6.</p>
                     {% endif %}
+                </div> -->
+                {% if showModal %}
+                <div id="background" class="fixed-top">
+                    <div id="defForm" class="box">
+                        <div id="options"></div>
+                        <div class="d-flex flex-row-reverse">
+                            {% if submit and "multi" in errors %}
+                                <p class="error">Please select a definition for every keyword.</p>
+                            {% endif %}
+                            <button type="submit" class="btn btn-primary" id="defBtn">Generate</button>
+                        </div>
+                    </div>
                 </div>
+                {% endif %}
 
-                <button type="submit" class="align-self-end btn btn-primary" id="submitBtn">Generate</button>
+                <div class="d-flex flex-row-reverse">
+                    <button type="submit" class="btn btn-primary" id="submitBtn">Generate</button>
+                </div>
             </form>          
         </div>
 
         {% if results %}
-        <div id="results-container" class="mt-5 mb-5 ms-5">
+        <div class="mt-5 mb-5 ms-5">
             <h1>Results</h1>
             {% for palette in results %}
                 <h2>Palette</h2>
@@ -95,6 +126,11 @@
                     {% endfor %}
                 </div>
             {% endfor %}
+        </div>
+        {% elif results == {} %}
+        <div class="mt-5 mb-5 ms-5">
+            <h2>No results found for keyword(s): {{ keywords }}.</h2>
+            <p>Try different keywords e.g. earthy, contemporary, elegant.</p>
         </div>
         {% endif %}
     </body>
