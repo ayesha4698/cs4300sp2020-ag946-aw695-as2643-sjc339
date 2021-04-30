@@ -136,9 +136,17 @@
                 <div class="swatch"></div>
                 <p>{{ color }}</p>
             </div>
+
             {% endfor %}
         </div>
+        <div> <h6>Palette Score: {{scored[loop.index0][1]}}</h2></div>
+            <div>
+                {% for breakdown in keywordBreakdown[loop.index0]%}
+                <h6>Keyword Breakdown: ( {{breakdown[0]}} :  {{breakdown[1]}} %) </h2>
+                {% endfor %}
+            </div>
         {% endfor %}
+    
     </div>
     {% elif results == [] %}
     <div class="mt-5 mb-5 ms-5">

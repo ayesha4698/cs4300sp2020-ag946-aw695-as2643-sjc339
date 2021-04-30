@@ -1020,6 +1020,6 @@ def search():
                 results = results[:5]
         print("RESULTS")
         print(results)
-        return render_template('search.html', netid=netid, results=results, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit)
+        return render_template('search.html', netid=netid, results=results, scored=scored, keywordBreakdown=keywordBreakdown, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit)
 
     return render_template('search.html', netid=netid)
