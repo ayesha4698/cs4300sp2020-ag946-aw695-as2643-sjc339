@@ -867,12 +867,15 @@ def getPalettes(keywords, reqColors, energy):
     #print(sortedScored)
     #print()
 
-    for tup in sortedScored:
-        ranked.append(tup[1][0])
+    if len(sortedScored) > 5:
+        sortedScored = sortedScored[:5]
+
+    # for tup in sortedScored:
+    #     ranked.append(tup[1][0])
 
     # print(ranked)
 
-    return ranked, sortedScored, scored, keywordBreakdown
+    return sortedScored, keywordBreakdown
 
 
 def scorePalettes(palettes, keywords, reqColors, top_colors):
@@ -1039,17 +1042,14 @@ def search():
         if color2:
             reqColors.append(color2)
 
-        results = []
-        scored = {}
         sortedScored = []
         keywordBreakdown = {}
         if len(errors) == 0:
-            results, sortedScored, scored, keywordBreakdown = getPalettes(
+            sortedScored, keywordBreakdown = getPalettes(
                 keywordDefs, reqColors, energy)
 
-            if len(results) > 5:
-                results = results[:5]
+            print(sortedScored)
 
-        return render_template('search.html', netid=netid, results=results, sortedScored = sortedScored, scored=scored, keywordBreakdown=keywordBreakdown, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit, reset=True)
+        return render_template('search.html', netid=netid, sortedScored = sortedScored, keywordBreakdown=keywordBreakdown, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit, reset=True)
 
     return render_template('search.html', netid=netid)

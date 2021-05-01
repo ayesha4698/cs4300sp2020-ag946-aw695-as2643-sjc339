@@ -132,7 +132,7 @@
         </form>
     </div>
 
-    {% if results %}
+    {% if sortedScored %}
     <div id="results" class="mt-5 mb-5 ms-5">
         <h1>Results</h1>
         {% for palette in sortedScored %}
@@ -145,7 +145,7 @@
             </div>
             {% endfor %}
         </div>
-        <div> 
+        <div>
             <h6>Palette Score: {{ palette[1][1] }}</h6>
             <div>
                 {% for breakdown in keywordBreakdown[palette[0]] %}
@@ -156,7 +156,7 @@
         {% endfor %}
 
     </div>
-    {% elif results == [] %}
+    {% elif sortedScored == [] %}
     <div class="mt-5 mb-5 ms-5">
         <h2>No results found for keyword(s): {{ keywords }}.</h2>
         <p>Try different keywords e.g. earthy, contemporary, elegant.</p>
