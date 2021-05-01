@@ -647,7 +647,7 @@ def top_colors_from_keywords(keywords, energy):
         word = tup[0]
         print("----------WORDS")
         print(keywords)
-        print(total_votes)
+        # print(total_votes)
         print(word)
         total_votes_num += total_votes[word]
 
@@ -732,6 +732,12 @@ def create_combo_hex_codes(top_keywords_color_lst, necessary_color_lst, energy):
 
     print('necc', necessary_color_lst)
 
+    necessary_colors = []
+
+    for c in necessary_color_lst:
+        necessary_colors.append((c, 100))
+
+
     keyword_lst = list(set(top_keywords_color_lst.keys()))
 
     start = time.time()
@@ -748,9 +754,11 @@ def create_combo_hex_codes(top_keywords_color_lst, necessary_color_lst, energy):
 
     for i in range(len(combinations_object)):
         n = len(combinations_object)+len(necessary_color_lst)
-        hex_codes = necessary_color_lst + list(combinations_object[i])
+        hex_codes = necessary_colors + list(combinations_object[i])
 
         start = time.time()
+        print("HEX")
+        print(hex_codes)
 
         combo_hex_code_lst.append(palette_generator(hex_codes, n, energy))
         print('palette generator time')
@@ -782,24 +790,24 @@ def input_to_color(keywords, necessary_colors, energy):
 
     # start = time.time()
     top_colors = top_colors_from_keywords(keywords, energy)
-    # print('TOP COLORS')
-    # print(top_colors)
+    print('TOP COLORS')
+    print(top_colors)
     # print('top colors time')
     # print(time.time() - start)
 
     # start = time.time()
     palettes = create_combo_hex_codes(top_colors, necessary_colors, energy)
-    # print('PALETTES')
-    # print(palettes)
+    print('PALETTES')
+    print(palettes)
     # print('combo hex codes time')
     # print(time.time() - start)
 
     # palettes is a list of lists - - so loop and change for necesarrycolors
-    print("LOOK HERE ----------")
-    print(palettes)
+    # print("LOOK HERE ----------")
+    # print(palettes)
     for x in range(len(palettes)):
         for y in range(len(necessary_colors)):
-            palettes[x][y] = "#" + necessary_colors[y]
+            palettes[x][y] = necessary_colors[y]
     # print()
     print(palettes)
     index = 0
@@ -834,6 +842,7 @@ def getPalettes(keywords, reqColors, energy):
     print('keyword match time')
     print(time.time() - start)
     start = time.time()
+    print(cymKeywords)
 
     palettes, top_colors = input_to_color(cymKeywords, reqColors, energy)
     print('input to color time')
@@ -904,6 +913,8 @@ def scorePalettes(palettes, keywords, reqColors, top_colors):
                         convertColor((255, 255, 255), 'rgb', 'lab'), 'lab')
 
     for rc in top_colors:
+        print("REQC")
+        print(rc)
         rc = rc[0]
         rgb = getRGBDists(rc, palettes)
         hsv = getHSVDists(rc, palettes)
@@ -1035,8 +1046,8 @@ def search():
             results, sortedScored, scored, keywordBreakdown = getPalettes(
                 keywordDefs, reqColors, energy)
 
-            # if len(results) > 5:
-            #     results = results[:5]
+            if len(results) > 5:
+                results = results[:5]
 
         return render_template('search.html', netid=netid, results=results, scored=scored, keywordBreakdown=keywordBreakdown, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit, reset=True)
 
