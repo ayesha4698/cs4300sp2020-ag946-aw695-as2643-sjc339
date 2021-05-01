@@ -141,7 +141,7 @@
             {% for color in palette %}
             <div class="color">
                 <div class="swatch"></div>
-                <p>{{ color }}</p>
+                <p>#{{ color }}</p>
             </div>
 
             {% endfor %}
@@ -153,7 +153,7 @@
                 {% endfor %}
             </div>
         {% endfor %}
-    
+
     </div>
     {% elif results == [] %}
     <div class="mt-5 mb-5 ms-5">

@@ -333,6 +333,10 @@ def getRGBDists(reqColor, palettes):
 
     rgbDists = {}
 
+    print("RGBDIST")
+    print(palettes)
+    print(reqColor)
+
     reqRGB = convertColor(reqColor, 'hex', 'rgb')
 
     for id, palette in palettes.items():
@@ -421,6 +425,7 @@ def CloseColorHelper(cymColors, colorToMatch):
     ret = ""
     for k, v in returnlist.items():
         if v > larg:
+            larg = v
             ret = k
     return ret
 
@@ -451,6 +456,12 @@ def keyword(userWords, paletteDict):
                 lst = cymData[word]
                 ind = cymColorsInvInd[closecolor]
                 colorScore = float(lst[ind])
+                print()
+                print("COLOR")
+                print(word)
+                print(color)
+                print(closecolor)
+                print(colorScore)
             score += colorScore
             keywordDict[palette].append((word, colorScore))
         colordict[palette] = score
@@ -652,10 +663,10 @@ def top_colors_from_keywords(keywords, energy):
                     color = tup[1]
                     if score >= 10:
                         if color in top_colors:
-                            top_colors[energy_adjust(color, energy)] += sim_score * normalize_score(
+                            top_colors[color] += sim_score * normalize_score(
                                 (score), total_votes[word], total_votes_num)
                         else:
-                            top_colors[energy_adjust(color, energy)] = sim_score * normalize_score(
+                            top_colors[color, energy] = sim_score * normalize_score(
                                 (score), total_votes[word], total_votes_num)
                     else:
                         above_thresh = False
@@ -668,7 +679,7 @@ def top_colors_from_keywords(keywords, energy):
 # top_colors_from_keywords([('cold', 1), ('snorkel', 1)], 5)
 
 
-def palette_generator(hex_codes, n):
+def palette_generator(hex_codes, n, energy):
     """ Adds on the “N” values to the list of input colors and outputs the api generated palette
     need to convert inputs to rgb and outputs to hex
 :param hex_codes: list of hex colors (up to three)
@@ -683,7 +694,8 @@ def palette_generator(hex_codes, n):
 
     input_lst = []
     for hex in hex_codes:
-        input_lst.append(convertColor(hex, "hex", "rgb"))
+        print(hex)
+        input_lst.append(convertColor(hex[0], "hex", "rgb"))
         # input_lst.append(ImageColor.getcolor(hex, "RGB"))
     n = len(input_lst)
     for add_color in range(n, 5):
@@ -701,13 +713,15 @@ def palette_generator(hex_codes, n):
 
     hex = []
     for rgb in res.json()['result']:
-        hex.append(rgb2hex(rgb[0], rgb[1], rgb[2]))
+        color = rgb2hex(rgb[0], rgb[1], rgb[2])
+        hex.append(energy_adjust(color, energy))
+
     print('HEX')
     print(hex)
     return hex
 
 
-def create_combo_hex_codes(top_keywords_color_lst, necessary_color_lst):
+def create_combo_hex_codes(top_keywords_color_lst, necessary_color_lst, energy):
     """ Calls the palette generator helper
 :param keywords: list of list top keywords colors
 :param necessary_color: list of list hex codes
@@ -738,7 +752,7 @@ def create_combo_hex_codes(top_keywords_color_lst, necessary_color_lst):
 
         start = time.time()
 
-        combo_hex_code_lst.append(palette_generator(hex_codes, n))
+        combo_hex_code_lst.append(palette_generator(hex_codes, n, energy))
         print('palette generator time')
         print(time.time() - start)
     # for i in range(len(combo_short)):
@@ -774,7 +788,7 @@ def input_to_color(keywords, necessary_colors, energy):
     # print(time.time() - start)
 
     # start = time.time()
-    palettes = create_combo_hex_codes(top_colors, necessary_colors)
+    palettes = create_combo_hex_codes(top_colors, necessary_colors, energy)
     # print('PALETTES')
     # print(palettes)
     # print('combo hex codes time')
@@ -793,7 +807,7 @@ def input_to_color(keywords, necessary_colors, energy):
         palette_dict[index] = p
         index += 1
 
-    return palette_dict
+    return palette_dict, top_colors
 
 
 def getPalettes(keywords, reqColors, energy):
@@ -821,7 +835,7 @@ def getPalettes(keywords, reqColors, energy):
     print(time.time() - start)
     start = time.time()
 
-    palettes = input_to_color(cymKeywords, reqColors, energy)
+    palettes, top_colors = input_to_color(cymKeywords, reqColors, energy)
     print('input to color time')
     print(time.time() - start)
     keywords = [i[0] for i in cymKeywords]
@@ -830,20 +844,29 @@ def getPalettes(keywords, reqColors, energy):
     print("SCORE PALETTES ")
     print(keywords)
     print(palettes)
-    scored, keywordBreakdown = scorePalettes(palettes, keywords, reqColors)
+    scored, keywordBreakdown = scorePalettes(palettes, keywords, reqColors, top_colors)
 
     print('score palettes time')
     print(time.time() - start)
 
-    sortedScored = sorted(scored.items(), key=lambda scored: scored[1][1])
+    print()
+    print(scored)
+    print()
+
+    sortedScored = sorted(scored.items(), key=lambda scored: scored[1][1], reverse=True)
+
+    print(sortedScored)
+    print()
 
     for tup in sortedScored:
         ranked.append(tup[1][0])
 
-    return ranked, scored, keywordBreakdown
+    # print(ranked)
+
+    return ranked, sortedScored, scored, keywordBreakdown
 
 
-def scorePalettes(palettes, keywords, reqColors):
+def scorePalettes(palettes, keywords, reqColors, top_colors):
     """
     Returns a new dictionary that scores and ranks each palette based on the
         following factors and weights:
@@ -869,10 +892,10 @@ def scorePalettes(palettes, keywords, reqColors):
     percDists = {}
 
     # weights
-    rgbW = .25
-    hsvW = .25
-    percW = 0
-    keyW = .5
+    rgbW = .2
+    hsvW = .2
+    percW = .2
+    keyW = .4
 
     # maximums
     maxRGB = colorDiff((0, 0, 0), (255, 255, 255), 'rgb')
@@ -880,7 +903,8 @@ def scorePalettes(palettes, keywords, reqColors):
     maxPerc = colorDiff(convertColor((0, 0, 0), 'rgb', 'lab'),
                         convertColor((255, 255, 255), 'rgb', 'lab'), 'lab')
 
-    for rc in reqColors:
+    for rc in top_colors:
+        rc = rc[0]
         rgb = getRGBDists(rc, palettes)
         hsv = getHSVDists(rc, palettes)
         perc = getPerceptualDists(rc, palettes)
@@ -888,21 +912,21 @@ def scorePalettes(palettes, keywords, reqColors):
         # average across required colors
         for id, dist in rgb.items():
             if id not in rgbDists:
-                rgbDists[id] = dist/len(reqColors)
+                rgbDists[id] = dist/len(top_colors)
             else:
-                rgbDists[id] += dist/len(reqColors)
+                rgbDists[id] += dist/len(top_colors)
 
         for id, dist in hsv.items():
             if id not in hsvDists:
-                hsvDists[id] = dist/len(reqColors)
+                hsvDists[id] = dist/len(top_colors)
             else:
-                hsvDists[id] += dist/len(reqColors)
+                hsvDists[id] += dist/len(top_colors)
 
         for id, avg in perc.items():
             if id not in percDists:
-                percDists[id] = avg/len(reqColors)
+                percDists[id] = avg/len(top_colors)
             else:
-                percDists[id] += avg/len(reqColors)
+                percDists[id] += avg/len(top_colors)
 
     keywordAvgs, keywordBreakdown = keyword(keywords, palettes)
 
@@ -919,6 +943,9 @@ def scorePalettes(palettes, keywords, reqColors):
             score += keywordAvgs[id]*keyW
 
         scoreDict[id] = (palette, score)
+
+    # print('scoredict')
+    # print(scoreDict)
 
     return scoreDict, keywordBreakdown
 
@@ -1005,11 +1032,11 @@ def search():
         scored = {}
         keywordBreakdown = {}
         if len(errors) == 0:
-            results, scored, keywordBreakdown = getPalettes(
+            results, sortedScored, scored, keywordBreakdown = getPalettes(
                 keywordDefs, reqColors, energy)
 
-            if len(results) > 5:
-                results = results[:5]
+            # if len(results) > 5:
+            #     results = results[:5]
 
         return render_template('search.html', netid=netid, results=results, scored=scored, keywordBreakdown=keywordBreakdown, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit, reset=True)
 
