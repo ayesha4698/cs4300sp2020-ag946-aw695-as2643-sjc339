@@ -135,23 +135,24 @@
     {% if results %}
     <div id="results" class="mt-5 mb-5 ms-5">
         <h1>Results</h1>
-        {% for palette in results %}
+        {% for palette in sortedScored %}
         <h2>Palette</h2>
         <div class="palette d-flex flex-row justify-between">
-            {% for color in palette %}
+            {% for color in palette[1][0] %}
             <div class="color">
                 <div class="swatch"></div>
                 <p>#{{ color }}</p>
             </div>
-
             {% endfor %}
         </div>
-        <div> <h6>Palette Score: {{scored[loop.index0][1]}}</h2></div>
+        <div> 
+            <h6>Palette Score: {{ palette[1][1] }}</h6>
             <div>
-                {% for breakdown in keywordBreakdown[loop.index0]%}
-                <h6>Keyword Breakdown: ( {{breakdown[0]}} :  {{breakdown[1]}} %) </h2>
+                {% for breakdown in keywordBreakdown[palette[0]] %}
+                <h6>Keyword Breakdown: ( {{ breakdown[0] }}:  {{ breakdown[1] }}% ) </h6>
                 {% endfor %}
             </div>
+        </div>
         {% endfor %}
 
     </div>
