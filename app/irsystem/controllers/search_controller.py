@@ -421,11 +421,11 @@ def CloseColorHelper(cymColors, colorToMatch):
         distance = colorDiff(rgbcolor, colorToMatch, 'rgb')
         returnlist[cymColors[x]] = distance
 
-    larg = 0
+    small = 1000
     ret = ""
     for k, v in returnlist.items():
-        if v > larg:
-            larg = v
+        if v < small:
+            small = v
             ret = k
     return ret
 
@@ -446,6 +446,7 @@ def keyword(userWords, paletteDict):
     colordict = {}
     keywordDict = {}
     cymColors = list(cymColorsInvInd.keys())
+    maxScore = 0
     for palette in paletteDict.keys():
         score = 0
         keywordDict[palette] = []
@@ -456,15 +457,21 @@ def keyword(userWords, paletteDict):
                 lst = cymData[word]
                 ind = cymColorsInvInd[closecolor]
                 colorScore = float(lst[ind])
-                #print()
-                #print("COLOR")
-                #print(word)
+                # print()
+                # print("COLOR")
+                # print(word)
                 #print(color)
                 #print(closecolor)
-                #print(colorScore)
+                # print(colorScore)
             score += colorScore
             keywordDict[palette].append((word, colorScore))
+        if score > maxScore:
+            maxScore = score
         colordict[palette] = score
+
+    for id in colordict:
+        colordict[id] /= maxScore
+
     return colordict, keywordDict
 
 
@@ -910,33 +917,40 @@ def scorePalettes(palettes, keywords, reqColors, top_colors):
     keyW = .4
 
     # maximums
-    maxRGB = colorDiff((0, 0, 0), (255, 255, 255), 'rgb')
-    maxHSV = colorDiff((0, 0, 0), (0, 0, 100), 'hsv')
-    maxPerc = colorDiff(convertColor((0, 0, 0), 'rgb', 'lab'),
-                        convertColor((255, 255, 255), 'rgb', 'lab'), 'lab')
+    # maxRGB = colorDiff((0, 0, 0), (255, 255, 255), 'rgb')
+    # maxHSV = colorDiff((0, 0, 0), (0, 0, 100), 'hsv')
+    # maxPerc = colorDiff(convertColor((0, 0, 0), 'rgb', 'lab'),
+    #                     convertColor((255, 255, 255), 'rgb', 'lab'), 'lab')
+    maxRGB = 0
+    maxHSV = 0
+    maxPerc = 0
 
     for rc in top_colors:
-        #print("REQC")
-        #print(rc)
         rc = rc[0]
         rgb = getRGBDists(rc, palettes)
         hsv = getHSVDists(rc, palettes)
         perc = getPerceptualDists(rc, palettes)
 
-        # average across required colors
+        # average across top colors
         for id, dist in rgb.items():
+            if dist > maxRGB:
+                maxRGB = dist
             if id not in rgbDists:
                 rgbDists[id] = dist/len(top_colors)
             else:
                 rgbDists[id] += dist/len(top_colors)
 
         for id, dist in hsv.items():
+            if dist > maxHSV:
+                maxHSV = dist
             if id not in hsvDists:
                 hsvDists[id] = dist/len(top_colors)
             else:
                 hsvDists[id] += dist/len(top_colors)
 
         for id, avg in perc.items():
+            if avg > maxPerc:
+                maxPerc = avg
             if id not in percDists:
                 percDists[id] = avg/len(top_colors)
             else:
@@ -948,13 +962,13 @@ def scorePalettes(palettes, keywords, reqColors, top_colors):
     for id, palette in palettes.items():
         score = 0
         if (rgbDists != {}):
-            score += (1 - rgbDists[id]/maxRGB)*rgbW
+            score += (1 - rgbDists[id]/maxRGB)*100*rgbW
         if (hsvDists != {}):
-            score += (1 - hsvDists[id]/maxHSV)*hsvW
+            score += (1 - hsvDists[id]/maxHSV)*100*hsvW
         if (percDists != {}):
-            score += (1 - percDists[id]/maxPerc)*percW
+            score += (1 - percDists[id]/maxPerc)*100*percW
         if (keywordAvgs != {}):
-            score += keywordAvgs[id]*keyW
+            score += keywordAvgs[id]*100*keyW
 
         scoreDict[id] = (palette, score)
 
@@ -1048,7 +1062,7 @@ def search():
             sortedScored, keywordBreakdown = getPalettes(
                 keywordDefs, reqColors, energy)
 
-            print(sortedScored)
+            # print(sortedScored)
 
         return render_template('search.html', netid=netid, sortedScored = sortedScored, keywordBreakdown=keywordBreakdown, keywordDefs=keywordDefs, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit, reset=True)
     
