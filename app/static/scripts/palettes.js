@@ -14,6 +14,32 @@ $(document).ready(function () {
         colorLabel();
     })
 
+    // scroll to results
+    if ($("#results").length > 0) {
+        $('html, body').animate({
+            scrollTop: $("#results").offset().top
+        });
+    }
+
+    // gradient
+    $(".gradient").each(function (i, e) {
+        id = $(e).data("id");
+        console.log(id);
+        gradient = "linear-gradient(to right";
+        // console.log(".palette[data-id="+id+"]");
+        console.log($(".palette[data-id="+id+"]").children(".color"));
+        $(".palette[data-id="+id+"]").children(".color").each( function (i, c) {
+            console.log(c);
+            // console.log($(c).children("p"));
+            // console.log($(c).children("p").html());
+            color = $(c).children("p").html();
+            // console.log(color);
+            gradient += ", " + color;
+        });
+        gradient += ")";
+        $(e).css("background-image", gradient)
+    });
+
     var xhr;
     var $select = $("#tagsInput").selectize({
         plugins: ["remove_button", "restore_on_backspace"],
@@ -43,6 +69,7 @@ $(document).ready(function () {
                             console.log(results);
                             // filter on adjectives + nouns
                             definitions = results["definitions"];
+                            console.log(definitions);
                             if (definitions.length > 1) {
                                 valid = true;
                                 $("#options").append("<div id='" + word + "-options' class='mt-3'></div>");
@@ -110,86 +137,6 @@ $(document).ready(function () {
             }
         }
     })
-
-    // var xhr;
-    // $keywords = $("#tagsInput").selectize({
-    //     plugins: ["remove_button", "restore_on_backspace"],
-    //     delimiter: ",",
-    //     persist: false,
-    //     maxItems: 5,
-    //     render: {
-    //         item: function(item, escape) {
-    //             console.log("rendering");
-    //             console.log(item);
-    //             $("#suggestions").html("");
-    //             if (cymbolism.includes(item.value)) {
-    //                 return "<div class='item' id='w-" + escape(item.value) + "'>" + 
-    //                     '<span class="name">' + escape(item.value) + '</span>' + "</div>";
-    //             // } else if (item.value.includes(" - ")) {
-    //             //     let i = item.value.indexOf(" - ");
-    //             //     let word = item.value.substring(0, i);
-    //             //     let def = item.value.substring(i+2, item.value.length);
-    //             //     return "<div class='item' id='w-" + escape(word) + "'>" + 
-    //             //         "<div class='hidden'>" + escape(def) + "</div>" + 
-    //             //         '<span class="name">' + escape(word) + '</span>' + 
-    //             //     "</div>";
-    //             } else if (item.value.includes("[")) {
-    //                 let i = item.value.indexOf("[");
-    //                 let word = item.value.substring(0, i);
-    //                 let def = item.value.substring(i+2, item.value.length-1);
-    //                 return "<div class='item' id='w-" + escape(word) + "'>" + 
-    //                     "<div class='hidden'>" + escape(def) + "</div>" + 
-    //                     '<span class="name">' + escape(word) + '</span>' + 
-    //                 "</div>";
-    //             } else {
-    //                 let definitions = [];
-    //                 let one_def = false;
-    //                 xhr && xhr.abort();
-    //                 let keywordURL = "https://wordsapiv1.p.rapidapi.com/words/" + item.value + "/definitions";
-    //                 xhr = $.ajax({
-    //                     url: keywordURL,
-    //                     headers: {
-    //                         'x-rapidapi-host': 'wordsapiv1.p.rapidapi.com',
-    //                         'x-rapidapi-key': 'e18e293e71msh899aee87d7816d4p1d4574jsn248bb0b951da'
-    //                     },
-    //                     async: false,
-    //                     success: function(results) {
-    //                         // filter on adjectives + nouns
-    //                         definitions = results["definitions"];
-    //                         if (definitions.length > 1) {
-    //                             $("#suggestions").append("<p>Did you mean:</p>");
-    //                             // definitions.forEach( e => $("#suggestions").append("<p class='text-primary suggest' onclick=''>" + item.value + " - " + e["definition"] + "</p>"))
-    //                             // definitions.forEach( e => $("#suggestions").append("<a class='suggest' onclick='createWord(" + escape(item.value) + ", " + e["definition"] + ")'>" + escape(item.value) + " - " + e["definition"] + "</a><br/>"))
-    //                             definitions.forEach( e => $("#suggestions").append("<a class='suggest' onclick='createWord(this)'>" + escape(item.value) + " [" + e["definition"] + "]</a><br/>"));
-    //                         } else {
-    //                             one_def = true;
-    //                         }
-    //                     },
-    //                     // don't know if we want to alert to user or not
-    //                     error: function(error) {
-    //                         alert(error);
-    //                     }
-    //                 });
-
-    //                 return "<div class='" + (one_def ? "" : "invalid-word") + " item' id='w-" + escape(item.value) + "'>" + 
-    //                     (one_def ? "<div class='hidden'>" + definitions[0]["definition"] + "</div>": "") +
-    //                     '<span class="name">' + escape(item.value) + '</span>' + 
-    //                 "</div>";
-    //             }
-    //         }
-    //     },
-    //     create: function(input) {
-    //         console.log("creating");
-    //         return {
-    //             value: input,
-    //             text: input
-    //         }
-    //     }
-    // });
-
-    // console.log("here");
-    // console.log($keywords[0].selectize);
-    //when closing tag remove did you means!!!!!!!!!!
 })
 
 function colorLabel() {

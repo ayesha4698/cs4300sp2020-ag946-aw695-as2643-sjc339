@@ -21,138 +21,142 @@
     <link rel="shortcut icon" type="image/jpg" href="/static/images/palette.png" />
 </head>
 
-<body id="search-page">
-    <div class="topcorner">
-        <div class="p-1 d-flex flex-row-reverse">
-            <a href="https://find-my-palette-v2.herokuapp.com">Version 2</a>
-            <a href="https://find-my-palette.herokuapp.com">Version 1</a>
+<body>
+    <div id="search-page" class="pt-5 pb-5">
+        <div class="topcorner">
+            <div class="mt-3 d-flex">
+                <a class="version-link" href="https://find-my-palette.herokuapp.com">v1</a>
+                <a class="version-link" href="https://find-my-palette-v2.herokuapp.com">v2</a>
+                <a class="version-link" href="">v3</a>
+            </div>
         </div>
-        <p class="names">Created by: {{ netid }}</p>
-    </div>
 
-    <div id="form-container" class="mt-5 mb-5">
-        <h1 class="mt-5 mb-2">Find My Palette</h1>
-        <form id="search-form" class="box" action="" method="POST">
-            <div class="form-group mb-4">
-                <label>Keywords</label>
-                <p class="subtext">What words do you associate with your brand/project? Select up to 5 keywords.</p>
+        <div id="form-container" class="position-relative mt-5 mb-4">
+            <h1 class="position-absolute">Find My Palette</h1>
+            <form id="search-form" class="box pt-5" action="" method="POST">
+                <div class="form-group mb-4">
+                    <label>Keywords</label>
+                    <p class="subtext">What words do you associate with your brand/project? Select up to 5 keywords.</p>
 
-                    <!-- <input id="tagsInput" type="text" name="keywords" value="hello [fskdf], slkdfjda - test"> -->
-                <input id="tagsInput" type="text" name="keywords" value={% if keywords %}{% autoescape true %}{{
-                    keywords|e }}{% endautoescape %}{% endif %}>
-                <!-- <input id="keywordsInput" type="text" class="form-control" name="keywords" placeholder="keyword, keyword" value={% if keywords %}{{ keywords }}{% endif %}> -->
-                <div id="suggestions"></div>
-                {% if submit and "keywords1" in errors %}
-                <p class="error">Please input at least one keyword.</p>
-                {% elif submit and "keywords2" in errors %}
-                <p class="error">Please input a maximum of 5 keywords.</p>
-                {% elif submit and "keywords3" in errors %}
-                <p class="error">Please remove invalid keywords.</p>
-                {% endif %}
-            </div>
-            <input id="invalidWords" name="invalidWords" class="hidden">
-            <input id="multiDefWords" name="multiDefs" class="hidden" type="text">
-
-            <div class="form-group mb-4">
-                <label>Brightness</label>
-                <p class="subtext">Do you want your palettes to be darker (0) or brighter (10)?</p>
-                <!-- <label for="customRange3" class="form-label">Example range</label> -->
-                <input id="energyInput" name="energy" type="range" class="form-range" min="0" max="10" step="1" value={%
-                    if energy %}{{ energy }}{% else %}{{ 5 }}{% endif %}>
-                <!-- <input id="energyInput" type="number" name="energy" class="form-control" min=1 max=10 value={% if energy %}{{ energy }}{% endif %}> -->
-                <ul id="energy-labels">
-                    <li id="e0" class="e-label">0</li>
-                    <li id="e1" class="e-label">1</li>
-                    <li id="e2" class="e-label">2</li>
-                    <li id="e3" class="e-label">3</li>
-                    <li id="e4" class="e-label">4</li>
-                    <li id="e5" class="e-label">5</li>
-                    <li id="e6" class="e-label">6</li>
-                    <li id="e7" class="e-label">7</li>
-                    <li id="e8" class="e-label">8</li>
-                    <li id="e9" class="e-label">9</li>
-                    <li id="e10" class="e-label p-0">10</li>
-                </ul>
-            </div>
-
-            <div class="form-group mb-4">
-                <label>Necessary Colors</label>
-                <p class="subtext">Choose up to 2 colors to include.</p>
-
-                <p class="mb-0">HEX</p>
-                <div class="input-group">
-                    <span class="input-group-text">#</span>
-                    <input id="color1Input" type="text" name="color1" class="form-control" value={% if color1 %}{{
-                        color1 }}{% endif %}>
-                </div>
-                {% if submit and "color1" in errors %}
-                <p class="error">Please select a valid HEX code.</p>
-                {% endif %}
-
-                <p class="mt-2 mb-0">HEX</p>
-                <div class="input-group">
-                    <span class="input-group-text">#</span>
-                    <input id="color2Input" type="text" name="color2" class="form-control" value={% if color2 %}{{
-                        color2 }}{% endif %}>
-                </div>
-                {% if submit and "color2" in errors %}
-                <p class="error">Please select a valid HEX code.</p>
-                {% endif %}
-            </div>
-            <input id="showdef" class="hidden" name="showdef" type="text">
-
-            <!-- <div class="form-group mb-4">
-                    <label>Number of Colors*</label>
-                    <p class="subtext">How many colors do you want to include in the palette? Maximum is 6 colors.</p>
-                    <input id="numColorInput" type="number" name="numcolors" class="form-control" min=2 max=6 value={% if numcolors %}{{ numcolors }}{% endif %}>
-                    {% if submit and "numcolors" in errors %}
-                        <p class="error">Please select a number between 2-6.</p>
+                        <!-- <input id="tagsInput" type="text" name="keywords" value="hello [fskdf], slkdfjda - test"> -->
+                    <input id="tagsInput" type="text" name="keywords" value={% if keywords %}{% autoescape true %}{{
+                        keywords|e }}{% endautoescape %}{% endif %}>
+                    <!-- <input id="keywordsInput" type="text" class="form-control" name="keywords" placeholder="keyword, keyword" value={% if keywords %}{{ keywords }}{% endif %}> -->
+                    <div id="suggestions"></div>
+                    {% if submit and "keywords1" in errors %}
+                    <p class="error">Please input at least one keyword.</p>
+                    {% elif submit and "keywords2" in errors %}
+                    <p class="error">Please input a maximum of 5 keywords.</p>
+                    {% elif submit and "keywords3" in errors %}
+                    <p class="error">Please remove invalid keywords.</p>
                     {% endif %}
-                </div> -->
+                </div>
+                <input id="invalidWords" name="invalidWords" class="hidden">
+                <input id="multiDefWords" name="multiDefs" class="hidden" type="text">
 
-            <div id="background" class="{{ 'hidden' if not showModal }}">
-                <div id="defForm" class="box">
-                    <div class="modal-top d-flex flex-row bg-white pt-4 pb-3 ps-5">
-                        <h3>Select a definition for the following selected keyword(s):</h3>
-                        <button id="closeBtn" type="button" class="btn-close" onclick="closeModal()"></button>
+                <div class="form-group mb-4">
+                    <label>Brightness</label>
+                    <p class="subtext">Do you want your palettes to be darker (0) or brighter (10)?</p>
+                    <!-- <label for="customRange3" class="form-label">Example range</label> -->
+                    <input id="energyInput" name="energy" type="range" class="form-range" min="0" max="10" step="1" value={%
+                        if energy %}{{ energy }}{% else %}{{ 5 }}{% endif %}>
+                    <!-- <input id="energyInput" type="number" name="energy" class="form-control" min=1 max=10 value={% if energy %}{{ energy }}{% endif %}> -->
+                    <ul id="energy-labels">
+                        <li id="e0" class="e-label">0</li>
+                        <li id="e1" class="e-label">1</li>
+                        <li id="e2" class="e-label">2</li>
+                        <li id="e3" class="e-label">3</li>
+                        <li id="e4" class="e-label">4</li>
+                        <li id="e5" class="e-label">5</li>
+                        <li id="e6" class="e-label">6</li>
+                        <li id="e7" class="e-label">7</li>
+                        <li id="e8" class="e-label">8</li>
+                        <li id="e9" class="e-label">9</li>
+                        <li id="e10" class="e-label p-0">10</li>
+                    </ul>
+                </div>
+
+                <div class="form-group mb-4">
+                    <label>Necessary Colors</label>
+                    <p class="subtext">Choose up to 2 colors to include.</p>
+
+                    <p class="mb-0">HEX</p>
+                    <div class="input-group">
+                        <span class="input-group-text">#</span>
+                        <input id="color1Input" type="text" name="color1" class="form-control" value={% if color1 %}{{
+                            color1 }}{% endif %}>
                     </div>
-                    <div id="options" class="mt-5"></div>
-                    <div class="modal-bottom d-flex flex-row-reverse">
-                        {% if submit and "multi" in errors %}
-                        <p class="error">Please select a definition for every keyword.</p>
+                    {% if submit and "color1" in errors %}
+                    <p class="error">Please select a valid HEX code.</p>
+                    {% endif %}
+
+                    <p class="mt-2 mb-0">HEX</p>
+                    <div class="input-group">
+                        <span class="input-group-text">#</span>
+                        <input id="color2Input" type="text" name="color2" class="form-control" value={% if color2 %}{{
+                            color2 }}{% endif %}>
+                    </div>
+                    {% if submit and "color2" in errors %}
+                    <p class="error">Please select a valid HEX code.</p>
+                    {% endif %}
+                </div>
+                <input id="showdef" class="hidden" name="showdef" type="text">
+
+                <!-- <div class="form-group mb-4">
+                        <label>Number of Colors*</label>
+                        <p class="subtext">How many colors do you want to include in the palette? Maximum is 6 colors.</p>
+                        <input id="numColorInput" type="number" name="numcolors" class="form-control" min=2 max=6 value={% if numcolors %}{{ numcolors }}{% endif %}>
+                        {% if submit and "numcolors" in errors %}
+                            <p class="error">Please select a number between 2-6.</p>
                         {% endif %}
-                        <button type="submit" class="btn btn-primary mt-1" id="defBtn">Finish</button>
+                    </div> -->
+
+                <div id="background" class="{{ 'hidden' if not showModal }}">
+                    <div id="defForm" class="box">
+                        <div class="modal-top d-flex flex-row bg-white pt-4 pb-3 ps-5">
+                            <h3>Select a definition for the following selected keyword(s):</h3>
+                            <button id="closeBtn" type="button" class="btn-close" onclick="closeModal()"></button>
+                        </div>
+                        <div id="options" class="mt-5"></div>
+                        <div class="modal-bottom d-flex flex-row-reverse">
+                            {% if submit and "multi" in errors %}
+                            <p class="error">Please select a definition for every keyword.</p>
+                            {% endif %}
+                            <button type="submit" class="btn btn-primary mt-1" id="defBtn">Finish</button>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="d-flex flex-row-reverse">
-                <button type="submit" class="btn btn-primary" id="submitBtn">Generate</button>
-            </div>
-        </form>
+                <div class="d-flex flex-row-reverse">
+                    <button type="submit" class="btn btn-primary" id="submitBtn">Generate</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     {% if sortedScored %}
-    <div id="results" class="mt-5 mb-5 ms-5">
-        <h1>Results</h1>
+    <div id="results" class="mt-5">
+        {{ keywordDefs }}
+        <h2 class="mt-3 mb-4 ms-5"><strong>Keywords:</strong> {{ keywords.replace(",", ", ")  }}</h2>
         {% for palette in sortedScored %}
-        <h2>Palette</h2>
-        <div class="palette d-flex flex-row justify-between">
-            {% for color in palette[1][0] %}
-            <div class="color">
-                <div class="swatch"></div>
-                <p>#{{ color }}</p>
-            </div>
-            {% endfor %}
-        </div>
-        <div>
-            <h6>Palette Score: {{ palette[1][1] }}</h6>
-            <div>
-                {% for breakdown in keywordBreakdown[palette[0]] %}
-                <h6>Keyword Breakdown: ( {{ breakdown[0] }}:  {{ breakdown[1] }}% ) </h6>
+        <div class="result position-relative">
+            <h3 class="number">{% if loop.index < 10 %}0{{ loop.index }}{% else %}{{ loop.index }}{% endif %}</h3>
+            <div class="whitespace bg-white"></div>
+            <div class="palette d-flex flex-row justify-between pt-4 mb-5" data-id={{ loop.index }}>
+                {% for color in palette[1][0] %}
+                <div class="color">
+                    <div class="swatch"></div>
+                    <p class="p-2 mb-0 bg-white">#{{ color }}</p>
+                </div>
                 {% endfor %}
+                <div class="vote">
+                    <button class="btn"><img class="arrow" src="/static/images/up.svg"></button>
+                    <p>1</p>
+                    <button class="btn"><img class="arrow" src="/static/images/down.svg"></button>
+                </div>
             </div>
         </div>
+        <div data-id={{ loop.index }} class="gradient"></div>
         {% endfor %}
 
     </div>
@@ -162,6 +166,10 @@
         <p>Try different keywords e.g. earthy, contemporary, elegant.</p>
     </div>
     {% endif %}
+
+    <footer class="pt-5 px-3 d-flex flex-row-reverse bg-light">
+        <p class="names mt-3">created with ❤️ by {{ netid }}</p>
+    </footer>
 </body>
 
 </html>
