@@ -1026,26 +1026,23 @@ def search():
 
         multiDefList = []
 
-        if multiDefs:
+        if request.form.get('submit-button') == 'definitions':
             multiDefList = multiDefs.split(",")
             for d in multiDefList:
+                print(d)
                 try:
-                    #print("testing1")
-                    #print(request.form[d])
-                    #print(len(request.form[d]))
-                    #print("ok")
-                    if len(request.form[d]) > 0:
-                        #print("testing2")
+                    if request.form[d]:
                         keywordDefs.append(
                             d + " - " + request.form[d].replace("%", " "))
-                    else:
-                        errors.append("multi")
-                        #print("hello!!")
-                        return render_template('search.html', netid=netid, results=None, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit, multiDefs=multiDefs)
                 except:
-                    if len(errors) == 0:
-                        return render_template('search.html', netid=netid, results=None, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit, multiDefs=multiDefs, showModal=True)
-                    return render_template('search.html', netid=netid, results=None, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit, multiDefs=multiDefs)
+                    print("failed to get form element")
+                    print(submit)
+                    errors.append("multi")
+                    return render_template('search.html', netid=netid, results=None, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit, multiDefs=multiDefs, showModal=True)
+
+        if request.form.get('submit-button') == 'general' and multiDefs:
+            return render_template('search.html', netid=netid, results=None, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit, multiDefs=multiDefs, showModal=True)
+
         for k in keywords.split(","):
             if k not in multiDefList:
                 keywordDefs.append(k)
