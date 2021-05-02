@@ -48,7 +48,7 @@ for i in range(len(cymData['word'])):
 stop_words = set(stopwords.words('english'))
 stemmer = SnowballStemmer("english")
 
-netid = "Ayesha Gagguturi (ag946), Joy Thean (jct263), Skylar Capasso (sjc339), Anishka Singh (as2643), Alisa Wong (aw695)"
+netid = "Alisa Wong (aw695), Anishka Singh (as2643), Ayesha Gagguturi (ag946), Joy Thean (jct263), and Skylar Capasso (sjc339)"
 
 
 ###########################################################################################
@@ -1050,6 +1050,7 @@ def search():
 
             print(sortedScored)
 
-        return render_template('search.html', netid=netid, sortedScored = sortedScored, keywordBreakdown=keywordBreakdown, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit, reset=True)
-
+        return render_template('search.html', netid=netid, sortedScored = sortedScored, keywordBreakdown=keywordBreakdown, keywordDefs=keywordDefs, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit, reset=True)
+    
     return render_template('search.html', netid=netid)
+    # return render_template('search.html', netid=netid, sortedScored=[(5, (['0FF4F3', 'F6DA0D', 'DDC114', 'C44D2A', 'BD2456'], 9.116932314670592)), (3, (['F9B00C', '0CF1F0', '79E6A2', 'A17B1E', 'D51F36'], 9.10481916108276)), (1, (['FDF606', '08FAF8', 'BBD4E5', '6E3F55', '16121F'], 1.6377623563612191)), (4, (['FBA10C', 'FDDA0B', 'AEA417', '153F2F', '131D29'], 1.5999848744714602)), (0, (['FCFA0A', 'FBA50C', 'E8321C', '1A2124', '15222E'], 1.5962150584780885))], keywordBreakdown={0: [('beach', 2.6857654431513)], 1: [('beach', 2.6857654431513)], 2: [('beach', 2.6857654431513)], 3: [('beach', 21.366756192181)], 4: [('beach', 2.6857654431513)], 5: [('beach', 21.366756192181)]}, keywords="beach")

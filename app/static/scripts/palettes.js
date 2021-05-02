@@ -1,5 +1,6 @@
 $(document).ready(function () {
     var cymbolism = ['abuse', 'accessible', 'addiction', 'agile', 'amusing', 'anger', 'anticipation', 'art deco', 'authentic', 'authority', 'average', 'baby', 'beach', 'beauty', 'beer', 'benign', 'bitter', 'blend', 'blissful', 'bold', 'book', 'boss', 'brooklyn', 'busy', 'calming', 'capable', 'car', 'cat', 'certain', 'charity', 'cheerful', 'chicago', 'classic', 'classy', 'clean', 'cold', 'colonial', 'comfort', 'commerce', 'compelling', 'competent', 'confident', 'consequence', 'conservative', 'contemporary', 'cookie', 'corporate', 'cottage', 'crass', 'creative', 'cute', 'dance', 'dangerous', 'decadent', 'decisive', 'deep', 'devil', 'discount', 'disgust', 'dismal', 'dog', 'drunk', 'dublin', 'duty', 'dynamic', 'earthy', 'easy', 'eclectic', 'efficient', 'elegant', 'elite', 'enduring', 'energetic', 'entrepreneur', 'environmental', 'erotic', 'excited', 'expensive', 'experience', 'fall', 'familiar', 'fast', 'fear', 'female', 'football', 'freedom', 'fresh', 'friendly', 'fun', 'furniture', 'future', 'gay', 'generic', 'georgian', 'gloomy', 'god', 'good', 'goth', 'government', 'grace', 'great', 'grow', 'happy', 'hard', 'hate', 'hazardous', 'hippie', 'hockey', 'honor', 'hope', 'hot', 'hunting', 'hurt', 'hygienic', 'ignorant', 'imagination', 'impossible', 'improbable', 'influence', 'influential', 'insecure', 'inviting', 'invulnerable', 'jacobean', 'jealous', 'joy', 'jubilant', 'junkie', 'knowledge', 'kudos', 'launch', 'lazy', 'leader', 'liberal', 'library', 'light', 'likely', 'lonely', 'love', 'magic', 'marriage', 'maximal', 'mean', 'medicine', 'melancholy', 'mellow', 'minimal', 'mission', 'modern', 'moment', 'money', 'music', 'mystical', 'narcissist', 'natural', 'naughty', 'new', 'nimble', 'now', 'objective', 'old', 'optimistic', 'organic', 'paradise', 'party', 'passion', 'passive', 'peace', 'peaceful', 'personal', 'playful', 'pleasing', 'possible', 'powerful', 'preceding', 'predatory', 'prime', 'probable', 'productive', 'professional', 'profit', 'progress', 'public', 'pure', 'radical', 'railway', 'rain', 'real', 'rebellious', 'recession', 'reconciliation', 'recovery', 'relaxed', 'reliability', 'retro', 'rich', 'risk', 'rococo', 'romantic', 'royal', 'rustic', 'sad', 'sadness', 'safe', 'sarcasm', 'secure', 'sensible', 'sensual', 'sex', 'shabby', 'silly', 'simple', 'slow', 'smart', 'smooth', 'snorkel', 'soft', 'solar', 'sold', 'solid', 'somber', 'spiffy', 'sport', 'spring', 'stability', 'star', 'strong', 'studio', 'style', 'stylish', 'submit', 'suburban', 'success', 'summer', 'sun', 'sunny', 'surprise', 'sweet', 'symbol', 'tasty', 'therapeutic', 'threat', 'time', 'tomorrow', 'treason', 'trust', 'trustworthy', 'uncertain', 'uniform', 'unlikely', 'unsafe', 'urban', 'value', 'vanity', 'victorian', 'vitamin', 'vulnerability', 'vulnerable', 'war', 'warm', 'winter', 'wise', 'wish', 'work', 'worm', 'young'];
+    var shorthand = {"adjective": "[adj]", "noun": "[n]", "adverb": "[adv]"}
 
     // add palette swatch colors
     $("div.color").each(function (i, e) {
@@ -24,21 +25,28 @@ $(document).ready(function () {
     // gradient
     $(".gradient").each(function (i, e) {
         id = $(e).data("id");
-        console.log(id);
         gradient = "linear-gradient(to right";
-        // console.log(".palette[data-id="+id+"]");
-        console.log($(".palette[data-id="+id+"]").children(".color"));
         $(".palette[data-id="+id+"]").children(".color").each( function (i, c) {
-            console.log(c);
-            // console.log($(c).children("p"));
-            // console.log($(c).children("p").html());
+
             color = $(c).children("p").html();
-            // console.log(color);
             gradient += ", " + color;
         });
         gradient += ")";
         $(e).css("background-image", gradient)
     });
+
+    // breakdown bars
+    $(".bar").each(function (i, e) {
+        percent = $(e).data("percent");
+        $(e).css("width", percent);
+    })
+
+    // show breakdown
+    $(".more-info").hover(function(i) {
+       $(".breakdown[data-value=" + $(i.target).data("value") + "]").removeClass("hidden");
+    }, function(i) {
+        $(".breakdown[data-value=" + $(i.target).data("value") + "]").addClass("hidden");
+    })
 
     var xhr;
     var $select = $("#tagsInput").selectize({
@@ -67,17 +75,21 @@ $(document).ready(function () {
                         success: function (results) {
                             console.log("hello???");
                             console.log(results);
-                            // filter on adjectives + nouns
-                            definitions = results["definitions"];
+                            // filter out verbs
+                            definitions = results["definitions"].filter( function(d) {
+                                console.log(d);
+                                return d["partOfSpeech"] != "verb";
+                            });
                             console.log(definitions);
                             if (definitions.length > 1) {
                                 valid = true;
                                 $("#options").append("<div id='" + word + "-options' class='mt-3'></div>");
-                                // console.log($("#testing"));
-                                // console.log(document.getElementById("testing"));
-                                $("#" + word + "-options").append("<label class='options-label' for='" + word + "'>" + word + "</label><br>");
+                                $("#" + word + "-options").append("<label class='options-label' for='" + word + "'><strong>" + word + "</strong></label><br>");
                                 definitions.forEach(d => {
-                                    let radio = '<div class="radio-input d-flex flex-row"><input class="radio-button" type="radio" name=' + word + ' value=' + d["definition"].replaceAll(" ", "%") + '><p class="def-text mb-1 ms-2">' + d["definition"] + '</p></input></div>';
+                                    let radio = '<div class="radio-input d-flex flex-row">' +
+                                        '<input class="radio-button" type="radio" name=' + word + ' value=' + d["definition"].replaceAll(" ", "%") + '>' + 
+                                        '<p class="def-text mb-1 ms-2">' + shorthand[d["partOfSpeech"]] + " " + d["definition"] + '</p>' +
+                                    '</input></div>';
                                     $("#" + word + "-options").append(radio);
                                 })
 
@@ -154,4 +166,12 @@ function createWord(arg) {
 
 function closeModal() {
     $("#background").addClass("hidden");
+}
+
+function showBreakdown(show, i) {
+    if (show) {
+        $(".breakdown[data-value" + i + "]").removeClass("hidden");
+    } else {
+        $(".breakdown[data-value" + i + "]").addClass("hidden");
+    }
 }

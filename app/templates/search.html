@@ -112,16 +112,18 @@
                     </div> -->
 
                 <div id="background" class="{{ 'hidden' if not showModal }}">
+                <!-- <div id="background"> -->
                     <div id="defForm" class="box">
-                        <div class="modal-top d-flex flex-row bg-white pt-4 pb-3 ps-5">
-                            <h3>Select a definition for the following selected keyword(s):</h3>
-                            <button id="closeBtn" type="button" class="btn-close" onclick="closeModal()"></button>
-                        </div>
-                        <div id="options" class="mt-5"></div>
-                        <div class="modal-bottom d-flex flex-row-reverse">
+                        <button id="closeBtn" type="button" class="btn-close position-absolute" onclick="closeModal()"></button>
+                        <div class="modal-body position-relative">
+                            <label class="mt-1">Select a definition for the following keyword(s):</label>
                             {% if submit and "multi" in errors %}
                             <p class="error">Please select a definition for every keyword.</p>
                             {% endif %}
+                            <div id="options" class="ps-2 pe-2"></div>
+                        </div>
+                        
+                        <div class="modal-footer bg-light">
                             <button type="submit" class="btn btn-primary mt-1" id="defBtn">Finish</button>
                         </div>
                     </div>
@@ -142,21 +144,38 @@
         <div class="result position-relative">
             <h3 class="number">{% if loop.index < 10 %}0{{ loop.index }}{% else %}{{ loop.index }}{% endif %}</h3>
             <div class="whitespace bg-white"></div>
-            <div class="palette d-flex flex-row justify-between pt-4 mb-5" data-id={{ loop.index }}>
-                {% for color in palette[1][0] %}
-                <div class="color">
-                    <div class="swatch"></div>
-                    <p class="p-2 mb-0 bg-white">#{{ color }}</p>
+            <!-- <div class="result-content d-flex"> -->
+                <!-- <div class="palette pt-4 mb-5" data-id={{ loop.index }}> -->
+                <div class="palette d-flex flex-row justify-between pt-4 mb-5" data-id={{ loop.index }}>
+                    {% for color in palette[1][0] %}
+                    <div class="color">
+                        <div class="swatch"></div>
+                        <p class="p-2 mb-0 bg-white">#{{ color }}</p>
+                    </div>
+                    {% endfor %}
+                    <div class="vote">
+                        <button class="btn"><img class="arrow" src="/static/images/up.svg"></button>
+                        <p>1</p>
+                        <button class="btn"><img class="arrow" src="/static/images/down.svg"></button>
+                    </div>
                 </div>
-                {% endfor %}
-                <div class="vote">
-                    <button class="btn"><img class="arrow" src="/static/images/up.svg"></button>
-                    <p>1</p>
-                    <button class="btn"><img class="arrow" src="/static/images/down.svg"></button>
+            <!-- </div> -->
+            <div class="score d-flex mb-3"> 
+                <p class="mb-0"><strong>Score:</strong> {{ palette[1][1]|round(2, 'common') }}</p>
+                <img class="info more-info p-0 ms-3" data-value={{ loop.index }} src="/static/images/question.svg">
+                <div class="hidden breakdown position-absolute p-3 bg-white" data-value={{ loop.index }}>
+                    {% for breakdown in keywordBreakdown[palette[0]] %}
+                        <p class="mb-0">{{ breakdown[0] }}</p>
+                        <div class="breakdown-score d-flex">
+                            <div class="bar me-2" data-percent={{breakdown[1]}}></div>
+                            <p>{{ breakdown[1]|round(1, 'common') }}%</p>
+                        </div>
+                    {% endfor %}
+                    <p class="search-descript mb-0">Up/down votes per palette are based the top matched keyword. More information on scores here.</p>
                 </div>
             </div>
+            <div data-id={{ loop.index }} class="gradient"></div>
         </div>
-        <div data-id={{ loop.index }} class="gradient"></div>
         {% endfor %}
 
     </div>

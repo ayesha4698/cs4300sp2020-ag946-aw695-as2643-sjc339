@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Merriweather&family=Roboto&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Roboto:wght@400;700&display=swap');
 
 body {
     font-family: "Roboto"; 
@@ -28,9 +28,10 @@ strong {
     width: 35px;
     height: 35px;
     text-align: center;
-    line-height: 2.2;
+    line-height: 2.5;
     text-decoration: none;
     margin-right: 5px;
+    font-size: 0.9rem;
 }
 
 .version-link:hover {
@@ -50,7 +51,8 @@ h2 {
 }
 
 footer {
-    z-index: 100;
+    z-index: 7;
+    width: 100%;
     position: absolute;
 }
 
@@ -65,6 +67,7 @@ footer {
     -moz-animation: AnimationName 55s ease infinite;
     -o-animation: AnimationName 55s ease infinite;
     animation: AnimationName 55s ease infinite;
+    height: 100%;
 }
 
 @-webkit-keyframes AnimationName {
@@ -96,20 +99,16 @@ footer {
 #search-form {
     padding: 25px 35px;
     background-color: white;
-    border-radius: 10px;
 }
 
 .subtext {
-    color: grey;
+    color: #ced4da;
     font-style: italic;
     font-size: 80%;
 }
 
-#search-form button {
-    width: 100px;
-}
-
 .box {
+    border-radius: 10px;
     width: 600px;
     margin: auto;
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
@@ -164,6 +163,7 @@ footer {
 
 a.remove {
     border: none !important;
+    margin-left: 0 !important;
 }
 
 /* modal styling */
@@ -175,11 +175,12 @@ a.remove {
     width: 100%;
     height: 100%;
     background-color:rgba(0, 0, 0, 0.5);
-    z-index: 2;
+    z-index: 10;
 }
 
 .modal-top {
     position: absolute;
+    border-radius: 10px;
     left: 0;
     top:0;
     width: 100%;
@@ -187,26 +188,39 @@ a.remove {
 }
 
 #closeBtn {
-    width: 50px;
+    width: 30px;
+    right: 10px;
+    top: 20px;
+    font-size: 0.7rem;
+}
+
+.modal-footer {
+    border: none;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    position: absolute;
+}
+
+#defBtn, #submitBtn {
+    width: 100px;
 }
 
 #defForm {
     position: relative;
     margin: auto;
-    height: 600px;
+    height: 640px;
     margin-top: 50px;
-    padding: 20px;
     background-color:white;
+    padding-top: 2.5rem;
 }
 
-#options {
-    height: 475px;
+.modal-body {
+    height: 530px;
     overflow: scroll;
-    padding: 2rem;
-}
-
-.options-label {
-    font-size: 1.5rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    padding-top: 0;
 }
 
 .radio-button {
@@ -218,13 +232,10 @@ a.remove {
 }
 
 /* results styling */
-.result {
-    /* border: 1px solid black; */
-}
 
 .whitespace {
     width: 100%;
-    height: 50px;
+    height: 4rem;
     z-index: 2;
 }
 
@@ -239,15 +250,17 @@ a.remove {
 .palette {
     position: relative;
     z-index: 2;
-    width: 985px;
-    /* margin: auto; */
-    /* left: 50%;
-    margin-left: -200px; */
+    width: 700px;
+    left: calc(50% );
+    transform: translateX(-50%);
+    margin: auto 0px;
+    margin-left: 50px;
 }
 
 .color {
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
     margin-right: 20px;
+    display: inline-block;
 }
 
 .swatch {
@@ -283,5 +296,60 @@ a.remove {
 }
 
 .arrow:hover {
-    filter: invert(38%) sepia(55%) saturate(6515%) hue-rotate(210deg) brightness(100%) contrast(102%);
+    filter: invert(38%) sepia(55%) saturate(6515%) hue-rotate(210deg) brightness(100%) contrast(102%); /* #0d6efd */
+}
+
+.score {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+}
+
+.more-info {
+    filter: invert(38%) sepia(55%) saturate(6515%) hue-rotate(210deg) brightness(100%) contrast(102%); /* #0d6efd */
+    height: 1.3rem;
+}
+
+.more-info:hover {
+    transition: all .2s ease;
+    -webkit-transition: all .2s ease;   
+    filter: invert(38%) sepia(55%) saturate(6515%) hue-rotate(210deg) brightness(80%) contrast(102%); /* #0d6efd */
+}
+
+.breakdown {
+    width: 200px;
+    right: 0;
+    bottom: 40px;
+    z-index: 3;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 2px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.breakdown:before {
+    content: "";
+    width: 0px;
+    height: 0px;
+    position: absolute;
+    border-left: 12px solid white;
+    border-right: 12px solid transparent;
+    border-top: 12px solid white;
+    border-bottom: 10px solid transparent;
+    right: 15px;
+    bottom: -12px;
+    transform: scaleX(-1);
+}
+
+.search-descript {
+    font-size: 0.6rem;
+    color: #ced4da;
+}
+
+.breakdown-score {
+    color: #ced4da;
+}
+
+.bar {
+    background-color: #ced4da;
+    height: 21px;
 }
