@@ -3,6 +3,7 @@ from nltk.stem import WordNetLemmatizer
 from nltk.stem.snowball import SnowballStemmer
 import time
 import math
+import random
 from . import *
 from app.irsystem.models.helpers import *
 from app.irsystem.models.helpers import NumpyEncoder as NumpyEncoder
@@ -231,15 +232,20 @@ def keywordMatch(dfns):
     """
     synwords = []
     keywords = []
-
+    wordMatch = {}
+    
     for dfn in dfns:
         if dfn in cymData.keys() and dfn != 'word':
-            synwords.append(wordnet.synsets(dfn)[0])
+            s = wordnet.synsets(dfn)[0]
         else:
             s = getSynset(dfn)
-            # if s is not None:
-            synwords.append(s)
-    #print('syn', synwords)
+        synwords.append(s)
+        if not dfn.find("-") == -1:
+            kw = dfn[:dfn.index("-")-1]
+        else:
+            kw = dfn
+        wordMatch[kw] = s
+    
     for w1 in synwords:
         match = ''
         maxSim = 0
@@ -260,9 +266,19 @@ def keywordMatch(dfns):
         if maxSim == 0:
             maxSim, match = searchKeywordDfn(w1)
 
-        keywords.append((match, maxSim))
-
-    return keywords
+        for word,syn in wordMatch.items():
+            if type(syn) is not tuple and w1 == syn:
+                wordMatch[word] = (match, maxSim)
+        # if two matches same, combine similarity score
+        matches = [x[0] for x in keywords]
+        if match not in matches:
+            keywords.append((match, maxSim))
+        else:
+            ind = matches.find(match)
+            if ind != -1:
+                keywords[ind][1] = (keywords[ind][1] + maxSim)/2
+                
+    return keywords, wordMatch
 
 
 def deltaE(lab1, lab2):
@@ -445,32 +461,41 @@ def keyword(userWords, paletteDict):
 
     colordict = {}
     keywordDict = {}
+    wordsDict = {}
     cymColors = list(cymColorsInvInd.keys())
     maxScore = 0
     for palette in paletteDict.keys():
         score = 0
         keywordDict[palette] = []
         for word in userWords:
+            wordScore = 0
+            if word not in wordsDict:
+                wordsDict[word] = 0
+                
             lst = []
             for color in paletteDict[palette]:
                 closecolor = CloseColorHelper(cymColors, color)
                 lst = cymData[word]
                 ind = cymColorsInvInd[closecolor]
                 colorScore = float(lst[ind])
-                # print()
-                # print("COLOR")
-                # print(word)
-                #print(color)
-                #print(closecolor)
-                # print(colorScore)
-            score += colorScore
-            keywordDict[palette].append((word, colorScore))
+                wordScore += colorScore
+            score += wordScore
+            keywordDict[palette].append((word, wordScore))
+            if wordScore > wordsDict[word]:
+                wordsDict[word] = wordScore
+
         if score > maxScore:
             maxScore = score
         colordict[palette] = score
 
     for id in colordict:
         colordict[id] /= maxScore
+    
+    for id,lst in keywordDict.items():
+        for i in range(len(lst)):
+            word = keywordDict[id][i][0]
+            percent = keywordDict[id][i][1]
+            keywordDict[id][i] = (word, percent*(1 + wordsDict[word]/100))
 
     return colordict, keywordDict
 
@@ -841,52 +866,32 @@ def getPalettes(keywords, reqColors, energy):
             energy      user-input on the muted to bright scale [Int]
             numColors   number of colors the user wants in their palette [Int]
     """
-    # start = time.time()
-    # #print("key", keywords)
-    cymKeywords = keywordMatch(keywords)
-    # #print(cymKeywords)
-    # print('keyword match time')
-    #print(time.time() - start)
-    # start = time.time()
-    #print(cymKeywords)
+    cymKeywords, wordMatch = keywordMatch(keywords)
 
     palettes, top_colors = input_to_color(cymKeywords, reqColors, energy)
-    #print('input to color time')
-    #print(time.time() - start)
+
     keywords = [i[0] for i in cymKeywords]
-
-    # start = time.time()
-    #print("SCORE PALETTES ")
-    #print(keywords)
-    #print(palettes)
-    scored, keywordBreakdown = scorePalettes(palettes, keywords, reqColors, top_colors)
-
-    #print('score palettes time')
-    #print(time.time() - start)
-
-    #print()
-    #print(scored)
-
+    
+    scored, keywordBreakdown = scorePalettes(palettes, keywords, reqColors,
+        top_colors, wordMatch)
+    
     ranked = sorted(scored.items(), key=lambda scored: scored[1][1], reverse=True)
-
-    print()
-    print(ranked)
-    print()
-
+    
     sortedScored = []
     i = 0
     while len(sortedScored) < 5 and i < len(ranked):
         tup = ranked[i]
         if tup[1][0] is not None:   # TODO: check if similar palette is already in sortedScored
-            sortedScored.append(tup)
+            shuffled = tup[1][0]
+            random.shuffle(shuffled)
+            new_tup = (tup[0], (shuffled, tup[1][1]))
+            sortedScored.append(new_tup)
         i += 1
-
-    print(sortedScored)
-
+    
     return sortedScored, keywordBreakdown
 
 
-def scorePalettes(palettes, keywords, reqColors, top_colors):
+def scorePalettes(palettes, keywords, reqColors, top_colors, wordMatch):
     """
     Returns a new dictionary that scores and ranks each palette based on the
         following factors and weights:
@@ -918,10 +923,6 @@ def scorePalettes(palettes, keywords, reqColors, top_colors):
     keyW = .4
 
     # maximums
-    # maxRGB = colorDiff((0, 0, 0), (255, 255, 255), 'rgb')
-    # maxHSV = colorDiff((0, 0, 0), (0, 0, 100), 'hsv')
-    # maxPerc = colorDiff(convertColor((0, 0, 0), 'rgb', 'lab'),
-    #                     convertColor((255, 255, 255), 'rgb', 'lab'), 'lab')
     maxRGB = 0
     maxHSV = 0
     maxPerc = 0
@@ -958,15 +959,26 @@ def scorePalettes(palettes, keywords, reqColors, top_colors):
                 percDists[id] += avg/len(top_colors)
 
     keywordAvgs, keywordBreakdown = keyword(keywords, palettes)
+    
+    keywordAvgs, kwb = keyword(keywords, palettes)
+    keywordBreakdown = {}
+    for id, lst in kwb.items():
+        keywordBreakdown[id] = []
+        for tup in lst:
+            for orig,cym in wordMatch.items():
+                if cym[0] == tup[0]:
+                    score = tup[1]*cym[1]
+                    new_tup = (orig, tup[0], score)
+                    keywordBreakdown[id].append(new_tup)
 
     # weighted average of scores
     for id, palette in palettes.items():
         score = 0
-        if (rgbDists != {}):
+        if (rgbDists != {} and maxRGB != 0):
             score += (1 - rgbDists[id]/maxRGB)*100*rgbW
-        if (hsvDists != {}):
+        if (hsvDists != {} and maxHSV != 0):
             score += (1 - hsvDists[id]/maxHSV)*100*hsvW
-        if (percDists != {}):
+        if (percDists != {} and maxPerc != 0):
             score += (1 - percDists[id]/maxPerc)*100*percW
         if (keywordAvgs != {}):
             score += keywordAvgs[id]*100*keyW
@@ -975,9 +987,6 @@ def scorePalettes(palettes, keywords, reqColors, top_colors):
         # score += (100 - score)*(1 + net_updown/total_updown)
 
         scoreDict[id] = (palette, score)
-
-    # print('scoredict')
-    # print(scoreDict)
 
     return scoreDict, keywordBreakdown
 
