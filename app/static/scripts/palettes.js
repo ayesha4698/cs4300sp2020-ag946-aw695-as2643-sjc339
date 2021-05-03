@@ -45,7 +45,28 @@ $(document).ready(function () {
     $(".more-info").hover(function(i) {
        $(".breakdown[data-value=" + $(i.target).data("value") + "]").removeClass("hidden");
     }, function(i) {
-        $(".breakdown[data-value=" + $(i.target).data("value") + "]").addClass("hidden");
+        if($(i.target).attr("data-event") != "click") {
+            $(".breakdown[data-value=" + $(i.target).data("value") + "]").addClass("hidden");
+        }
+    });
+    // $("[data-event='click']").removeAttr("data-event");
+    $("html").click(function(e) {
+        // hide breakdown when clicking outside of it
+        if (e.target.class != "breakdown" && $("[data-event='click']").length > 0) {
+            let val = $("[data-event='click']").data("value");
+            $(".breakdown[data-value=" + val + "]").addClass("hidden");
+            $("[data-event='click']").removeAttr("data-event");
+        }
+        // show breakdown when more info button is clicked
+        if (e.target.classList.contains("more-info")) {
+            $(".breakdown[data-value=" + $(e.target).data("value") + "]").removeClass("hidden");
+        }
+    });
+
+    // tooltip (bootstrap)
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
     })
 
     var xhr;
@@ -114,6 +135,7 @@ $(document).ready(function () {
                             } else {
                                 $("#invalidWords").val(curr + "," + word);
                             }
+                            console.log($("#invalidWords").val());
                         }
                     });
                     return "<div class='" + (valid ? "" : "invalid-word") + " item' id='w-" + word + "'>" +

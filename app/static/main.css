@@ -1,7 +1,17 @@
+/* 
+colors
+
+darker grey: #ced4da 
+lighter grey: #ebebeb
+red: #f76473
+blue: #0d6efd
+*/
+
 @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Roboto:wght@400;700&display=swap');
 
-body {
+body, html {
     font-family: "Roboto"; 
+    height: 100%;
 }
 
 h1, h2 {
@@ -67,7 +77,7 @@ footer {
     -moz-animation: AnimationName 55s ease infinite;
     -o-animation: AnimationName 55s ease infinite;
     animation: AnimationName 55s ease infinite;
-    height: 100%;
+    min-height: 100%;
 }
 
 @-webkit-keyframes AnimationName {
@@ -115,7 +125,7 @@ footer {
 }
 
 .error {
-    color: red;
+    color: #f76473;
     font-size: 80%;
     font-style: italic;
 }
@@ -250,11 +260,11 @@ a.remove {
 .palette {
     position: relative;
     z-index: 2;
-    width: 700px;
+    width: 800px;
     left: calc(50% );
     transform: translateX(-50%);
     margin: auto 0px;
-    margin-left: 50px;
+    margin-left: 100px;
 }
 
 .color {
@@ -281,7 +291,7 @@ a.remove {
 .vote {
     font-weight: bolder;
     position: relative;
-    color: #EBEBEB;
+    color: #ced4da;
     margin-top: 1rem;
 }
 
@@ -305,19 +315,23 @@ a.remove {
     right: 20px;
 }
 
-.more-info {
+#more-info {
     filter: invert(38%) sepia(55%) saturate(6515%) hue-rotate(210deg) brightness(100%) contrast(102%); /* #0d6efd */
     height: 1.3rem;
 }
 
-.more-info:hover {
+#more-info:hover {
     transition: all .2s ease;
     -webkit-transition: all .2s ease;   
-    filter: invert(38%) sepia(55%) saturate(6515%) hue-rotate(210deg) brightness(80%) contrast(102%); /* #0d6efd */
+    filter: invert(38%) sepia(55%) saturate(6515%) hue-rotate(210deg) brightness(80%) contrast(102%);
+}
+
+#more-info[data-event="click"] {
+    filter: invert(38%) sepia(55%) saturate(6515%) hue-rotate(210deg) brightness(80%) contrast(102%);
 }
 
 .breakdown {
-    width: 200px;
+    width: 250px;
     right: 0;
     bottom: 40px;
     z-index: 3;
@@ -346,10 +360,10 @@ a.remove {
 }
 
 .breakdown-score {
-    color: #ced4da;
+    color: #0d6efd;
 }
 
 .bar {
-    background-color: #ced4da;
+    background-color: #0d6efd;
     height: 21px;
 }
