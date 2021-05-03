@@ -842,7 +842,6 @@ def getPalettes(keywords, reqColors, energy):
             numColors   number of colors the user wants in their palette [Int]
     """
     # start = time.time()
-    ranked = []
     # #print("key", keywords)
     cymKeywords = keywordMatch(keywords)
     # #print(cymKeywords)
@@ -867,20 +866,22 @@ def getPalettes(keywords, reqColors, energy):
 
     #print()
     #print(scored)
-    #print()
 
-    sortedScored = sorted(scored.items(), key=lambda scored: scored[1][1], reverse=True)
+    ranked = sorted(scored.items(), key=lambda scored: scored[1][1], reverse=True)
 
-    #print(sortedScored)
-    #print()
+    print()
+    print(ranked)
+    print()
 
-    if len(sortedScored) > 5:
-        sortedScored = sortedScored[:5]
+    sortedScored = []
+    i = 0
+    while len(sortedScored) < 5 and i < len(ranked):
+        tup = ranked[i]
+        if tup[1][0] is not None:   # TODO: check if similar palette is already in sortedScored
+            sortedScored.append(tup)
+        i += 1
 
-    # for tup in sortedScored:
-    #     ranked.append(tup[1][0])
-
-    # print(ranked)
+    print(sortedScored)
 
     return sortedScored, keywordBreakdown
 
@@ -969,6 +970,9 @@ def scorePalettes(palettes, keywords, reqColors, top_colors):
             score += (1 - percDists[id]/maxPerc)*100*percW
         if (keywordAvgs != {}):
             score += keywordAvgs[id]*100*keyW
+
+        # TODO: uncomment this later when updown works
+        # score += (100 - score)*(1 + net_updown/total_updown)
 
         scoreDict[id] = (palette, score)
 
@@ -1062,6 +1066,6 @@ def search():
             # print(sortedScored)
 
         return render_template('search.html', netid=netid, sortedScored = sortedScored, keywordBreakdown=keywordBreakdown, keywordDefs=keywordDefs, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit, reset=True)
-    
+
     return render_template('search.html', netid=netid)
     # return render_template('search.html', netid=netid, sortedScored=[(5, (['0FF4F3', 'F6DA0D', 'DDC114', 'C44D2A', 'BD2456'], 9.116932314670592)), (3, (['F9B00C', '0CF1F0', '79E6A2', 'A17B1E', 'D51F36'], 9.10481916108276)), (1, (['FDF606', '08FAF8', 'BBD4E5', '6E3F55', '16121F'], 1.6377623563612191)), (4, (['FBA10C', 'FDDA0B', 'AEA417', '153F2F', '131D29'], 1.5999848744714602)), (0, (['FCFA0A', 'FBA50C', 'E8321C', '1A2124', '15222E'], 1.5962150584780885))], keywordBreakdown={0: [('beach', 2.6857654431513)], 1: [('beach', 2.6857654431513)], 2: [('beach', 2.6857654431513)], 3: [('beach', 21.366756192181)], 4: [('beach', 2.6857654431513)], 5: [('beach', 21.366756192181)]}, keywords="beach")
