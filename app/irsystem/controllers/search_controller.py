@@ -842,7 +842,6 @@ def getPalettes(keywords, reqColors, energy):
             numColors   number of colors the user wants in their palette [Int]
     """
     # start = time.time()
-    ranked = []
     # #print("key", keywords)
     cymKeywords = keywordMatch(keywords)
     # #print(cymKeywords)
@@ -867,20 +866,22 @@ def getPalettes(keywords, reqColors, energy):
 
     #print()
     #print(scored)
-    #print()
 
-    sortedScored = sorted(scored.items(), key=lambda scored: scored[1][1], reverse=True)
+    ranked = sorted(scored.items(), key=lambda scored: scored[1][1], reverse=True)
 
-    #print(sortedScored)
-    #print()
+    print()
+    print(ranked)
+    print()
 
-    if len(sortedScored) > 5:
-        sortedScored = sortedScored[:5]
+    sortedScored = []
+    i = 0
+    while len(sortedScored) < 5 and i < len(ranked):
+        tup = ranked[i]
+        if tup[1][0] is not None:   # TODO: check if similar palette is already in sortedScored
+            sortedScored.append(tup)
+        i += 1
 
-    # for tup in sortedScored:
-    #     ranked.append(tup[1][0])
-
-    # print(ranked)
+    print(sortedScored)
 
     return sortedScored, keywordBreakdown
 
@@ -969,6 +970,9 @@ def scorePalettes(palettes, keywords, reqColors, top_colors):
             score += (1 - percDists[id]/maxPerc)*100*percW
         if (keywordAvgs != {}):
             score += keywordAvgs[id]*100*keyW
+
+        # TODO: uncomment this later when updown works
+        # score += (100 - score)*(1 + net_updown/total_updown)
 
         scoreDict[id] = (palette, score)
 
