@@ -451,7 +451,7 @@ def CloseColorHelper(cymColors, colorToMatch):
     return ret
 
 
-def keyword(userWords, paletteDict):
+def keyword(userWords, paletteDict, wordMatch):
     """
       Returns one dictionary that includes the percentage score based on the colors and keywords
       Returns another dictionary that also includes the keyword and the corresponding percentage score
@@ -500,13 +500,22 @@ def keyword(userWords, paletteDict):
         for i in range(len(lst)):
             word = keywordDict[id][i][0]
             percent = keywordDict[id][i][1]
-            if percent < 90:
-                percent += (100 - percent)*(wordsDict[word]/100)
+            percent += (100 - percent)*(wordsDict[word]/100)/2
             if percent >= 100:
                 percent = keywordDict[id][i][1]
             keywordDict[id][i] = (word, percent)
 
-    return colordict, keywordDict
+    keywordBreakdown = {}
+    for id, lst in keywordDict.items():
+        keywordBreakdown[id] = []
+        for tup in lst:
+            for orig,cym in wordMatch.items():
+                if cym[0] == tup[0]:
+                    score = tup[1]*cym[1]
+                    new_tup = (orig, tup[0], score)
+                    keywordBreakdown[id].append(new_tup)
+
+    return colordict, keywordBreakdown
 
 
 def convertColor(color, fromCode, toCode):
@@ -559,6 +568,18 @@ def hue_adjuster():
     return 0
 
 def isClose(palette1, palette2):
+    """
+    Check if the palette is close enough to palette that is already saved in the csv
+    If it is already in the csv, return true otherwise return false
+
+    Params:
+            palette1 -  a palette from the CSV
+            palette2 - a palette to compare
+
+    Returns: True if the palette is already in the csv or is below the threshold
+    and is similar to a palette already in the csv
+            False if the palette does not exist or the distance is above the threshold
+    """
     endDict = {}
     lst = []
     for c1 in palette2:
@@ -567,14 +588,14 @@ def isClose(palette1, palette2):
             ca = convertColor(c1, 'hex', 'rgb')
             cb = convertColor(c2, 'hex', 'rgb')
             score = colorDiff(ca, cb, "rgb")
-            print(score)
+            # print(score)
             minScore.append(score)
         lst.append(minScore)
-    print("minScore", minScore)
+    # print("minScore", minScore)
     avg = sum(minScore)/len(minScore)
     print("avg", avg)
-    threshold = 300
-    if avg > threshold:
+    threshold = 100
+    if avg < threshold:
         return True
     else:
         return False
@@ -972,16 +993,20 @@ def getPalettes(keywords, reqColors, energy):
 
     ranked = sorted(scored.items(), key=lambda scored: scored[1][1], reverse=True)
 
+    print("\nGENERATED")
+    print(ranked)
+
     sortedScored = []
     i = 0
     while len(sortedScored) < 5 and i < len(ranked):
         tup = ranked[i]
 
         tooClose = False
-        # TODO: uncomment later when isClose is integrated
-        # for pal in sortedScored:
-        #     if isClose(tup[1][0],pal):
-        #         tooClose = True
+        for pal in sortedScored:
+            print(tup[0])
+            print(pal[0])
+            if isClose(tup[1][0],pal[1][0]):
+                tooClose = True
 
         if not tooClose:
             shuffled = tup[1][0]
@@ -990,6 +1015,9 @@ def getPalettes(keywords, reqColors, energy):
             sortedScored.append(new_tup)
 
         i += 1
+
+    print("\nKEPT")
+    print(sortedScored)
 
     return sortedScored, keywordBreakdown
 
@@ -1020,11 +1048,18 @@ def scorePalettes(palettes, keywords, reqColors, top_colors, wordMatch):
     percDists = {}
 
     # weights
-    rgbW = .15
-    hsvW = .15
-    percW = .15
-    keyW = .35
-    compW = .2
+    if len(reqColors) == 0:
+        rgbW = .15
+        hsvW = .15
+        percW = .15
+        keyW = .3
+        compW = .25
+    else:
+        rgbW = .1
+        hsvW = .1
+        percW = .1
+        keyW = .3
+        compW = .4
 
     # maximums
     maxRGB = 0
@@ -1062,17 +1097,17 @@ def scorePalettes(palettes, keywords, reqColors, top_colors, wordMatch):
             else:
                 percDists[id] += avg/len(top_colors)
 
-    keywordAvgs, kwb = keyword(keywords, palettes)
+    keywordAvgs, keywordBreakdown = keyword(keywords, palettes, wordMatch)
 
-    keywordBreakdown = {}
-    for id, lst in kwb.items():
-        keywordBreakdown[id] = []
-        for tup in lst:
-            for orig,cym in wordMatch.items():
-                if cym[0] == tup[0]:
-                    score = tup[1]*cym[1]
-                    new_tup = (orig, tup[0], score)
-                    keywordBreakdown[id].append(new_tup)
+    # keywordBreakdown = {}
+    # for id, lst in kwb.items():
+    #     keywordBreakdown[id] = []
+    #     for tup in lst:
+    #         for orig,cym in wordMatch.items():
+    #             if cym[0] == tup[0]:
+    #                 score = tup[1]*cym[1]
+    #                 new_tup = (orig, tup[0], score)
+    #                 keywordBreakdown[id].append(new_tup)
 
     complement = {}
     for id,pal in palettes.items():
@@ -1091,13 +1126,6 @@ def scorePalettes(palettes, keywords, reqColors, top_colors, wordMatch):
 
     maxDiff = max(complement.values())
 
-    if len(reqColors) > 0:
-        rgbW = .1
-        hsvW = .1
-        percW = .1
-        keyW = .3
-        compW = .4
-
     # weighted average of scores
     for id, palette in palettes.items():
         score = 0
@@ -1113,6 +1141,8 @@ def scorePalettes(palettes, keywords, reqColors, top_colors, wordMatch):
             score += (complement[id]/maxDiff)*100*compW
 
         # TODO: work on this later when updown is integrated
+        # score *= net_updown/total_updown
+        # OR
         # score += (100 - score)*(1 + net_updown/total_updown)
 
         scoreDict[id] = (palette, score)
@@ -1222,7 +1252,7 @@ def search():
     if request.method == "GET":
         print("return 5")
         return render_template('search.html', netid=netid)
-    # return render_template('search.html', netid=netid, 
-    #     sortedScored=[(5, (['0FF4F3', 'F6DA0D', 'DDC114', 'C44D2A', 'BD2456'], 9.116932314670592)), (3, (['F9B00C', '0CF1F0', '79E6A2', 'A17B1E', 'D51F36'], 9.10481916108276)), (1, (['FDF606', '08FAF8', 'BBD4E5', '6E3F55', '16121F'], 1.6377623563612191)), (4, (['FBA10C', 'FDDA0B', 'AEA417', '153F2F', '131D29'], 1.5999848744714602)), (0, (['FCFA0A', 'FBA50C', 'E8321C', '1A2124', '15222E'], 1.5962150584780885))], 
-    #     keywordBreakdown={0: [('beach', 'beach', 59.26734239322961), ('cool', 'cold', 75.88183700692531)], 1: [('cool', 'cold', 60.63718348112445), ('beach', 'beach', 77.6741907104524)], 2: [('cool', 'cold', 57.686154394631124), ('beach', 'beach', 74.90704815062111)], 3: [('cool', 'cold', 65.86606260520283), ('beach', 'beach', 81.09119250781961)], 4: [('cool', 'cold', 54.66467633790308), ('beach', 'beach', 82.34898458047067)], 5: [('cool', 'cold', 54.66467633790297), ('beach', 'beach', 79.59232362124457)], 6: [('cool', 'cold', 65.46685177387367), ('beach', 'beach', 70.67248150603079)], 7: [('cool', 'cold', 65.51381775403013), ('beach', 'beach', 67.66426213227481)], 8: [('cool', 'cold', 70.99318210560921), ('beach', 'beach', 77.87334112195532)], 9: [('cool', 'cold', 61.5843307476117), ('beach', 'beach', 70.90307671935022)], 10: [('cool', 'cold', 54.23415485313615), ('beach', 'beach', 79.83340043516927)], 11: [('cool', 'cold', 64.64494712113688), ('beach', 'beach', 69.87587986001874)], 12: [('cool', 'cold', 69.40416644365125), ('beach', 'beach', 87.66315608741903)], 13: [('cool', 'cold', 56.590281524315216), ('beach', 'beach', 80.91300529752775)], 14: [('cool', 'cold', 55.650961921187374), ('beach', 'beach', 78.18778914011818)], 15: [('cool', 'cold', 71.15756303615665), ('beach', 'beach', 74.4248945227715)], 16: [('cool', 'cold', 55.50223631735883), ('beach', 'beach', 71.2489695393291)], 17: [('cool', 'cold', 60.43366423378012), ('beach', 'beach', 75.0013825560699)], 18: [('cool', 'cold', 63.063759122538016), ('beach', 'beach', 85.0637191372745)], 19: [('cool', 'cold', 63.88566377527488), ('beach', 'beach', 83.1560678270878)], 20: [('cool', 'cold', 50.265529529920784), ('beach', 'beach', 76.19628502508809)]}, 
+    # return render_template('search.html', netid=netid,
+    #     sortedScored=[(5, (['0FF4F3', 'F6DA0D', 'DDC114', 'C44D2A', 'BD2456'], 9.116932314670592)), (3, (['F9B00C', '0CF1F0', '79E6A2', 'A17B1E', 'D51F36'], 9.10481916108276)), (1, (['FDF606', '08FAF8', 'BBD4E5', '6E3F55', '16121F'], 1.6377623563612191)), (4, (['FBA10C', 'FDDA0B', 'AEA417', '153F2F', '131D29'], 1.5999848744714602)), (0, (['FCFA0A', 'FBA50C', 'E8321C', '1A2124', '15222E'], 1.5962150584780885))],
+    #     keywordBreakdown={0: [('beach', 'beach', 59.26734239322961), ('cool', 'cold', 75.88183700692531)], 1: [('cool', 'cold', 60.63718348112445), ('beach', 'beach', 77.6741907104524)], 2: [('cool', 'cold', 57.686154394631124), ('beach', 'beach', 74.90704815062111)], 3: [('cool', 'cold', 65.86606260520283), ('beach', 'beach', 81.09119250781961)], 4: [('cool', 'cold', 54.66467633790308), ('beach', 'beach', 82.34898458047067)], 5: [('cool', 'cold', 54.66467633790297), ('beach', 'beach', 79.59232362124457)], 6: [('cool', 'cold', 65.46685177387367), ('beach', 'beach', 70.67248150603079)], 7: [('cool', 'cold', 65.51381775403013), ('beach', 'beach', 67.66426213227481)], 8: [('cool', 'cold', 70.99318210560921), ('beach', 'beach', 77.87334112195532)], 9: [('cool', 'cold', 61.5843307476117), ('beach', 'beach', 70.90307671935022)], 10: [('cool', 'cold', 54.23415485313615), ('beach', 'beach', 79.83340043516927)], 11: [('cool', 'cold', 64.64494712113688), ('beach', 'beach', 69.87587986001874)], 12: [('cool', 'cold', 69.40416644365125), ('beach', 'beach', 87.66315608741903)], 13: [('cool', 'cold', 56.590281524315216), ('beach', 'beach', 80.91300529752775)], 14: [('cool', 'cold', 55.650961921187374), ('beach', 'beach', 78.18778914011818)], 15: [('cool', 'cold', 71.15756303615665), ('beach', 'beach', 74.4248945227715)], 16: [('cool', 'cold', 55.50223631735883), ('beach', 'beach', 71.2489695393291)], 17: [('cool', 'cold', 60.43366423378012), ('beach', 'beach', 75.0013825560699)], 18: [('cool', 'cold', 63.063759122538016), ('beach', 'beach', 85.0637191372745)], 19: [('cool', 'cold', 63.88566377527488), ('beach', 'beach', 83.1560678270878)], 20: [('cool', 'cold', 50.265529529920784), ('beach', 'beach', 76.19628502508809)]},
     #     keywords="beach", keywordDefs={"beach": None, "cool": "to lose heat"})
