@@ -95,6 +95,7 @@ $(document).ready(function () {
             console.log($(".color-input.hidden").attr("id"));
             let c = $(".color-input.hidden").attr("id") == "color1" ? 1 : 2;
             console.log(c);
+            $("#swatch" + c).css("font-size", "0.8rem");
             $("#swatch" + c).html("Click here to activate color picker.");
             $("#swatch" + c).css("background-color", "white");
             $("#color" + c + "Input").val("");
@@ -106,6 +107,7 @@ $(document).ready(function () {
         if ($(".color-input.hidden").length == 2) {
             console.log("adding color 1");
             $("#swatch1").css("background-color", "white");
+            $("#swatch1").css("font-size", "0.8rem");
             $("#swatch1").html("Click here to activate color picker.");
             $("#color1").removeClass("hidden");
             $("#color1Input").val("");
@@ -333,6 +335,7 @@ function removeColor(c, colorpicker) {
     // reset color
     $("#color" + c + "Input").val("");
     $("#swatch" + c).css("background-color","white");
+    $("#swatch" + c).css("font-size", "0.8rem");
     $("#swatch" + c).html("Click here to activate color picker.");
     colorpicker.setColors(["#ffffff"]);
 
