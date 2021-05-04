@@ -118,3 +118,18 @@ div#form-container {
 .active {
     color: #0d6efd !important;
 }
+.version-link {
+    background-color: rgba(255,255,255,0.5);
+    border-radius: 25px;
+    width: 35px;
+    height: 35px;
+    text-align: center;
+    line-height: 2.5;
+    text-decoration: none;
+    margin-right: 5px;
+    font-size: 0.9rem;
+}
+
+.version-link:hover {
+    background-color: white;
+}
