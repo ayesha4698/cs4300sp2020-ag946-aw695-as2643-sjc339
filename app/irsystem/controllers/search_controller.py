@@ -238,7 +238,7 @@ def keywordMatch(dfns):
     synwords = []
     keywords = []
     wordMatch = {}
-    
+
     for dfn in dfns:
         if dfn in cymData.keys() and dfn != 'word':
             s = wordnet.synsets(dfn)[0]
@@ -250,7 +250,7 @@ def keywordMatch(dfns):
         else:
             kw = dfn
         wordMatch[kw] = s
-    
+
     for w1 in synwords:
         match = ''
         maxSim = 0
@@ -282,7 +282,7 @@ def keywordMatch(dfns):
             ind = matches.find(match)
             if ind != -1:
                 keywords[ind][1] = (keywords[ind][1] + maxSim)/2
-                
+
     return keywords, wordMatch
 
 
@@ -476,7 +476,7 @@ def keyword(userWords, paletteDict):
             wordScore = 0
             if word not in wordsDict:
                 wordsDict[word] = 0
-                
+
             lst = []
             for color in paletteDict[palette]:
                 closecolor = CloseColorHelper(cymColors, color)
@@ -495,12 +495,16 @@ def keyword(userWords, paletteDict):
 
     for id in colordict:
         colordict[id] /= maxScore
-    
+
     for id,lst in keywordDict.items():
         for i in range(len(lst)):
             word = keywordDict[id][i][0]
             percent = keywordDict[id][i][1]
-            keywordDict[id][i] = (word, percent*(1 + wordsDict[word]/100))
+            if percent < 90:
+                percent += (100 - percent)*(wordsDict[word]/100)
+            if percent >= 100:
+                percent = keywordDict[id][i][1]
+            keywordDict[id][i] = (word, percent)
 
     return colordict, keywordDict
 
@@ -556,10 +560,10 @@ def hue_adjuster():
 
 def isClose(palette1, palette2):
     endDict = {}
-    lst = [] 
-    for c1 in palette2: 
-        minScore = [] 
-        for c2 in palette1: 
+    lst = []
+    for c1 in palette2:
+        minScore = []
+        for c2 in palette1:
             ca = convertColor(c1, 'hex', 'rgb')
             cb = convertColor(c2, 'hex', 'rgb')
             score = colorDiff(ca, cb, "rgb")
@@ -570,24 +574,24 @@ def isClose(palette1, palette2):
     avg = sum(minScore)/len(minScore)
     print("avg", avg)
     threshold = 300
-    if avg > threshold: 
+    if avg > threshold:
         return True
     else:
         return False
 
 def closestPalette(palette):
-  # loop throught the csv palettes 
+  # loop throught the csv palettes
   with open('data/votes.csv', 'r', newline='') as file:
     myreader = csv.reader(file, delimiter=',')
     for rows in myreader:
       if rows[0] != 'Palette':
         paletteToCompare = []
-        [paletteToCompare.extend(rows[0].split( ))] 
+        [paletteToCompare.extend(rows[0].split( ))]
         if(isClose(paletteToCompare, palette)):
           print("close" , paletteToCompare)
           return paletteToCompare, True
-        
-       
+
+
   return palette, False
 
 def append_list_as_row(file_name, list_of_elem):
@@ -601,8 +605,8 @@ def append_list_as_row(file_name, list_of_elem):
 def paletteToCSV(palette, keywords, vote, energy):
   CSVpalette, found = closestPalette(palette)
   CSVpalette = (' '.join([str(elem) for elem in CSVpalette])).replace(",", " ")
-  if not found : 
-    # add to csv 
+  if not found :
+    # add to csv
     # List of strings
 
     votes = "1" + " " + str(vote)
@@ -611,7 +615,7 @@ def paletteToCSV(palette, keywords, vote, energy):
     # Append a list as new line to an old csv file
     append_list_as_row('data/votes.csv', row_contents)
 
-  else: 
+  else:
     currVotes = ()
     keywords = []
     print(CSVpalette)
@@ -624,7 +628,7 @@ def paletteToCSV(palette, keywords, vote, energy):
           currVotes = rows[2]
           break
         rowId += 1
-        
+
     currVotesArray = currVotes.split()
     totalVotes = int(currVotesArray[0]) + 1
     netVotes = int(currVotesArray[1]) + vote
@@ -636,8 +640,8 @@ def paletteToCSV(palette, keywords, vote, energy):
     df = pd.read_csv("data/votes.csv")
     df.loc[df["Palette"]== CSVpalette, "Votes"] = currVotesString
     df.to_csv("data/votes.csv", index=False)
-    
- 
+
+
   return None
 
 
@@ -962,23 +966,31 @@ def getPalettes(keywords, reqColors, energy):
     palettes, top_colors = input_to_color(cymKeywords, reqColors, energy)
 
     keywords = [i[0] for i in cymKeywords]
-    
+
     scored, keywordBreakdown = scorePalettes(palettes, keywords, reqColors,
         top_colors, wordMatch)
-    
+
     ranked = sorted(scored.items(), key=lambda scored: scored[1][1], reverse=True)
-    
+
     sortedScored = []
     i = 0
     while len(sortedScored) < 5 and i < len(ranked):
         tup = ranked[i]
-        if tup[1][0] is not None:   # TODO: check if similar palette is already in sortedScored
+
+        tooClose = False
+        # TODO: uncomment later when isClose is integrated
+        # for pal in sortedScored:
+        #     if isClose(tup[1][0],pal):
+        #         tooClose = True
+
+        if not tooClose:
             shuffled = tup[1][0]
             random.shuffle(shuffled)
             new_tup = (tup[0], (shuffled, tup[1][1]))
             sortedScored.append(new_tup)
+
         i += 1
-    
+
     return sortedScored, keywordBreakdown
 
 
@@ -1008,10 +1020,11 @@ def scorePalettes(palettes, keywords, reqColors, top_colors, wordMatch):
     percDists = {}
 
     # weights
-    rgbW = .2
-    hsvW = .2
-    percW = .2
-    keyW = .4
+    rgbW = .15
+    hsvW = .15
+    percW = .15
+    keyW = .35
+    compW = .2
 
     # maximums
     maxRGB = 0
@@ -1049,9 +1062,8 @@ def scorePalettes(palettes, keywords, reqColors, top_colors, wordMatch):
             else:
                 percDists[id] += avg/len(top_colors)
 
-    keywordAvgs, keywordBreakdown = keyword(keywords, palettes)
-    
     keywordAvgs, kwb = keyword(keywords, palettes)
+
     keywordBreakdown = {}
     for id, lst in kwb.items():
         keywordBreakdown[id] = []
@@ -1061,6 +1073,30 @@ def scorePalettes(palettes, keywords, reqColors, top_colors, wordMatch):
                     score = tup[1]*cym[1]
                     new_tup = (orig, tup[0], score)
                     keywordBreakdown[id].append(new_tup)
+
+    complement = {}
+    for id,pal in palettes.items():
+        minDiff = 1000
+        for c1 in pal:
+            c1 = convertColor(c1, 'hex', 'rgb')
+            c1 = convertColor(c1, 'rgb', 'lab')
+            for c2 in pal:
+                c2 = convertColor(c2, 'hex', 'rgb')
+                c2 = convertColor(c2, 'rgb', 'lab')
+                if c1 != c2:
+                    diff = colorDiff(c1,c2,'lab')
+                    if diff < minDiff:
+                        minDiff = diff
+        complement[id] = minDiff
+
+    maxDiff = max(complement.values())
+
+    if len(reqColors) > 0:
+        rgbW = .1
+        hsvW = .1
+        percW = .1
+        keyW = .3
+        compW = .4
 
     # weighted average of scores
     for id, palette in palettes.items():
@@ -1073,8 +1109,10 @@ def scorePalettes(palettes, keywords, reqColors, top_colors, wordMatch):
             score += (1 - percDists[id]/maxPerc)*100*percW
         if (keywordAvgs != {}):
             score += keywordAvgs[id]*100*keyW
+        if (complement != {}):
+            score += (complement[id]/maxDiff)*100*compW
 
-        # TODO: uncomment this later when updown works
+        # TODO: work on this later when updown is integrated
         # score += (100 - score)*(1 + net_updown/total_updown)
 
         scoreDict[id] = (palette, score)
@@ -1093,7 +1131,7 @@ def search():
         color2 = request.form.get("color2")
         multiDefs = request.form.get("multiDefs")
         invalidWords = request.form.get("invalidWords")
-        
+
 
         submit = True
         results = None
