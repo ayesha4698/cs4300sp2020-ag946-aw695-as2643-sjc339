@@ -11,9 +11,6 @@
     <script type="text/javascript" src="/static/scripts/jquery-3.2.1.min.js"></script>
     <script type="text/javascript" src="/static/scripts/palettes.js"></script>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.13.3/js/standalone/selectize.min.js"
-        integrity="sha512-pF+DNRwavWMukUv/LyzDyDMn8U2uvqYQdJN0Zvilr6DDo/56xPDZdDoyPDYZRSL4aOKO/FGKXTpzDyQJ8je8Qw=="
-        crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.13.3/css/selectize.default.css"
         integrity="sha512-J0JTRxsBEJ99DP4GamwciDi8VjALSrZneBYrv98BhqHPvlQP6gLbmmuddlYXHDB8hyLtefOIJFlpZBhksCtK8g=="
         crossorigin="anonymous" />
@@ -34,7 +31,7 @@
 
         <div id="form-container" class="position-relative mt-5 mb-4">
             <h1 class="position-absolute">Find My Palette</h1>
-            <form id="search-form" class="box pt-5" action="" method="POST">
+            <form id="search-form" class="box pt-5" action="/" method="POST">
                 <div class="form-group mb-4">
                     <label>Keywords</label>
                     <p class="subtext">What words do you associate with your brand/project? Select up to 5 keywords.</p>
@@ -81,7 +78,52 @@
                     <label>Necessary Colors</label>
                     <p class="subtext">Choose up to 2 colors to include.</p>
 
-                    <p class="mb-0">HEX</p>
+                    <div id="color-input-container" class="d-flex flex-row">
+                        <div id="color1" class="position-relative color-input {% if not submit or submit and color1 == '' %}hidden{% endif %}">
+                            <button type="button" class="btn-close close-swatch position-absolute bg-white" value="1"></button>
+                            <div id="picker1" class="picker bg-white ps-3 pe-3 pt-2 pb-2 position-absolute hidden">
+                                <button type="button" class="btn-close close-picker position-absolute" onclick="openPicker(false, 1)"></button>
+                            </div>
+                            <div class="color necessary-color position-relative">
+                                <div id="swatch1" class="swatch necessary-swatch" onclick="openPicker(true, 1)"></div>
+                                <div class="d-flex flex-row p-2">
+                                    <p class="me-2 pt-1 ps-1 pe-1 mb-0 bg-white picker-text">HEX</p>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white p-1">#</span>
+                                        <input id="color1Input" type="text" name="color1" class="form-control picker-code ps-1" value={% if color1 is defined %}{{
+                                            color1 }}{% endif %}>
+                                    </div>
+                                </div>
+                            </div>
+                            {% if submit and "color1" in errors %}
+                            <p class="error hex-error mt-3">Please select a valid 6-digit HEX code.</p>
+                            {% endif %}
+                        </div> 
+
+                        <div id="color2" class="position-relative color-input {% if not submit or submit and color2 == '' %}hidden{% endif %}">
+                            <button type="button" class="btn-close close-swatch position-absolute bg-white" value="2"></button>
+                            <div id="picker2" class="picker bg-white ps-3 pe-3 pt-2 pb-2 position-absolute hidden">
+                                <button type="button" class="btn-close close-picker position-absolute" onclick="openPicker(false, 2)"></button>
+                            </div>
+                            <div class="color necessary-color">
+                                <div id="swatch2" class="swatch necessary-swatch" onclick="openPicker(true, 2)"></div>
+                                <div class="d-flex flex-row p-2">
+                                    <p class="me-2 pt-1 ps-1 pe-1 mb-0 bg-white picker-text">HEX</p>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white p-1">#</span>
+                                        <input id="color2Input" type="text" name="color2" class="form-control picker-code ps-1" value={% if color2 is defined%}{{
+                                            color2 }}{% endif %}>
+                                    </div>
+                                </div>
+                            </div>
+                            {% if submit and "color2" in errors %}
+                            <p class="error hex-error mt-3">Please select a valid 6-digit HEX code.</p>
+                            {% endif %}
+                        </div>
+
+                        <button id="addColorBtn" type="button" class="btn btn-outline-primary">Add Color</button>
+                    </div>
+                    <!-- <p class="mb-0">HEX</p>
                     <div class="input-group">
                         <span class="input-group-text">#</span>
                         <input id="color1Input" type="text" name="color1" class="form-control" value={% if color1 %}{{
@@ -99,7 +141,7 @@
                     </div>
                     {% if submit and "color2" in errors %}
                     <p class="error">Please select a valid HEX code.</p>
-                    {% endif %}
+                    {% endif %} -->
                 </div>
                 <input id="showdef" class="hidden" name="showdef" type="text">
 
@@ -147,7 +189,7 @@
             {% for word in keywordDefs %}
                 <!-- {{ loop.index }} -->
                 {% if keywordDefs[word] != None %}
-                <a data-bs-toggle="tooltip" data-bs-placement="top" title="{{ keywordDefs[word]|forceescape() }}">
+                <a data-bs-toggle="tooltip" data-bs-placement="top" title="{{ keywordDefs[word] }}">
                 {% endif %}
                     {% if loop.index < keywordDefs|length() %}
                         {{ word }},
@@ -166,7 +208,7 @@
             <div class="whitespace bg-white"></div>
                 <div class="palette d-flex flex-row justify-between pt-4 mb-5" data-id={{ loop.index }}>
                     {% for color in palette[1][0] %}
-                    <div class="color">
+                    <div class="color result-color">
                         <div class="swatch"></div>
                         <p class="p-2 mb-0 bg-white">#{{ color }}</p>
                     </div>
@@ -211,6 +253,11 @@
     <footer class="pt-5 px-3 d-flex flex-row-reverse bg-light">
         <p class="names mt-3">created with ❤️ by {{ netid }}</p>
     </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.13.3/js/standalone/selectize.min.js"
+        integrity="sha512-pF+DNRwavWMukUv/LyzDyDMn8U2uvqYQdJN0Zvilr6DDo/56xPDZdDoyPDYZRSL4aOKO/FGKXTpzDyQJ8je8Qw=="
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script>
 </body>
 
 </html>
