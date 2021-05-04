@@ -1,7 +1,8 @@
+var hexRegex = "^([A-Fa-f0-9]{6})$";
+
 $(document).ready(function () {
     var cymbolism = ['abuse', 'accessible', 'addiction', 'agile', 'amusing', 'anger', 'anticipation', 'art deco', 'authentic', 'authority', 'average', 'baby', 'beach', 'beauty', 'beer', 'benign', 'bitter', 'blend', 'blissful', 'bold', 'book', 'boss', 'brooklyn', 'busy', 'calming', 'capable', 'car', 'cat', 'certain', 'charity', 'cheerful', 'chicago', 'classic', 'classy', 'clean', 'cold', 'colonial', 'comfort', 'commerce', 'compelling', 'competent', 'confident', 'consequence', 'conservative', 'contemporary', 'cookie', 'corporate', 'cottage', 'crass', 'creative', 'cute', 'dance', 'dangerous', 'decadent', 'decisive', 'deep', 'devil', 'discount', 'disgust', 'dismal', 'dog', 'drunk', 'dublin', 'duty', 'dynamic', 'earthy', 'easy', 'eclectic', 'efficient', 'elegant', 'elite', 'enduring', 'energetic', 'entrepreneur', 'environmental', 'erotic', 'excited', 'expensive', 'experience', 'fall', 'familiar', 'fast', 'fear', 'female', 'football', 'freedom', 'fresh', 'friendly', 'fun', 'furniture', 'future', 'gay', 'generic', 'georgian', 'gloomy', 'god', 'good', 'goth', 'government', 'grace', 'great', 'grow', 'happy', 'hard', 'hate', 'hazardous', 'hippie', 'hockey', 'honor', 'hope', 'hot', 'hunting', 'hurt', 'hygienic', 'ignorant', 'imagination', 'impossible', 'improbable', 'influence', 'influential', 'insecure', 'inviting', 'invulnerable', 'jacobean', 'jealous', 'joy', 'jubilant', 'junkie', 'knowledge', 'kudos', 'launch', 'lazy', 'leader', 'liberal', 'library', 'light', 'likely', 'lonely', 'love', 'magic', 'marriage', 'maximal', 'mean', 'medicine', 'melancholy', 'mellow', 'minimal', 'mission', 'modern', 'moment', 'money', 'music', 'mystical', 'narcissist', 'natural', 'naughty', 'new', 'nimble', 'now', 'objective', 'old', 'optimistic', 'organic', 'paradise', 'party', 'passion', 'passive', 'peace', 'peaceful', 'personal', 'playful', 'pleasing', 'possible', 'powerful', 'preceding', 'predatory', 'prime', 'probable', 'productive', 'professional', 'profit', 'progress', 'public', 'pure', 'radical', 'railway', 'rain', 'real', 'rebellious', 'recession', 'reconciliation', 'recovery', 'relaxed', 'reliability', 'retro', 'rich', 'risk', 'rococo', 'romantic', 'royal', 'rustic', 'sad', 'sadness', 'safe', 'sarcasm', 'secure', 'sensible', 'sensual', 'sex', 'shabby', 'silly', 'simple', 'slow', 'smart', 'smooth', 'snorkel', 'soft', 'solar', 'sold', 'solid', 'somber', 'spiffy', 'sport', 'spring', 'stability', 'star', 'strong', 'studio', 'style', 'stylish', 'submit', 'suburban', 'success', 'summer', 'sun', 'sunny', 'surprise', 'sweet', 'symbol', 'tasty', 'therapeutic', 'threat', 'time', 'tomorrow', 'treason', 'trust', 'trustworthy', 'uncertain', 'uniform', 'unlikely', 'unsafe', 'urban', 'value', 'vanity', 'victorian', 'vitamin', 'vulnerability', 'vulnerable', 'war', 'warm', 'winter', 'wise', 'wish', 'work', 'worm', 'young'];
     var shorthand = {"adjective": "[adj]", "noun": "[n]", "adverb": "[adv]"}
-    var hexRegex = "^([A-Fa-f0-9]{6})$";
 
     // add palette swatch colors
     $("div.result-color").each(function (i, e) {
@@ -79,6 +80,7 @@ $(document).ready(function () {
         } else {
             $(swatch).html("?");
             $(swatch).css("background-color", "white");
+            $(swatch).css("padding-top", "60px");
         }
     });
 
@@ -116,75 +118,14 @@ $(document).ready(function () {
         width: 200,
         wheelLightness: false
     });
-
-    // change swatch when picker 1 changes
-    colorPicker1.on('color:change', function(color) {
-        if (color.index == 0) {
-            $("#swatch1").html("");
-            color = color.hexString;
-            $("#color1Input").val(color.substring(1,color.length));
-            $("#color1Input").attr("value", color.substring(1,color.length));
-            $("#swatch1").css("background-color", color);
-        }
-    });
-
-    // set color when user inputs hex code into picker 1
-    $("#color1Input").on("change", function(e) {
-        console.log("HERE!!!");
-        let hex = $("#color1Input").val();
-        $("#color1Input").attr("value", hex);
-        console.log(hex);
-        if (hex.match(hexRegex)) {
-            console.log("match regex");
-            $("#swatch1").html("");
-            console.log(["#" + hex]);
-            let lst = ["#" + hex];
-            colorPicker1.setColors(lst);
-            // colorPicker1.removeColor(0);
-            // colorPicker1.addColor("#"+hex);
-            $("#swatch1").css("background-color", "#" + hex);
-        } else {
-            console.log("invalid color");
-            $("#swatch1").html("?");
-            $("#swatch1").css("padding-top", "60px");
-            $("#swatch1").css("background-color", "white");
-        }
-    })
+    colorPickerFunc(1, colorPicker1);
 
     // color picker 2
     var colorPicker2 = new iro.ColorPicker('#picker2', {
         width: 200,
         wheelLightness: false,
     });
-
-    // change swatch when picker 2 changes
-    colorPicker2.on('color:change', function(color) {
-        $("#swatch2").html("");
-        console.log('color 0 changed!');
-        console.log(color.index, color.hexString);
-        color = color.hexString;
-        $("#color2Input").val(color.substring(1,color.length));
-        $("#color2Input").attr("value", color.substring(1,color.length));
-        $("#swatch2").css("background-color", color);
-    });
-
-    // set color when user inputs hex code into picker 2
-    $("#color2Input").on("change", function(e) {
-        let hex = $("#color2Input").val();
-        $("#color2Input").attr("value", hex);
-        if (hex.match(hexRegex)) {
-            $("#swatch2").html("");
-            console.log(["#" + hex]);
-            let lst = ["#" + hex];
-            colorPicker2.setColors(lst);
-            $("#swatch2").css("background-color", "#" + hex);
-        } else {
-            console.log("invalid color");
-            $("#swatch2").html("?");
-            $("#swatch2").css("padding-top", "60px");
-            $("#swatch2").css("background-color", "white");
-        }
-    })
+    colorPickerFunc(2, colorPicker2);
 
     // deleting color
     $(".close-swatch").on("click", function(e) {
@@ -241,7 +182,7 @@ $(document).ready(function () {
                                 definitions.forEach(d => {
                                     let radio = '<div class="radio-input d-flex flex-row">' +
                                         '<input class="radio-button" type="radio" name=' + word + ' value=' + d["definition"].replaceAll(" ", "%") + '>' + 
-                                        '<p class="def-text mb-1 ms-2">' + shorthand[d["partOfSpeech"]] + " " + d["definition"] + '</p>' +
+                                        '<p class="def-text mb-1 ms-2">' + (d["partOfSpeech"] ? shorthand[d["partOfSpeech"]] : "") + " " + d["definition"] + '</p>' +
                                     '</input></div>';
                                     $("#" + word + "-options").append(radio);
                                 })
@@ -355,4 +296,35 @@ function openPicker(open, p) {
     } else {
         $("#picker" + p).addClass("hidden");
     }
+}
+
+function colorPickerFunc(c, colorpicker) {
+    let input = "#color" + c + "Input";
+    let swatch = "#swatch" + c;
+    // change swatch when picker 2 changes
+    colorpicker.on('color:change', function(color) {
+        $(swatch).html("");
+        color = color.hexString;
+        $(input).val(color.substring(1,color.length));
+        $(input).attr("value", color.substring(1,color.length));
+        $(swatch).css("background-color", color);
+    });
+
+    // set color when user inputs hex code into picker 2
+    $(input).on("change", function(e) {
+        let hex = $(input).val();
+        $(input).attr("value", hex);
+        if (hex.match(hexRegex)) {
+            $(swatch).html("");
+            console.log(["#" + hex]);
+            let lst = ["#" + hex];
+            colorPicker2.setColors(lst);
+            $(swatch).css("background-color", "#" + hex);
+        } else {
+            console.log("invalid color");
+            $(swatch).html("?");
+            $(swatch).css("padding-top", "60px");
+            $(swatch).css("background-color", "white");
+        }
+    })
 }

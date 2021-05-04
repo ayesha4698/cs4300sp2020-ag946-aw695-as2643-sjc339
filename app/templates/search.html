@@ -182,22 +182,15 @@
 
     {% if sortedScored %}
     <div id="results" class="mt-5">
-        <!-- {{ keywordDefs }} -->
         <h2 class="mb-4 ms-5">
             <strong>Keywords:</strong> 
-            <!-- {{keywords}} -->
             {% for word in keywordDefs %}
-                <!-- {{ loop.index }} -->
                 {% if keywordDefs[word] != None %}
                 <a data-bs-toggle="tooltip" data-bs-placement="top" title="{{ keywordDefs[word] }}">
-                {% endif %}
-                    {% if loop.index < keywordDefs|length() %}
-                        {{ word }},
-                    {% else %}
-                        {{ word }}
-                    {% endif %}
-                {% if keywordDefs[word] != None %}
+                        {{ word }}{% if loop.index < keywordDefs|length() %},{% endif %}
                 </a>
+                {% else %}
+                    {{ word }}{% if loop.index < keywordDefs|length() %},{% endif %}
                 {% endif %}
             {% endfor %}
         </h2>
@@ -227,7 +220,7 @@
                 <img id="more-info" class="more-info p-0 ms-3" data-value={{ loop.index }} src="/static/images/question.svg">
                 <!-- {{keywordBreakdown}} -->
                 <div id="breakdown" class="hidden breakdown position-absolute p-3 bg-white" data-value={{ loop.index }}>
-                    {% for breakdown in keywordBreakdown[palette[0]]|sort(reverse=True) %}
+                    {% for breakdown in keywordBreakdown[palette[0]]|sort(reverse=True, attribute="2") %}
                         <p class="mb-0">{{ breakdown[0] }}</p>
                         <div class="breakdown-score d-flex">
                             <div class="bar me-2" data-percent={{ breakdown[2] }}></div>
