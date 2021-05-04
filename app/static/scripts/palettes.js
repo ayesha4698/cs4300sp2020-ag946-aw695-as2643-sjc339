@@ -91,11 +91,8 @@ $(document).ready(function () {
         $(".picker").addClass("hidden");
         // show color 2
         if ($(".color-input.hidden").length == 1) {
-            console.log("adding color 2");
-            console.log($(".color-input.hidden").attr("id"));
             let c = $(".color-input.hidden").attr("id") == "color1" ? 1 : 2;
-            console.log(c);
-            $("#swatch" + c).css("font-size", "0.8rem");
+            $("#swatch" + c).css("padding-top", "40px");
             $("#swatch" + c).html("Click here to activate color picker.");
             $("#swatch" + c).css("background-color", "white");
             $("#color" + c + "Input").val("");
@@ -105,9 +102,8 @@ $(document).ready(function () {
 
         // show color 1
         if ($(".color-input.hidden").length == 2) {
-            console.log("adding color 1");
             $("#swatch1").css("background-color", "white");
-            $("#swatch1").css("font-size", "0.8rem");
+            $("#swatch1").css("padding-top", "40px");
             $("#swatch1").html("Click here to activate color picker.");
             $("#color1").removeClass("hidden");
             $("#color1Input").val("");
@@ -117,7 +113,8 @@ $(document).ready(function () {
 
     // color picker 1
     var colorPicker1 = new iro.ColorPicker('#picker1', {
-        width: 200
+        width: 200,
+        wheelLightness: false
     });
 
     // change swatch when picker 1 changes
@@ -136,35 +133,39 @@ $(document).ready(function () {
         console.log("HERE!!!");
         let hex = $("#color1Input").val();
         $("#color1Input").attr("value", hex);
+        console.log(hex);
         if (hex.match(hexRegex)) {
             console.log("match regex");
             $("#swatch1").html("");
-            colorPicker1.setColors([hex]);
+            console.log(["#" + hex]);
+            let lst = ["#" + hex];
+            colorPicker1.setColors(lst);
+            // colorPicker1.removeColor(0);
+            // colorPicker1.addColor("#"+hex);
             $("#swatch1").css("background-color", "#" + hex);
         } else {
             console.log("invalid color");
             $("#swatch1").html("?");
-            $("#swatch1").css("font-size", "60px");
+            $("#swatch1").css("padding-top", "60px");
             $("#swatch1").css("background-color", "white");
         }
     })
 
     // color picker 2
     var colorPicker2 = new iro.ColorPicker('#picker2', {
-        width: 200
+        width: 200,
+        wheelLightness: false,
     });
 
     // change swatch when picker 2 changes
     colorPicker2.on('color:change', function(color) {
-        if (color.index == 0) {
-            $("#swatch2").html("");
-            console.log('color 0 changed!');
-            console.log(color.index, color.hexString);
-            color = color.hexString;
-            $("#color2Input").val(color.substring(1,color.length));
-            $("#color2Input").attr("value", color.substring(1,color.length));
-            $("#swatch2").css("background-color", color);
-        }
+        $("#swatch2").html("");
+        console.log('color 0 changed!');
+        console.log(color.index, color.hexString);
+        color = color.hexString;
+        $("#color2Input").val(color.substring(1,color.length));
+        $("#color2Input").attr("value", color.substring(1,color.length));
+        $("#swatch2").css("background-color", color);
     });
 
     // set color when user inputs hex code into picker 2
@@ -173,12 +174,14 @@ $(document).ready(function () {
         $("#color2Input").attr("value", hex);
         if (hex.match(hexRegex)) {
             $("#swatch2").html("");
-            colorPicker1.setColors([hex]);
+            console.log(["#" + hex]);
+            let lst = ["#" + hex];
+            colorPicker2.setColors(lst);
             $("#swatch2").css("background-color", "#" + hex);
         } else {
             console.log("invalid color");
             $("#swatch2").html("?");
-            $("#swatch2").css("font-size", "60px");
+            $("#swatch2").css("padding-top", "60px");
             $("#swatch2").css("background-color", "white");
         }
     })
@@ -328,20 +331,18 @@ function showBreakdown(show, i) {
 }
 
 function removeColor(c, colorpicker) {
-    console.log("removing color");
     $("#picker" + c).addClass("hidden");
     $("#color" + c).addClass("hidden");
 
     // reset color
     $("#color" + c + "Input").val("");
     $("#swatch" + c).css("background-color","white");
-    $("#swatch" + c).css("font-size", "0.8rem");
+    $("#swatch" + c).css("padding-top", "40px");
     $("#swatch" + c).html("Click here to activate color picker.");
+    console.log("resetting color");
     colorpicker.setColors(["#ffffff"]);
 
     // show add button?
-    console.log("HERE");
-    console.log($(".color-input.hidden"));
     if ($(".color-input.hidden").length < 2) {
         $("#addColorBtn").removeClass("hidden");
     }
