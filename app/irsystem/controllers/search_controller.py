@@ -13,10 +13,14 @@ from app.irsystem.models.helpers import NumpyEncoder as NumpyEncoder
 from app.irsystem.controllers.rgb2lab import *
 from app.irsystem.controllers.cossim import *
 
+
+import numpy
+import pandas as pd
 from colormap import rgb2hex
 import re
 import requests
 import csv
+from csv import writer
 import json
 import colorsys
 import nltk
@@ -24,6 +28,7 @@ import itertools
 nltk.download('stopwords')
 nltk.download('wordnet')
 nltk.download('averaged_perceptron_tagger')
+
 
 ###########################################################################################
 #                                          GLOBALS                                        #
@@ -549,6 +554,92 @@ def convertColor(color, fromCode, toCode):
 def hue_adjuster():
     return 0
 
+def isClose(palette1, palette2):
+    endDict = {}
+    lst = [] 
+    for c1 in palette2: 
+        minScore = [] 
+        for c2 in palette1: 
+            ca = convertColor(c1, 'hex', 'rgb')
+            cb = convertColor(c2, 'hex', 'rgb')
+            score = colorDiff(ca, cb, "rgb")
+            print(score)
+            minScore.append(score)
+        lst.append(minScore)
+    print("minScore", minScore)
+    avg = sum(minScore)/len(minScore)
+    print("avg", avg)
+    threshold = 300
+    if avg > threshold: 
+        return True
+    else:
+        return False
+
+def closestPalette(palette):
+  # loop throught the csv palettes 
+  with open('data/votes.csv', 'r', newline='') as file:
+    myreader = csv.reader(file, delimiter=',')
+    for rows in myreader:
+      if rows[0] != 'Palette':
+        paletteToCompare = []
+        [paletteToCompare.extend(rows[0].split( ))] 
+        if(isClose(paletteToCompare, palette)):
+          print("close" , paletteToCompare)
+          return paletteToCompare, True
+        
+       
+  return palette, False
+
+def append_list_as_row(file_name, list_of_elem):
+    # Open file in append mode
+    with open(file_name, 'a+', newline='') as write_obj:
+        # Create a writer object from csv module
+        csv_writer = writer(write_obj)
+        # Add contents of list as last row in the csv file
+        csv_writer.writerow(list_of_elem)
+
+def paletteToCSV(palette, keywords, vote, energy):
+  CSVpalette, found = closestPalette(palette)
+  CSVpalette = (' '.join([str(elem) for elem in CSVpalette])).replace(",", " ")
+  if not found : 
+    # add to csv 
+    # List of strings
+
+    votes = "1" + " " + str(vote)
+    row_contents = [CSVpalette,keywords,votes]
+    print("row", row_contents)
+    # Append a list as new line to an old csv file
+    append_list_as_row('data/votes.csv', row_contents)
+
+  else: 
+    currVotes = ()
+    keywords = []
+    print(CSVpalette)
+    rowId = 0
+    with open('data/votes.csv', 'r', newline='') as file:
+      myreader = csv.reader(file, delimiter=',')
+      for rows in myreader:
+        if rows[0] == CSVpalette:
+          keyWords = rows[1]
+          currVotes = rows[2]
+          break
+        rowId += 1
+        
+    currVotesArray = currVotes.split()
+    totalVotes = int(currVotesArray[0]) + 1
+    netVotes = int(currVotesArray[1]) + vote
+    currVotesString = str(totalVotes) + " " + str(netVotes)
+
+    #update the csv with this new value
+    print(currVotesString)
+    # reading the csv file
+    df = pd.read_csv("data/votes.csv")
+    df.loc[df["Palette"]== CSVpalette, "Votes"] = currVotesString
+    df.to_csv("data/votes.csv", index=False)
+    
+ 
+  return None
+
 
 def energy_adjust(color, energy):
     """ adjusts a hex code so that it’s brighter or more muted
@@ -1002,6 +1093,8 @@ def search():
         color2 = request.form.get("color2")
         multiDefs = request.form.get("multiDefs")
         invalidWords = request.form.get("invalidWords")
+        
+
         submit = True
         results = None
         showModal = False
@@ -1072,6 +1165,7 @@ def search():
         if len(errors) == 0:
             sortedScored, keywordBreakdown = getPalettes(
                 keywordDefs, reqColors, energy)
+            paletteToCSV(['0FF4F6', 'F6DA0D', 'DDC114', '000000', '000000'], "beach earthy", 1, 5 )
             return render_template('search.html', netid=netid, sortedScored = sortedScored, keywordBreakdown=keywordBreakdown, keywordDefs=keywordDefs, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit)
 
         # display errors + sticky values

@@ -56,5 +56,7 @@ WTForms==2.2.1
 easydev
 pillow
 colormap
+pandas
+
 
 
