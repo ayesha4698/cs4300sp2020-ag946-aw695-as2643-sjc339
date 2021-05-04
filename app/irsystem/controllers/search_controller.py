@@ -210,7 +210,12 @@ def getSynset(dfn):
 
         query = dfn[dfn.index("-")+2:]      # skip the space
     else:
-        return wordnet.synsets(dfn)[0]
+        kw = stemmer.stem(dfn)
+        syns = wordnet.synsets(kw)
+        if syns == []:
+            return wordnet.synsets(dfn)[0]
+        else:
+            return syns[0]
 
     # find Synset object based on definition
     msgs = []
@@ -278,14 +283,11 @@ def keywordMatch(dfns):
         for word,syn in wordMatch.items():
             if type(syn) is not tuple and w1 == syn:
                 wordMatch[word] = (match, maxSim)
-        # if two matches same, combine similarity score
-        matches = [x[0] for x in keywords]
-        if match not in matches:
-            keywords.append((match, maxSim))
-        else:
-            ind = matches.find(match)
-            if ind != -1:
-                keywords[ind][1] = (keywords[ind][1] + maxSim)/2
+
+        keywords.append((match, maxSim))
+
+    print("\nKEYWORDS MATCH")
+    print(wordMatch)
 
     return keywords, wordMatch
 
