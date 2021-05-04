@@ -1,9 +1,10 @@
 $(document).ready(function () {
     var cymbolism = ['abuse', 'accessible', 'addiction', 'agile', 'amusing', 'anger', 'anticipation', 'art deco', 'authentic', 'authority', 'average', 'baby', 'beach', 'beauty', 'beer', 'benign', 'bitter', 'blend', 'blissful', 'bold', 'book', 'boss', 'brooklyn', 'busy', 'calming', 'capable', 'car', 'cat', 'certain', 'charity', 'cheerful', 'chicago', 'classic', 'classy', 'clean', 'cold', 'colonial', 'comfort', 'commerce', 'compelling', 'competent', 'confident', 'consequence', 'conservative', 'contemporary', 'cookie', 'corporate', 'cottage', 'crass', 'creative', 'cute', 'dance', 'dangerous', 'decadent', 'decisive', 'deep', 'devil', 'discount', 'disgust', 'dismal', 'dog', 'drunk', 'dublin', 'duty', 'dynamic', 'earthy', 'easy', 'eclectic', 'efficient', 'elegant', 'elite', 'enduring', 'energetic', 'entrepreneur', 'environmental', 'erotic', 'excited', 'expensive', 'experience', 'fall', 'familiar', 'fast', 'fear', 'female', 'football', 'freedom', 'fresh', 'friendly', 'fun', 'furniture', 'future', 'gay', 'generic', 'georgian', 'gloomy', 'god', 'good', 'goth', 'government', 'grace', 'great', 'grow', 'happy', 'hard', 'hate', 'hazardous', 'hippie', 'hockey', 'honor', 'hope', 'hot', 'hunting', 'hurt', 'hygienic', 'ignorant', 'imagination', 'impossible', 'improbable', 'influence', 'influential', 'insecure', 'inviting', 'invulnerable', 'jacobean', 'jealous', 'joy', 'jubilant', 'junkie', 'knowledge', 'kudos', 'launch', 'lazy', 'leader', 'liberal', 'library', 'light', 'likely', 'lonely', 'love', 'magic', 'marriage', 'maximal', 'mean', 'medicine', 'melancholy', 'mellow', 'minimal', 'mission', 'modern', 'moment', 'money', 'music', 'mystical', 'narcissist', 'natural', 'naughty', 'new', 'nimble', 'now', 'objective', 'old', 'optimistic', 'organic', 'paradise', 'party', 'passion', 'passive', 'peace', 'peaceful', 'personal', 'playful', 'pleasing', 'possible', 'powerful', 'preceding', 'predatory', 'prime', 'probable', 'productive', 'professional', 'profit', 'progress', 'public', 'pure', 'radical', 'railway', 'rain', 'real', 'rebellious', 'recession', 'reconciliation', 'recovery', 'relaxed', 'reliability', 'retro', 'rich', 'risk', 'rococo', 'romantic', 'royal', 'rustic', 'sad', 'sadness', 'safe', 'sarcasm', 'secure', 'sensible', 'sensual', 'sex', 'shabby', 'silly', 'simple', 'slow', 'smart', 'smooth', 'snorkel', 'soft', 'solar', 'sold', 'solid', 'somber', 'spiffy', 'sport', 'spring', 'stability', 'star', 'strong', 'studio', 'style', 'stylish', 'submit', 'suburban', 'success', 'summer', 'sun', 'sunny', 'surprise', 'sweet', 'symbol', 'tasty', 'therapeutic', 'threat', 'time', 'tomorrow', 'treason', 'trust', 'trustworthy', 'uncertain', 'uniform', 'unlikely', 'unsafe', 'urban', 'value', 'vanity', 'victorian', 'vitamin', 'vulnerability', 'vulnerable', 'war', 'warm', 'winter', 'wise', 'wish', 'work', 'worm', 'young'];
     var shorthand = {"adjective": "[adj]", "noun": "[n]", "adverb": "[adv]"}
+    var hexRegex = "^([A-Fa-f0-9]{6})$";
 
     // add palette swatch colors
-    $("div.color").each(function (i, e) {
+    $("div.result-color").each(function (i, e) {
         color = $(e).children("p").html();
         $(e).children(".swatch").css("background-color", color);
     })
@@ -49,7 +50,6 @@ $(document).ready(function () {
             $(".breakdown[data-value=" + $(i.target).data("value") + "]").addClass("hidden");
         }
     });
-    // $("[data-event='click']").removeAttr("data-event");
     $("html").click(function(e) {
         // hide breakdown when clicking outside of it
         if (e.target.class != "breakdown" && $("[data-event='click']").length > 0) {
@@ -69,6 +69,135 @@ $(document).ready(function () {
         return new bootstrap.Tooltip(tooltipTriggerEl)
     })
 
+    // sticky color
+    $(".color-input:not(.hidden)").each( function (i, e) {
+        let swatch = $(e).find(".necessary-swatch");
+        let hex = $(e).find("input").val();
+        console.log(swatch);
+        if (hex.match(hexRegex)) {
+            $(swatch).css("background-color", "#"+hex);
+        } else {
+            $(swatch).html("?");
+            $(swatch).css("background-color", "white");
+        }
+    });
+
+    if ($(".color-input:not(.hidden)").length == 2 || $(".color-input:not(.hidden)").length == 1) {
+        $("#addColorBtn").addClass("hidden");
+    }
+
+    // add color
+    $("#addColorBtn").on("click", function(e) {
+        $(".picker").addClass("hidden");
+        // show color 2
+        if ($(".color-input.hidden").length == 1) {
+            console.log("adding color 2");
+            console.log($(".color-input.hidden").attr("id"));
+            let c = $(".color-input.hidden").attr("id") == "color1" ? 1 : 2;
+            console.log(c);
+            $("#swatch" + c).html("Click here to activate color picker.");
+            $("#swatch" + c).css("background-color", "white");
+            $("#color" + c + "Input").val("");
+            $("#color" + c).removeClass("hidden");
+            $("#addColorBtn").addClass("hidden");
+        }
+
+        // show color 1
+        if ($(".color-input.hidden").length == 2) {
+            console.log("adding color 1");
+            $("#swatch1").css("background-color", "white");
+            $("#swatch1").html("Click here to activate color picker.");
+            $("#color1").removeClass("hidden");
+            $("#color1Input").val("");
+        }
+    })
+
+
+    // color picker 1
+    var colorPicker1 = new iro.ColorPicker('#picker1', {
+        width: 200
+    });
+
+    // change swatch when picker 1 changes
+    colorPicker1.on('color:change', function(color) {
+        if (color.index == 0) {
+            $("#swatch1").html("");
+            color = color.hexString;
+            $("#color1Input").val(color.substring(1,color.length));
+            $("#color1Input").attr("value", color.substring(1,color.length));
+            $("#swatch1").css("background-color", color);
+        }
+    });
+
+    // set color when user inputs hex code into picker 1
+    $("#color1Input").on("change", function(e) {
+        console.log("HERE!!!");
+        let hex = $("#color1Input").val();
+        $("#color1Input").attr("value", hex);
+        if (hex.match(hexRegex)) {
+            console.log("match regex");
+            $("#swatch1").html("");
+            colorPicker1.setColors([hex]);
+            $("#swatch1").css("background-color", "#" + hex);
+        } else {
+            console.log("invalid color");
+            $("#swatch1").html("?");
+            $("#swatch1").css("font-size", "60px");
+            $("#swatch1").css("background-color", "white");
+        }
+    })
+
+    // color picker 2
+    var colorPicker2 = new iro.ColorPicker('#picker2', {
+        width: 200
+    });
+
+    // change swatch when picker 2 changes
+    colorPicker2.on('color:change', function(color) {
+        if (color.index == 0) {
+            $("#swatch2").html("");
+            console.log('color 0 changed!');
+            console.log(color.index, color.hexString);
+            color = color.hexString;
+            $("#color2Input").val(color.substring(1,color.length));
+            $("#color2Input").attr("value", color.substring(1,color.length));
+            $("#swatch2").css("background-color", color);
+        }
+    });
+
+    // set color when user inputs hex code into picker 2
+    $("#color2Input").on("change", function(e) {
+        let hex = $("#color2Input").val();
+        $("#color2Input").attr("value", hex);
+        if (hex.match(hexRegex)) {
+            $("#swatch2").html("");
+            colorPicker1.setColors([hex]);
+            $("#swatch2").css("background-color", "#" + hex);
+        } else {
+            console.log("invalid color");
+            $("#swatch2").html("?");
+            $("#swatch2").css("font-size", "60px");
+            $("#swatch2").css("background-color", "white");
+        }
+    })
+
+    // deleting color
+    $(".close-swatch").on("click", function(e) {
+        console.log("closing swatch");
+        color = $(e.target).attr("value");
+        let colorpicker = color == 1 ? colorPicker1 : colorPicker2;
+        removeColor(color, colorpicker);
+    })
+    
+    // BUG: when pressing enter in hex input it submits?
+    $("form input").keydown(function (e) {
+        if (e.keyCode == 13) {
+            e.preventDefault();
+            return false;
+        }
+    });    
+
+    // keyword selectize input
     var xhr;
     var $select = $("#tagsInput").selectize({
         plugins: ["remove_button", "restore_on_backspace"],
@@ -94,8 +223,6 @@ $(document).ready(function () {
                         },
                         async: false,
                         success: function (results) {
-                            console.log("hello???");
-                            console.log(results);
                             // filter out verbs
                             definitions = results["definitions"].filter( function(d) {
                                 console.log(d);
@@ -195,5 +322,33 @@ function showBreakdown(show, i) {
         $(".breakdown[data-value" + i + "]").removeClass("hidden");
     } else {
         $(".breakdown[data-value" + i + "]").addClass("hidden");
+    }
+}
+
+function removeColor(c, colorpicker) {
+    console.log("removing color");
+    $("#picker" + c).addClass("hidden");
+    $("#color" + c).addClass("hidden");
+
+    // reset color
+    $("#color" + c + "Input").val("");
+    $("#swatch" + c).css("background-color","white");
+    $("#swatch" + c).html("Click here to activate color picker.");
+    colorpicker.setColors(["#ffffff"]);
+
+    // show add button?
+    console.log("HERE");
+    console.log($(".color-input.hidden"));
+    if ($(".color-input.hidden").length < 2) {
+        $("#addColorBtn").removeClass("hidden");
+    }
+}
+
+function openPicker(open, p) {
+    if (open) {
+        $(".picker").addClass("hidden");
+        $("#picker" + p).removeClass("hidden");
+    } else {
+        $("#picker" + p).addClass("hidden");
     }
 }
