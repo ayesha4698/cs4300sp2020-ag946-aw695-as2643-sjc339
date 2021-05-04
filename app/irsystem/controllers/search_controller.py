@@ -37,14 +37,18 @@ nltk.download('averaged_perceptron_tagger')
 # dataset globals
 cymData = {}
 cymColorsInvInd = {}
+cymWordsInvInd = {}
 cymVotes = {}
 
 # /Users/ayesha/cs4300sp2020-ag946-aw695-as2643-sjc339/app/irsystem/controllers/IR_main.py
 with open('data/Cymbolism.csv', mode='r') as infile:
     reader = csv.reader(infile)
+    ind = 1
     for rows in reader:
         cymData[rows[0]] = rows[1:-1]
         cymVotes[rows[0]] = rows[-1]
+        cymWordsInvInd[rows[0]] = ind
+        ind += 1
 
 for i in range(len(cymData['word'])):
     color = cymData['word'][i]
@@ -594,7 +598,7 @@ def isClose(palette1, palette2):
     # print("minScore", minScore)
     avg = sum(minScore)/len(minScore)
     print("avg", avg)
-    threshold = 100
+    threshold = 115
     if avg < threshold:
         return True
     else:
@@ -1040,7 +1044,6 @@ def scorePalettes(palettes, keywords, reqColors, top_colors, wordMatch):
             keywords    Cymbolism words matched to user input [List of Strings]
             reqColors   list of user-inputted clean hexcode color [List of String]
     """
-
     # preallocate
     scoreDict = {}
     rgbDists = {}
@@ -1066,13 +1069,13 @@ def scorePalettes(palettes, keywords, reqColors, top_colors, wordMatch):
     maxHSV = 0
     maxPerc = 0
 
+    # averages across top colors
     for rc in top_colors:
         rc = rc[0]
         rgb = getRGBDists(rc, palettes)
         hsv = getHSVDists(rc, palettes)
         perc = getPerceptualDists(rc, palettes)
 
-        # average across top colors
         for id, dist in rgb.items():
             if dist > maxRGB:
                 maxRGB = dist
@@ -1099,27 +1102,15 @@ def scorePalettes(palettes, keywords, reqColors, top_colors, wordMatch):
 
     keywordAvgs, keywordBreakdown = keyword(keywords, palettes, wordMatch)
 
-    # keywordBreakdown = {}
-    # for id, lst in kwb.items():
-    #     keywordBreakdown[id] = []
-    #     for tup in lst:
-    #         for orig,cym in wordMatch.items():
-    #             if cym[0] == tup[0]:
-    #                 score = tup[1]*cym[1]
-    #                 new_tup = (orig, tup[0], score)
-    #                 keywordBreakdown[id].append(new_tup)
-
     complement = {}
     for id,pal in palettes.items():
         minDiff = 1000
         for c1 in pal:
             c1 = convertColor(c1, 'hex', 'rgb')
-            c1 = convertColor(c1, 'rgb', 'lab')
             for c2 in pal:
                 c2 = convertColor(c2, 'hex', 'rgb')
-                c2 = convertColor(c2, 'rgb', 'lab')
                 if c1 != c2:
-                    diff = colorDiff(c1,c2,'lab')
+                    diff = colorDiff(c1,c2,'rgb')
                     if diff < minDiff:
                         minDiff = diff
         complement[id] = minDiff
@@ -1140,7 +1131,19 @@ def scorePalettes(palettes, keywords, reqColors, top_colors, wordMatch):
         if (complement != {}):
             score += (complement[id]/maxDiff)*100*compW
 
-        # TODO: work on this later when updown is integrated
+        CSVpalette = (' '.join([str(elem) for elem in palette])).replace(",", " ")
+
+        # TODO: uncomment this later when updown is integrated
+        # with open('data/votes.csv', 'r', newline='') as file:
+        #     myreader = csv.reader(file, delimiter=',')
+        #     for rows in myreader:
+        #         if CSVpalette.upper() == rows[0].upper():
+        #             for query,tup in keywords:
+        #                 votes = rows[cymWordsInvInd[tup[0]]]
+        #                 total = int(votes[:votes.find(',')])
+        #                 net = int(votes[votes.find(',')+1:])
+        #                 score += (100 - score)*(1 + net/total)*tup[1]
+
         # score *= net_updown/total_updown
         # OR
         # score += (100 - score)*(1 + net_updown/total_updown)
@@ -1231,9 +1234,9 @@ def search():
 
         reqColors = []
         if color1:
-            reqColors.append(color1)
+            reqColors.append(color1.upper())
         if color2:
-            reqColors.append(color2)
+            reqColors.append(color2.uupper())
 
         # display results if no errors
         sortedScored = []
