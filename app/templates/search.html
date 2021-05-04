@@ -7,7 +7,11 @@
     </head>
     <body id="search-page">
         <div class="topcorner">
-            <p class="names">Student Name: {{ netid }}</p>
+            <div class="mt-3 d-flex">
+                <a class="version-link" href="https://find-my-palette-ver1.herokuapp.com">v1</a>
+                <a class="version-link" href="https://find-my-palette-ver2.herokuapp.com">v2</a>
+                <a class="version-link" href="https://find-my-palette.herokuapp.com">v3</a>
+            </div>
         </div>
 
         <div id="form-container" class="mt-5mb-5">
@@ -97,5 +101,8 @@
             {% endfor %}
         </div>
         {% endif %}
+        <footer class="pt-5 px-3 d-flex flex-row-reverse bg-light">
+            <p class="names mt-3">created with ❤️ by {{ netid }}</p>
+        </footer>
     </body>
 </html>
