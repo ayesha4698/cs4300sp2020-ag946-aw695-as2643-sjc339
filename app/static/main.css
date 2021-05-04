@@ -370,9 +370,35 @@ a.remove {
     width: 175px;
 }
 
+#results h2 {
+    margin-top: 3rem;
+}
+
 .swatch {
     width: 100px;
     height: 100px;
+}
+
+.swatch:hover > .copy {
+    opacity: 1;
+}
+
+.copy {
+    width: 30px;
+    height: 30px;
+    margin-left: 2.3rem;
+    margin-top: 2.3rem;
+    /* filter: invert(100%) sepia(9%) saturate(136%) hue-rotate(215deg) brightness(116%) contrast(84%);  */
+    transition: all 0.1s ease-in-out;
+    opacity: 0;
+}
+
+.copy-palette {
+    width: 30px;
+    height: 30px;
+    margin-top: 3.3rem;
+    margin-left: 0.3rem;
+    filter: invert(72%) sepia(2%) saturate(723%) hue-rotate(189deg) brightness(101%) contrast(96%);
 }
 
 .number {

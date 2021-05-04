@@ -328,3 +328,28 @@ function colorPickerFunc(c, colorpicker) {
         }
     })
 }
+
+function copyToClipboard(value) {
+    var $temp = $("<input>");
+    $("body").append($temp);
+
+    $temp.val(value).select();
+    document.execCommand('copy');
+    $temp.remove();
+}
+
+function copyHex(hex, copy) {
+    copyToClipboard(hex);
+
+    // tooltip
+    let tooltip = $(copy);
+    setTimeout(function(){ tooltip.tooltip("hide"); }, 500);
+}
+
+function copyPalette(palette, tip) {
+    copyToClipboard(palette.map(i => '#' + i).join(", "));
+    console.log(palette.map(i => '#' + i).join(", "));
+
+    let tooltip = $(tip);
+    setTimeout(function(){ tooltip.tooltip("hide"); }, 500);
+}

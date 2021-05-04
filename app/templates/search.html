@@ -199,21 +199,26 @@
             <h3 class="number">{% if loop.index < 10 %}0{{ loop.index }}{% else %}{{ loop.index }}{% endif %}</h3>
             
             <div class="whitespace bg-white"></div>
-                <div class="palette d-flex flex-row justify-between pt-4 mb-5" data-id={{ loop.index }}>
-                    {% for color in palette[1][0] %}
-                    <div class="color result-color">
-                        <div class="swatch"></div>
-                        <p class="p-2 mb-0 bg-white">#{{ color }}</p>
+            <div class="palette d-flex flex-row justify-between pt-4 mb-5" data-id={{ loop.index }}>
+                {% for color in palette[1][0] %}
+                <div class="color result-color">
+                    <div class="swatch" class="copyTooltip" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-offset="0,5" data-bs-trigger="click" title="Copied!" onclick="copyHex('#{{color}}', this)">
+                        <img alt="copy" src="/static/images/copy.png" class="copy">
                     </div>
-                    {% endfor %}
-                    <div class="vote">
-                        <button type="submit" class="btn"> <img class="arrow" src="/static/images/up.svg"> </button>
-                        <p data-bs-toggle="tooltip" data-bs-placement="right" title="Up/down votes per palette are based the top matched keyword">
-                            1
-                        </p>
-                        <button class="btn"><img class="arrow" src="/static/images/down.svg"></button>
-                    </div>
+                    <p class="p-2 mb-0 bg-white">#{{ color }}</p>
                 </div>
+                {% endfor %}
+
+                <div class="vote">
+                    <button type="submit" class="btn"> <img alt="arrow" class="arrow" src="/static/images/up.svg"> </button>
+                    <p data-bs-toggle="tooltip" data-bs-placement="right" title="Up/down votes per palette are based the top matched keyword">
+                        1
+                    </p>
+                    <button class="btn"><img alt="arrow" class="arrow" src="/static/images/down.svg"></button>
+                </div>
+
+                <img alt="copy" src="/static/images/copy.png" class="copy-palette" onclick="copyPalette({{palette[1][0]}}, this)" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-offset="0,5" data-bs-trigger="click" title="Copied Palette!">
+            </div>
 
             <div class="score d-flex mb-3"> 
                 <p class="mb-0"><strong>Score:</strong> {{ palette[1][1]|round(2, 'common') }}</p>
