@@ -25,6 +25,7 @@ import json
 import colorsys
 import nltk
 import itertools
+from ast import literal_eval
 nltk.download('stopwords')
 nltk.download('wordnet')
 nltk.download('averaged_perceptron_tagger')
@@ -1497,24 +1498,25 @@ def search():
 
         submit = True
 
-        if request.form.get('submit-button') == 'vote':
-            sortedScored = request.form.get("sortedScored")
-            voteAndPaletteLst = request.form.get("votes")
-            keywordBreakdown = request.form.get("keywordBreakdown")
-            #keywordBreakdown={0: [('beach', 'beach', 59.26734239322961), ('cool', 'cold', 75.88183700692531)], 1: [('cool', 'cold', 60.63718348112445), ('beach', 'beach', 77.6741907104524)], 2: [('cool', 'cold', 57.686154394631124), ('beach', 'beach', 74.90704815062111)], 3: [('cool', 'cold', 65.86606260520283), ('beach', 'beach', 81.09119250781961)], 4: [('cool', 'cold', 54.66467633790308), ('beach', 'beach', 82.34898458047067)], 5: [('cool', 'cold', 54.66467633790297), ('beach', 'beach', 79.59232362124457)], 6: [('cool', 'cold', 65.46685177387367), ('beach', 'beach', 70.67248150603079)], 7: [('cool', 'cold', 65.51381775403013), ('beach', 'beach', 67.66426213227481)], 8: [('cool', 'cold', 70.99318210560921), ('beach', 'beach', 77.87334112195532)], 9: [('cool', 'cold', 61.5843307476117), ('beach', 'beach', 70.90307671935022)], 10: [('cool', 'cold', 54.23415485313615), ('beach', 'beach', 79.83340043516927)], 11: [('cool', 'cold', 64.64494712113688), ('beach', 'beach', 69.87587986001874)], 12: [('cool', 'cold', 69.40416644365125), ('beach', 'beach', 87.66315608741903)], 13: [('cool', 'cold', 56.590281524315216), ('beach', 'beach', 80.91300529752775)], 14: [('cool', 'cold', 55.650961921187374), ('beach', 'beach', 78.18778914011818)], 15: [('cool', 'cold', 71.15756303615665), ('beach', 'beach', 74.4248945227715)], 16: [('cool', 'cold', 55.50223631735883), ('beach', 'beach', 71.2489695393291)], 17: [('cool', 'cold', 60.43366423378012), ('beach', 'beach', 75.0013825560699)], 18: [('cool', 'cold', 63.063759122538016), ('beach', 'beach', 85.0637191372745)], 19: [('cool', 'cold', 63.88566377527488), ('beach', 'beach', 83.1560678270878)], 20: [('cool', 'cold', 50.265529529920784), ('beach', 'beach', 76.19628502508809)]},
-            keywordsVote = set()
-            print("KEY",keywordBreakdown)
+        # if request.form.get('submit-button') == 'vote':
+        #     sortedScored = request.form.get("sortedScored")
+        #     voteAndPaletteLst = request.form.get("votes")
+        #     keywordBreakdown = request.form.get("keywordBreakdown")
+        #     #keywordBreakdown={0: [('beach', 'beach', 59.26734239322961), ('cool', 'cold', 75.88183700692531)], 1: [('cool', 'cold', 60.63718348112445), ('beach', 'beach', 77.6741907104524)], 2: [('cool', 'cold', 57.686154394631124), ('beach', 'beach', 74.90704815062111)], 3: [('cool', 'cold', 65.86606260520283), ('beach', 'beach', 81.09119250781961)], 4: [('cool', 'cold', 54.66467633790308), ('beach', 'beach', 82.34898458047067)], 5: [('cool', 'cold', 54.66467633790297), ('beach', 'beach', 79.59232362124457)], 6: [('cool', 'cold', 65.46685177387367), ('beach', 'beach', 70.67248150603079)], 7: [('cool', 'cold', 65.51381775403013), ('beach', 'beach', 67.66426213227481)], 8: [('cool', 'cold', 70.99318210560921), ('beach', 'beach', 77.87334112195532)], 9: [('cool', 'cold', 61.5843307476117), ('beach', 'beach', 70.90307671935022)], 10: [('cool', 'cold', 54.23415485313615), ('beach', 'beach', 79.83340043516927)], 11: [('cool', 'cold', 64.64494712113688), ('beach', 'beach', 69.87587986001874)], 12: [('cool', 'cold', 69.40416644365125), ('beach', 'beach', 87.66315608741903)], 13: [('cool', 'cold', 56.590281524315216), ('beach', 'beach', 80.91300529752775)], 14: [('cool', 'cold', 55.650961921187374), ('beach', 'beach', 78.18778914011818)], 15: [('cool', 'cold', 71.15756303615665), ('beach', 'beach', 74.4248945227715)], 16: [('cool', 'cold', 55.50223631735883), ('beach', 'beach', 71.2489695393291)], 17: [('cool', 'cold', 60.43366423378012), ('beach', 'beach', 75.0013825560699)], 18: [('cool', 'cold', 63.063759122538016), ('beach', 'beach', 85.0637191372745)], 19: [('cool', 'cold', 63.88566377527488), ('beach', 'beach', 83.1560678270878)], 20: [('cool', 'cold', 50.265529529920784), ('beach', 'beach', 76.19628502508809)]},
+        #     keywordsVote = set()
+        #     print("KEY",keywordBreakdown)
 
-            for word  in cymbolism:
-                if word in keywordBreakdown :
-                    keywordsVote.add(word)
+        #     for word  in cymbolism:
+        #         if word in keywordBreakdown :
+        #             keywordsVote.add(word)
 
-            keywordsVote = list(keywordsVote)
-            print(keywordsVote)
-            if not voteAndPaletteLst == None :
-                print("CSV", voteAndPaletteLst.split(":"), keywordsVote)
-                if(not voteAndPaletteLst.split(":")==[""]):
-                    setupForCsv(voteAndPaletteLst.split(":"), keywordsVote)
+        #     keywordsVote = list(keywordsVote)
+        #     print(keywordsVote)
+        #     if not voteAndPaletteLst == None :
+        #         print("CSV", voteAndPaletteLst.split(":"), keywordsVote)
+        #         if(not voteAndPaletteLst.split(":")==[""]):
+        #             setupForCsv(voteAndPaletteLst.split(":"), keywordsVote)
+        #     return render_template('search.html', netid=netid, sortedScored=sortedScored, keywordBreakdown=keywordBreakdown, keywordDefs=keywordDefDict, keywords=keywords, energy=energy, color1=color1, color2=color2, submit=submit)
 
 
         # print('HERE')
@@ -1528,9 +1530,7 @@ def search():
         if request.form.get('submit-button') == 'regenerate' or request.form.get('submit-button') == 'vote':
             print("regenerate")
             keywordDefDict = request.form.get("keywordDefs")
-            keywordDefDict = dict((x.strip().replace("'", ""), y.strip().replace("'", ""))
-                        for x, y in (element.split(':')
-                                for element in keywordDefDict[1:len(keywordDefs)-1].split(', ')))
+            keywordDefDict = literal_eval(keywordDefDict)
             keywords = ""
             keywordDefs = []
             for word, d in keywordDefDict.items():
@@ -1541,9 +1541,41 @@ def search():
                 else:
                     keywordDefs.append(word + " - " + d)
 
+            if request.form.get('submit-button') == 'vote':
+                sortedScored = request.form.get("sortedScored") 
+                s = sortedScored
+                s = s[1:-1]
+                sp = s.split('),')
+                sortedScored = []
+                for st in sp:
+                    if st.count(')') < 2:
+                        st += ')'
+                    tup = eval(st)
+                    sortedScored.append(tup)
+                print("sortedd scored")
+                print(sortedScored)
+
+                voteAndPaletteLst = request.form.get("votes")
+                keywordBreakdown = request.form.get("keywordBreakdown")
+                keywordBreakdown = literal_eval(keywordBreakdown)
+
+                keywordsVote = set()
+                print("KEY",keywordBreakdown)
+
+                for word  in cymbolism:
+                    if word in keywordBreakdown :
+                        keywordsVote.add(word)
+
+                keywordsVote = list(keywordsVote)
+                print(keywordsVote)
+                if not voteAndPaletteLst == None :
+                    print("CSV", voteAndPaletteLst.split(":"), keywordsVote)
+                    if(not voteAndPaletteLst.split(":")==[""]):
+                        setupForCsv(voteAndPaletteLst.split(":"), keywordsVote)
+                return render_template('search.html', netid=netid, sortedScored=sortedScored, keywordBreakdown=keywordBreakdown, keywordDefs=keywordDefDict, keywords=keywords, energy=energy, color1=color1, color2=color2, submit=submit)
+
             reqColors = getReqColors(color1, color2)
-            sortedScored, keywordBreakdown = getPalettes(
-                keywordDefs, reqColors, energy)
+            sortedScored, keywordBreakdown = getPalettes(keywordDefs, reqColors, energy)
             return render_template('search.html', netid=netid, sortedScored=sortedScored, keywordBreakdown=keywordBreakdown, keywordDefs=keywordDefDict, keywords=keywords, energy=energy, color1=color1, color2=color2, submit=submit)
 
         multiDefs = request.form.get("multiDefs")
@@ -1634,6 +1666,7 @@ def search():
 
     # return render_template('search.html', netid=netid,
     #     sortedScored=[(5, (['0FF4F3', 'F6DA0D', 'DDC114', 'C44D2A', 'BD2456'], 9.116932314670592)), (3, (['F9B00C', '0CF1F0', '79E6A2', 'A17B1E', 'D51F36'], 9.10481916108276)), (1, (['FDF606', '08FAF8', 'BBD4E5', '6E3F55', '16121F'], 1.6377623563612191)), (4, (['FBA10C', 'FDDA0B', 'AEA417', '153F2F', '131D29'], 1.5999848744714602)), (0, (['FCFA0A', 'FBA50C', 'E8321C', '1A2124', '15222E'], 1.5962150584780885))],
+    #     keywordBreakdown=[("beach", "beach", 5), ()]
     #     keywords="beach", keywordDefs={"beach": "", "cool": "to lose heat"},
     #     color1="000000",
     #     energy=5)

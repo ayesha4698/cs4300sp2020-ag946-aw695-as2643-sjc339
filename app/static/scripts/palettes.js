@@ -26,6 +26,12 @@ $(document).ready(function () {
             scrollTop: $("#results").offset().top
         });
     }
+    if ($(".noresult").length > 0) {
+        console.log("hi?");
+        $('html, body').animate({
+            scrollTop: $(".noresult").offset().top
+        });
+    }
 
     // gradient
     $(".gradient").each(function (i, e) {
@@ -64,6 +70,7 @@ $(document).ready(function () {
         // show breakdown when more info button is clicked
         if (e.target.classList.contains("more-info")) {
             $(".breakdown[data-value=" + $(e.target).data("value") + "]").removeClass("hidden");
+            $(e.target).attr("data-event", "click");
         }
     });
 
@@ -114,10 +121,6 @@ $(document).ready(function () {
 
     // sticky color
     $(".color-input:not(.hidden)").each( function (i, e) {
-        console.log("sticky");
-        console.log(e);
-        console.log($(e).find("button").attr("value") );
-        console.log(colorPicker1);
         let swatch = $(e).find(".necessary-swatch");
         let hex = $(e).find("input").val();
         console.log(swatch);
@@ -134,8 +137,6 @@ $(document).ready(function () {
     });
 
     // add color btn
-    console.log("HERE!!!!");
-    console.log($(".color-input:not(.hidden)"));
     if ($(".color-input:not(.hidden)").length == 2) {
         $("#addColorBtn").addClass("hidden");
     }
@@ -213,6 +214,7 @@ $(document).ready(function () {
                                 $("#options").append("<div id='" + word + "-options' class='mt-3'></div>");
                                 $("#" + word + "-options").append("<label class='options-label' for='" + word + "'><strong>" + word + "</strong></label><br>");
                                 definitions.forEach(d => {
+                                    console.log(d["partOfSpeech"]);
                                     let radio = '<div class="radio-input d-flex flex-row">' +
                                         '<input class="radio-button" type="radio" name=' + word + ' value=' + d["definition"].replaceAll(" ", "%") + '>' + 
                                         '<p class="def-text mb-1 ms-2">' + (d["partOfSpeech"] ? shorthand[d["partOfSpeech"]] : "") + " " + d["definition"] + '</p>' +
