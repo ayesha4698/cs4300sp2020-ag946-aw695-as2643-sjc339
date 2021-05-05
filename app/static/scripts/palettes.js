@@ -305,6 +305,7 @@ $(document).ready(function () {
     })
 })
 
+
 function colorLabel() {
     let energyId = "#e" + $("#energyInput").val();
     $(energyId).addClass("active");
@@ -347,8 +348,41 @@ function removeColor(c, colorpicker) {
         $("#addColorBtn").removeClass("hidden");
     }
 }
+String.prototype.replaceAt = function(index, replacement) {
+    if (index >= this.length) {
+        return this.valueOf();
+    }
+ 
+    var chars = this.split('');
+    chars[index] = replacement;
+    return chars.join('');
+}
+function vote2(voteNum, palette, keyword) {
+    console.log(keyword)
+    var currVal = document.getElementById("vote").value
+    if (currVal == ""){
+      var addVote = palette + " " + voteNum;
+      currVal = addVote
+      //console.log("first",currVal)
+    }
 
-function openPicker(open, p) {
+    else if (currVal.includes(palette)){
+        var paleteIndex = currVal.indexOf(palette);
+        paleteIndex += palette.length + 1;
+        var newVote = Number(currVal.charAt(paleteIndex)) + Number(voteNum);
+        
+        currVal = currVal.replaceAt(paleteIndex, newVote);
+    }
+    else{
+      var addVote = ":" + palette + " " + voteNum;
+    
+      currVal += addVote;
+    }
+    document.getElementById("vote").value = currVal;
+    console.log(document.getElementById("vote").value )
+    console.log($keywords)
+}
+function openPicker(open, p, type, paletteId) {
     if (open) {
         $(".picker").addClass("hidden");
         $("#picker" + p).removeClass("hidden");
@@ -356,3 +390,4 @@ function openPicker(open, p) {
         $("#picker" + p).addClass("hidden");
     }
 }
+

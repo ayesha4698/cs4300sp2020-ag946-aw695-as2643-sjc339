@@ -202,6 +202,7 @@
             {% endfor %}
         </h2>
         {% for palette in sortedScored %}
+        
         <div class="result position-relative">
             <h3 class="number">{% if loop.index < 10 %}0{{ loop.index }}{% else %}{{ loop.index }}{% endif %}</h3>
             
@@ -214,11 +215,11 @@
                     </div>
                     {% endfor %}
                     <div class="vote">
-                        <button type="submit" class="btn"> <img class="arrow" src="/static/images/up.svg"> </button>
+                        <button type="button" class="btn" onclick="vote2(1,{{palette[1][0]}},{{keywords}})"> <img class="arrow" src="/static/images/up.svg"> </button>
                         <p data-bs-toggle="tooltip" data-bs-placement="right" title="Up/down votes per palette are based the top matched keyword">
                             1
                         </p>
-                        <button class="btn"><img class="arrow" src="/static/images/down.svg"></button>
+                        <button type="button" class="btn" onclick="vote2(-1, {{palette[1][0]}})" ><img class="arrow" src="/static/images/down.svg"></button>
                     </div>
                 </div>
 
@@ -241,6 +242,11 @@
             <div data-id={{ loop.index }} class="gradient"></div>
         </div>
         {% endfor %}
+        <form id= "updateVote" action="/vote" method="POST">
+            <input class="hidden" name="votes" id="vote">   
+            <input class="hidden" name="keywords" id="vote">   
+            <button type="submit" class="btn btn-primary" id="submitBtn2" >Submit Rankings</button>
+        </form>
 
     </div>
     {% elif sortedScored == [] %}

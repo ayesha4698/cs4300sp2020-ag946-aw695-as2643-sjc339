@@ -14,7 +14,7 @@ from app.irsystem.controllers.rgb2lab import *
 from app.irsystem.controllers.cossim import *
 
 
-import numpy
+import numpy as np
 import pandas as pd
 from colormap import rgb2hex
 import re
@@ -555,92 +555,100 @@ def hue_adjuster():
     return 0
 
 def isClose(palette1, palette2):
-    endDict = {}
-    lst = [] 
-    for c1 in palette2: 
-        minScore = [] 
-        for c2 in palette1: 
-            ca = convertColor(c1, 'hex', 'rgb')
-            cb = convertColor(c2, 'hex', 'rgb')
-            score = colorDiff(ca, cb, "rgb")
-            print(score)
-            minScore.append(score)
-        lst.append(minScore)
-    print("minScore", minScore)
-    avg = sum(minScore)/len(minScore)
-    print("avg", avg)
-    threshold = 300
-    if avg > threshold: 
-        return True
-    else:
-        return False
+    return palette1 == palette2
+    # endDict = {}
+    # lst = [] 
+    # for c1 in palette2: 
+    #     minScore = [] 
+    #     for c2 in palette1: 
+    #         ca = convertColor(c1, 'hex', 'rgb')
+    #         cb = convertColor(c2, 'hex', 'rgb')
+    #         score = colorDiff(ca, cb, "rgb")
+    #         print(score)
+    #         minScore.append(score)
+    #     lst.append(minScore)
+    # print("minScore", minScore)
+    # avg = sum(minScore)/len(minScore)
+    # print("avg", avg)
+    # threshold = 300
+    # if avg > threshold: 
+    #     return True
+    # else:
+    #     return False
 
 def closestPalette(palette):
   # loop throught the csv palettes 
-  with open('data/votes.csv', 'r', newline='') as file:
-    myreader = csv.reader(file, delimiter=',')
-    for rows in myreader:
-      if rows[0] != 'Palette':
-        paletteToCompare = []
-        [paletteToCompare.extend(rows[0].split( ))] 
-        if(isClose(paletteToCompare, palette)):
-          print("close" , paletteToCompare)
-          return paletteToCompare, True
+    with open('data/votes.csv', 'r', newline='') as file:
+        myreader = csv.reader(file, delimiter=',')
+        for rows in myreader:
+            if rows[0] != 'Palette':
+                paletteToCompare = []
+                [paletteToCompare.extend(rows[0].split( ))] 
+                if(isClose(paletteToCompare, palette)):
+                    print("close" , paletteToCompare)
+                    return paletteToCompare, True
         
        
-  return palette, False
+    return palette, False
 
 def append_list_as_row(file_name, list_of_elem):
     # Open file in append mode
-    with open(file_name, 'a+', newline='') as write_obj:
+    with open(file_name, 'a', newline='') as write_obj:
         # Create a writer object from csv module
         csv_writer = writer(write_obj)
         # Add contents of list as last row in the csv file
         csv_writer.writerow(list_of_elem)
-
-def paletteToCSV(palette, keywords, vote, energy):
-  CSVpalette, found = closestPalette(palette)
-  CSVpalette = (' '.join([str(elem) for elem in CSVpalette])).replace(",", " ")
-  if not found : 
-    # add to csv 
-    # List of strings
-
-    votes = "1" + " " + str(vote)
-    row_contents = [CSVpalette,keywords,votes]
-    print("row", row_contents)
-    # Append a list as new line to an old csv file
-    append_list_as_row('data/votes.csv', row_contents)
-
-  else: 
-    currVotes = ()
-    keywords = []
-    print(CSVpalette)
-    rowId = 0
-    with open('data/votes.csv', 'r', newline='') as file:
-      myreader = csv.reader(file, delimiter=',')
-      for rows in myreader:
-        if rows[0] == CSVpalette:
-          keyWords = rows[1]
-          currVotes = rows[2]
-          break
-        rowId += 1
         
-    currVotesArray = currVotes.split()
-    totalVotes = int(currVotesArray[0]) + 1
-    netVotes = int(currVotesArray[1]) + vote
-    currVotesString = str(totalVotes) + " " + str(netVotes)
+cymbolism = ['abuse', 'accessible', 'addiction', 'agile', 'amusing', 'anger', 'anticipation', 'art deco', 'authentic', 'authority', 'average', 'baby', 'beach', 'beauty', 'beer', 'benign', 'bitter', 'blend', 'blissful', 'bold', 'book', 'boss', 'brooklyn', 'busy', 'calming', 'capable', 'car', 'cat', 'certain', 'charity', 'cheerful', 'chicago', 'classic', 'classy', 'clean', 'cold', 'colonial', 'comfort', 'commerce', 'compelling', 'competent', 'confident', 'consequence', 'conservative', 'contemporary', 'cookie', 'corporate', 'cottage', 'crass', 'creative', 'cute', 'dance', 'dangerous', 'decadent', 'decisive', 'deep', 'devil', 'discount', 'disgust', 'dismal', 'dog', 'drunk', 'dublin', 'duty', 'dynamic', 'earthy', 'easy', 'eclectic', 'efficient', 'elegant', 'elite', 'enduring', 'energetic', 'entrepreneur', 'environmental', 'erotic', 'excited', 'expensive', 'experience', 'fall', 'familiar', 'fast', 'fear', 'female', 'football', 'freedom', 'fresh', 'friendly', 'fun', 'furniture', 'future', 'gay', 'generic', 'georgian', 'gloomy', 'god', 'good', 'goth', 'government', 'grace', 'great', 'grow', 'happy', 'hard', 'hate', 'hazardous', 'hippie', 'hockey', 'honor', 'hope', 'hot', 'hunting', 'hurt', 'hygienic', 'ignorant', 'imagination', 'impossible', 'improbable', 'influence', 'influential', 'insecure', 'inviting', 'invulnerable', 'jacobean', 'jealous', 'joy', 'jubilant', 'junkie', 'knowledge', 'kudos', 'launch', 'lazy', 'leader', 'liberal', 'library', 'light', 'likely', 'lonely', 'love', 'magic', 'marriage', 'maximal', 'mean', 'medicine', 'melancholy', 'mellow', 'minimal', 'mission', 'modern', 'moment', 'money', 'music', 'mystical', 'narcissist', 'natural', 'naughty', 'new', 'nimble', 'now', 'objective', 'old', 'optimistic', 'organic', 'paradise', 'party', 'passion', 'passive', 'peace', 'peaceful', 'personal', 'playful', 'pleasing', 'possible', 'powerful', 'preceding', 'predatory', 'prime', 'probable', 'productive', 'professional', 'profit', 'progress', 'public', 'pure', 'radical', 'railway', 'rain', 'real', 'rebellious', 'recession', 'reconciliation', 'recovery', 'relaxed', 'reliability', 'retro', 'rich', 'risk', 'rococo', 'romantic', 'royal', 'rustic', 'sad', 'sadness', 'safe', 'sarcasm', 'secure', 'sensible', 'sensual', 'sex', 'shabby', 'silly', 'simple', 'slow', 'smart', 'smooth', 'snorkel', 'soft', 'solar', 'sold', 'solid', 'somber', 'spiffy', 'sport', 'spring', 'stability', 'star', 'strong', 'studio', 'style', 'stylish', 'submit', 'suburban', 'success', 'summer', 'sun', 'sunny', 'surprise', 'sweet', 'symbol', 'tasty', 'therapeutic', 'threat', 'time', 'tomorrow', 'treason', 'trust', 'trustworthy', 'uncertain', 'uniform', 'unlikely', 'unsafe', 'urban', 'value', 'vanity', 'victorian', 'vitamin', 'vulnerability', 'vulnerable', 'war', 'warm', 'winter', 'wise', 'wish', 'work', 'worm', 'young'];
+invertedIndex = {}
+for id, word in enumerate(cymbolism):
+  invertedIndex[word] = id
 
-    #update the csv with this new value
-    print(currVotesString)
-    # reading the csv file
-    df = pd.read_csv("data/votes.csv")
-    df.loc[df["Palette"]== CSVpalette, "Votes"] = currVotesString
-    df.to_csv("data/votes.csv", index=False)
-    
- 
-  return None
+def paletteToCSV(palette, keywords, vote):
+    CSVpalette, found = closestPalette(palette)
+    CSVpalette = (' '.join([str(elem) for elem in CSVpalette])).replace(",", " ")
+    if not found : 
+        # add to csv 
+        # List of strings
+        votes = "1" + " " + str(vote)
+        row_contents = [CSVpalette]
+        keywordsVotes = np.empty(len(cymbolism), dtype=object)
+        for i in range(len(keywordsVotes)):
+            keywordsVotes[i] = '0 0'
+        for word in keywords:
+            keywordsVotes[invertedIndex[word]] = '1 1'
+        print(len(row_contents))
+        row_contents += list(keywordsVotes)
+        print("row", len(row_contents))
+        print(row_contents)
+        # Append a list as new line to an old csv file
+        append_list_as_row('data/votes.csv', row_contents)
 
-
+    else: 
+        keywordsVotes = []
+        # get current row 
+        with open('data/votes.csv', 'r', newline='') as file:
+            myreader = csv.reader(file, delimiter=',')
+            for rows in myreader:
+                if rows[0] == CSVpalette:
+                    for idword in range(len(cymbolism)):
+                        if(cymbolism[idword] in keywords):
+                            currVotesArray = rows[idword+1].split()
+                            totalVotes = int(currVotesArray[0]) + 1
+                            netVotes = int(currVotesArray[1]) + vote
+                            currVotesString = str(totalVotes) + " " + str(netVotes)
+                            print(currVotesString)
+                            keywordsVotes.append(currVotesString)
+                        else:
+                            keywordsVotes.append(rows[idword+1])
+                    break
+           
+        # reading the csv file
+        df = pd.read_csv("data/votes.csv")
+        for i, word in enumerate(cymbolism):
+            df.loc[df["Palette"]== CSVpalette, word] = keywordsVotes[i]
+        df.to_csv("data/votes.csv", index=False)
+    return None
 def energy_adjust(color, energy):
     """ adjusts a hex code so that it’s brighter or more muted
     :param hex: string
@@ -1093,7 +1101,7 @@ def search():
         color2 = request.form.get("color2")
         multiDefs = request.form.get("multiDefs")
         invalidWords = request.form.get("invalidWords")
-        
+
 
         submit = True
         results = None
@@ -1109,7 +1117,7 @@ def search():
         if (keywords is None and energy is None and color1 is None and color2 is None):
             submit = False
 
-        if len(keywords) == 0 or keywords is None:
+        if keywords is None or len(keywords) == 0 :
             errors.append("keywords1")
         if keywords:
             keywordsList = keywords.split(",")
@@ -1153,7 +1161,7 @@ def search():
         if request.form.get('submit-button') == 'general' and multiDefs:
             print("return 2")
             return render_template('search.html', netid=netid, results=None, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit, multiDefs=multiDefs, showModal=True)
-
+        
         for k in keywords.split(","):
             if k not in multiDefList:
                 keywordDefs.append(k)
@@ -1170,7 +1178,7 @@ def search():
         if len(errors) == 0:
             sortedScored, keywordBreakdown = getPalettes(
                 keywordDefs, reqColors, energy)
-            # paletteToCSV(['0FF4F6', 'F6DA0D', 'DDC114', '000000', '000000'], "beach earthy", 1, 5 )
+           
             print("return 3")
             return render_template('search.html', netid=netid, sortedScored = sortedScored, keywordBreakdown=keywordBreakdown, keywordDefs=keywordDefs, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit)
 
@@ -1182,3 +1190,45 @@ def search():
         print("return 5")
         return render_template('search.html', netid=netid)
     # return render_template('search.html', netid=netid, sortedScored=[(5, (['0FF4F3', 'F6DA0D', 'DDC114', 'C44D2A', 'BD2456'], 9.116932314670592)), (3, (['F9B00C', '0CF1F0', '79E6A2', 'A17B1E', 'D51F36'], 9.10481916108276)), (1, (['FDF606', '08FAF8', 'BBD4E5', '6E3F55', '16121F'], 1.6377623563612191)), (4, (['FBA10C', 'FDDA0B', 'AEA417', '153F2F', '131D29'], 1.5999848744714602)), (0, (['FCFA0A', 'FBA50C', 'E8321C', '1A2124', '15222E'], 1.5962150584780885))], keywordBreakdown={0: [('beach', 'beach', 2.6857654431513), ("cool", "cool", 7.938)], 1: [('beach', '', 2.6857654431513)], 2: [('beach', '', 2.6857654431513)], 3: [('beach', '', 21.366756192181)], 4: [('beach', '', 2.6857654431513)], 5: [('beach', '', 21.366756192181)]}, keywords="beach", keywordDefs={"beach": None, "cool": "to lose heat"})
+
+@irsystem.route("/vote", methods=["GET", "POST"])
+def updateVote():
+    if request.method == "POST":
+        keywords = request.form.get("keywords")
+        print("keywords", keywords)
+        #keywords =  ['agile', 'accessible', 'abuse']
+        voteAndPaletteLst = request.form.get("votes").split(":")
+        print(voteAndPaletteLst)
+        if not voteAndPaletteLst == "":
+            votes = []
+            palettes = []
+            for i, voteAndPalette in enumerate(voteAndPaletteLst):
+                m = len(voteAndPalette)
+                if(voteAndPalette[m-2]=='-'):
+                    votes.append(voteAndPalette[-2:])
+                    voteAndPalette = voteAndPalette[:-3]
+         
+                    palettes.append(voteAndPalette.split(","))
+                else:
+                    votes.append(voteAndPalette[m-1])
+                    voteAndPalette = voteAndPalette[:-2]
+                    print(voteAndPalette)
+                    palettes.append(voteAndPalette.split(","))
+
+        
+        
+        
+        for i in range(len(palettes)):
+            print(palettes[i])
+            print(votes[i])
+            # paletteToCSV(palettes[i], keywords, votes[i])
+
+        
+
+        #paletteToCSV(['0FF4F6', 'F6DA00', '000000', '000000', '000000'], ['agile', 'accessible', 'abuse'] , -1)
+       
+        return render_template('search.html', netid=netid)
+    if request.method == "GET":
+        print("return 5")
+        return render_template('search.html', netid=netid)
+    return render_template('search.html', netid=netid)
