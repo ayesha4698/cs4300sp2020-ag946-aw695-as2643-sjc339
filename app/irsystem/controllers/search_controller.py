@@ -1026,7 +1026,6 @@ def create_combinations(top_colors, necessary_colors, top_colors_hues, energy):
                             if tup not in seen and tup_rev not in seen:
                                 combinations.append(tup)
                                 seen[tup] = True
-
     random.shuffle(combinations)
     combinations = combinations[:30]
     combo_hex_code_lst = []
@@ -1272,8 +1271,9 @@ def setupForCsv(voteAndPaletteLst, keywords):
                 palettes.append(voteAndPalette.split(","))
 
     for i in range(len(palettes)):
-        if(not palettes[i]=="" and (int(votes[i]) == 1 or int(votes[i]) == -1)):
+        if(not palettes[i]=="" and len(keywords)==0 and (int(votes[i]) == 1 or int(votes[i]) == -1)):
             paletteToCSV(palettes[i], keywords, votes[i])
+    return palettes, votes
 
 @irsystem.route("/", methods=["GET", "POST"])
 def search():
@@ -1316,18 +1316,35 @@ def search():
                 voteAndPaletteLst = request.form.get("votes")
                 keywordBreakdown = request.form.get("keywordBreakdown")
                 keywordBreakdown = literal_eval(keywordBreakdown)
-
+                
                 keywordsVote = set()
 
-                for word  in cymbolism:
-                    if word in keywordBreakdown :
-                        keywordsVote.add(word)
+                for _, val in keywordBreakdown.items():
+                    for tup in val:
+                        keywordsVote.add(tup[1])
 
                 keywordsVote = list(keywordsVote)
                 if not voteAndPaletteLst == None :
+                    votes = []
+                    palettesWithVotes = []
                     if(not voteAndPaletteLst.split(":")==[""]):
-                        setupForCsv(voteAndPaletteLst.split(":"), keywordsVote)
-                return render_template('search.html', netid=netid, sortedScored=sortedScored, keywordBreakdown=keywordBreakdown, keywordDefs=keywordDefDict, keywords=keywords, energy=energy, color1=color1, color2=color2, submit=submit)
+                        palettesWithVotes, votes = setupForCsv(voteAndPaletteLst.split(":"), keywordsVote)
+                    palettes = []
+                    
+                    for tup in sortedScored:
+                        palettes.append(tup[1][0]) # [[]]
+                    
+                    allVotes = listofzeros = [0] * len(palettes)
+
+                    for index, pal in enumerate(palettes):
+                        if pal in palettesWithVotes:
+                            # find index of pal for votes
+                            for voteID, pv in enumerate(palettesWithVotes):
+                                if pv == pal: 
+                                    allVotes[index] = math.trunc(int(votes[voteID]))
+                                    break
+                    
+                return render_template('search.html', netid=netid, sortedScored=sortedScored, votes=allVotes, keywordBreakdown=keywordBreakdown, keywordDefs=keywordDefDict, keywords=keywords, energy=energy, color1=color1, color2=color2, submit=submit)
 
             reqColors = getReqColors(color1, color2)
             sortedScored, keywordBreakdown = getPalettes(keywordDefs, reqColors, energy)

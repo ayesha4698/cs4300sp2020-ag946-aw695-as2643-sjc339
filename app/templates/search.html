@@ -244,7 +244,7 @@
                             src="/static/images/up.svg"> </button>
                     <p id='p{{loop.index}}' data-bs-toggle="tooltip" data-bs-placement="right"
                         title="Up/down votes per palette are based the top matched keyword">
-                        0
+                        {% if votes|length() > 0  %} {{votes[loop.index0]}} {%else%} 0 {% endif %}
                     </p>
                     <button onclick="vote2(-1, {{palette[1][0]}},{{loop.index}})" class="btn"><img alt="arrow" class="arrow"
                             src="/static/images/down.svg"></button>
