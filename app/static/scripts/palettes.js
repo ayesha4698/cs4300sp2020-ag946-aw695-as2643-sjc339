@@ -341,6 +341,10 @@ String.prototype.replaceAt = function(index, replacement) {
     chars[index] = replacement;
     return chars.join('');
 }
+function changeVoteClass(voteNum) {
+    
+}
+
 function vote2(voteNum, palette, pID) {
 
     var currVote = 9
@@ -350,6 +354,7 @@ function vote2(voteNum, palette, pID) {
       var addVote = palette + " " + voteNum;
       currVal = addVote
       currVote = voteNum
+      changeVoteClass(Number(voteNum))
       
     }
     else if (currVal.includes(palette)){

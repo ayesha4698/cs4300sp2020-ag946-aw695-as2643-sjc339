@@ -826,6 +826,7 @@ def paletteToCSV(palette, keywords, vote):
     CSVpalette, found = closestPalette(palette)
     CSVpalette = (' '.join([str(elem) for elem in CSVpalette])).replace(",", " ")
     if not found :
+        print("found")
         votes =  "1 "+ str(vote)
         row_contents = [CSVpalette]
         keywordsVotes = np.empty(len(cymbolism), dtype=object)
@@ -838,6 +839,7 @@ def paletteToCSV(palette, keywords, vote):
         append_list_as_row('data/votes.csv', row_contents)
 
     else:
+        print("not found")
         # already in csv
         keywordsVotes = []
         with open('data/votes.csv', 'r', newline='') as file:
