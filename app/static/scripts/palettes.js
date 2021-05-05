@@ -188,7 +188,6 @@ $(document).ready(function () {
         render: {
             item: function (item, escape) {
                 let word = escape(item.value)
-                $("#suggestions").html("");
                 if (cymbolism.includes(item.value)) {
                     return "<div class='item' id='w-" + word + "'>" +
                         '<span class="name">' + word + '</span>' + "</div>";

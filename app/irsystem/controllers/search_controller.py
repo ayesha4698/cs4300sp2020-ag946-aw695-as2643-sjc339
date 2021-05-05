@@ -211,9 +211,9 @@ def getSynset(dfn):
         query = dfn[dfn.index("-")+2:]      # skip the space
     else:
         kw = stemmer.stem(dfn)
-        syns = wordnet.synsets(kw)
+        syns = wordnet.synsets(kw.replace(" ", "_"))
         if syns == []:
-            return wordnet.synsets(dfn)[0]
+            return wordnet.synsets(dfn.replace(" ", "_"))[0]
         else:
             return syns[0]
 
@@ -722,7 +722,7 @@ def hue_adjuster(color, degree):
     return new_hex
 
 
-def isClose(palette1, palette2):
+def isClose(palette1, palette2, threshold):
     """
     Check if the palette is close enough to palette that is already saved in the csv
     If it is already in the csv, return true otherwise return false
@@ -749,7 +749,7 @@ def isClose(palette1, palette2):
     # print("minScore", minScore)
     avg = sum(minScore)/len(minScore)
     print("avg", avg)
-    threshold = 115
+    # threshold = 115
     if avg < threshold:
         return True
     else:
@@ -764,7 +764,7 @@ def closestPalette(palette):
             if rows[0] != 'Palette':
                 paletteToCompare = []
                 [paletteToCompare.extend(rows[0].split())]
-                if(isClose(paletteToCompare, palette)):
+                if(isClose(paletteToCompare, palette, 200)):
                     print("close", paletteToCompare)
                     return paletteToCompare, True
 
@@ -967,11 +967,11 @@ def top_colors_from_keywords(keywords, energy):
                     score = tup[0]
                     color = tup[1]
                     if score >= 10:
-                        if color in top_colors:
-                            top_colors[color] += sim_score * normalize_score(
+                        if energy_adjust(color, energy) in top_colors:
+                            top_colors[energy_adjust(color, energy)] += sim_score * normalize_score(
                                 (score), total_votes[word], total_votes_num)
                         else:
-                            top_colors[color] = sim_score * normalize_score(
+                            top_colors[energy_adjust(color, energy)] = sim_score * normalize_score(
                                 (score), total_votes[word], total_votes_num)
                     else:
                         above_thresh = False
@@ -985,13 +985,22 @@ def top_colors_from_keywords(keywords, energy):
         # hue4 = hue_adjuster(color, -30)
         # top_colors_hues[color] = [color, hue1, hue2, hue3, hue4]
         # else:
-        hue1 = hue_adjuster(color, 10)
-        hue2 = hue_adjuster(color, -10)
-        energy1 = energy_adjust(color, -5)
-        energy2 = energy_adjust(color, 5)
-        # hue3 = hue_adjuster(color, 30)
-        # hue4 = hue_adjuster(color, -30)
-        top_colors_hues[color] = [color, hue1, hue2, energy1, energy2]
+        if len(top_colors) > 2:
+            hue1 = hue_adjuster(color, 10)
+            hue2 = hue_adjuster(color, -10)
+            energy1 = energy_adjust(color, -5)
+            energy2 = energy_adjust(color, 5)
+            # hue3 = hue_adjuster(color, 30)
+            # hue4 = hue_adjuster(color, -30)
+            top_colors_hues[color] = [color, hue1, hue2, energy1, energy2]
+        else:
+            hue1 = hue_adjuster(color, 20)
+            hue2 = hue_adjuster(color, -20)
+            energy1 = energy_adjust(color, -10)
+            energy2 = energy_adjust(color, 10)
+            # hue3 = hue_adjuster(color, 30)
+            # hue4 = hue_adjuster(color, -30)
+            top_colors_hues[color] = [color, hue1, hue2, energy1, energy2]
     # print('----- TOP COLORS -----')
     # print(top_colors_hues)
     # return top_colors
@@ -1041,7 +1050,12 @@ def palette_generator(hex_codes, n, energy):
     hex = []
     for rgb in res.json()['result']:
         color = rgb2hex(rgb[0], rgb[1], rgb[2])
-        hex.append(energy_adjust(color, energy))
+        # print('---Color----')
+
+        # print(color)
+        # hex.append(energy_adjust(color, energy))
+
+        hex.append(clean_hex(color))
 
     # print('HEX')
     # print(hex)
@@ -1109,7 +1123,7 @@ def create_combo_hex_codes(top_keywords_color_lst, necessary_color_lst, energy):
 def create_combinations(top_colors, necessary_colors, top_colors_hues, energy):
     combinations = []
     seen = {}
-    if len(top_colors) > 3:
+    if len(top_colors) > 2:
         # print('LENGTH')
         # print(len(top_colors))
         for color1, lst1 in top_colors_hues.items():
@@ -1231,13 +1245,20 @@ def getPalettes(keywords, reqColors, energy):
 
     sortedScored = []
     i = 0
+    if int(energy) < 2:
+        thresh = 130
+    elif int(energy) < 9:
+        thresh = 115
+    else:
+        thresh = 105
+
     while len(sortedScored) < 5 and i < len(ranked):
         tup = ranked[i]
-
         tooClose = False
+
         for pal in sortedScored:
             print(tup[0], ',', pal[0])
-            if isClose(tup[1][0], pal[1][0]):
+            if isClose(tup[1][0], pal[1][0], thresh):
                 tooClose = True
 
         if not tooClose:
