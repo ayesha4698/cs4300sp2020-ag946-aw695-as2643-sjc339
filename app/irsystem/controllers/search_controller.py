@@ -779,7 +779,7 @@ def isClose(palette1, palette2, threshold):
         lst.append(minScore)
     # print("minScore", minScore)
     avg = sum(minScore)/len(minScore)
-    # print("avg", avg)
+    print("avg", avg)
     # threshold = 115
     if avg < threshold:
         return True
@@ -797,7 +797,7 @@ def closestPalette(palette):
             if rows[0] != 'Palette':
                 paletteToCompare = []
                 [paletteToCompare.extend(rows[0].split( ))] 
-                if(isClose(paletteToCompare, palette, 350)):
+                if(isClose(paletteToCompare, palette, 200)):
                     print("close" , paletteToCompare)
                     return paletteToCompare, True
         
@@ -1457,20 +1457,21 @@ def setupForCsv(voteAndPaletteLst, keywords):
     palettes = []
     for i, voteAndPalette in enumerate(voteAndPaletteLst):
         m = len(voteAndPalette)
-        if(voteAndPalette[m-2]=='-'):
-            votes.append(voteAndPalette[-2:])
-            voteAndPalette = voteAndPalette[:-3]
-    
-            palettes.append(voteAndPalette.split(","))
-        else:
-            votes.append(voteAndPalette[m-1])
-            voteAndPalette = voteAndPalette[:-2]
-            palettes.append(voteAndPalette.split(","))
+        if(not voteAndPalette == ""):
+            if(voteAndPalette[m-2]=='-'):
+                votes.append(voteAndPalette[-2:])
+                voteAndPalette = voteAndPalette[:-3]
+        
+                palettes.append(voteAndPalette.split(","))
+            else:
+                votes.append(voteAndPalette[m-1])
+                voteAndPalette = voteAndPalette[:-2]
+                palettes.append(voteAndPalette.split(","))
 
     for i in range(len(palettes)):
         print(palettes[i])
         print(votes[i])
-        if(not palettes[i]=="" and (int(votes) == 1 or int(votes) == -1)):
+        if(not palettes[i]=="" and (int(votes[i]) == 1 or int(votes[i]) == -1)):
             paletteToCSV(palettes[i], keywords, votes[i])
 
 @irsystem.route("/", methods=["GET", "POST"])
