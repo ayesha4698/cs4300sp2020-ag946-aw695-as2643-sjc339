@@ -1298,6 +1298,8 @@ def getPalettes(keywords, reqColors, energy):
     else:
         thresh = 105
 
+    sortedScored = []
+
     while len(sortedScored) < 5 and i < len(ranked):
         tup = ranked[i]
         tooClose = False
