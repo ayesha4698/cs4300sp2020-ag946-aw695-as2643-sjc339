@@ -1064,10 +1064,11 @@ def palette_generator(hex_codes, n, energy):
 
     input_lst = []
     for hex in hex_codes:
-        # print(hex)
+        print(hex)
         # print('---------HEX--------')
         # print(hex)
         input_lst.append(convertColor(hex, "hex", "rgb"))
+        print(hex)
         # input_lst.append(ImageColor.getcolor(hex, "RGB"))
     # print(input_lst)
 
@@ -1202,7 +1203,7 @@ def create_combinations(top_colors, necessary_colors, top_colors_hues, energy):
     for i in range(len(combinations)):
         n = len(combinations)+len(necessary_colors)
         hex_codes = necessary_colors + list(combinations[i])
-
+        print("generate")
         combo_hex_code_lst.append(palette_generator(hex_codes, n, energy))
 
     # print(combinations)
