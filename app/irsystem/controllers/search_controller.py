@@ -1459,7 +1459,7 @@ def search():
         if color1:
             reqColors.append(color1.upper())
         if color2:
-            reqColors.append(color2.uupper())
+            reqColors.append(color2.upper())
 
         # display results if no errors
         sortedScored = []
