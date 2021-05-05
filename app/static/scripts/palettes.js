@@ -188,7 +188,6 @@ $(document).ready(function () {
         render: {
             item: function (item, escape) {
                 let word = escape(item.value)
-                $("#suggestions").html("");
                 if (cymbolism.includes(item.value)) {
                     return "<div class='item' id='w-" + word + "'>" +
                         '<span class="name">' + word + '</span>' + "</div>";
@@ -340,30 +339,72 @@ String.prototype.replaceAt = function(index, replacement) {
     chars[index] = replacement;
     return chars.join('');
 }
-function vote2(voteNum, palette, keyword) {
-    console.log(keyword)
+function vote2(voteNum, palette, pID) {
+
+    var currVote = 9
     var currVal = document.getElementById("vote").value
+
     if (currVal == ""){
       var addVote = palette + " " + voteNum;
       currVal = addVote
+      currVote = voteNum
       //console.log("first",currVal)
     }
-
     else if (currVal.includes(palette)){
-        var paleteIndex = currVal.indexOf(palette);
-        paleteIndex += palette.length + 1;
-        var newVote = Number(currVal.charAt(paleteIndex)) + Number(voteNum);
+
+        var paletteSize = 0
+        var paletteStr = String(palette)
+        var paleteIndex = currVal.indexOf(paletteStr);
+        console.log(paleteIndex)
+        palette.forEach(pal => {
+            paletteSize += pal.length
+        });
+        console.log("curr", currVal)
+        console.log(paletteSize)
+
+        paleteIndex += paletteSize + 5;
+        console.log(paleteIndex, currVal.charAt(paleteIndex) )
+
+        if (currVal.charAt(paleteIndex) == '-'){
+            if (Number(voteNum) == 1) {
+                console.log("die1")
+                var addVote = ":" + palette + " -1"
+                currVal = currVal.replace(addVote, "");
+                var addVote = palette +  " -1"
+                currVal = currVal.replace(addVote, "");
         
-        currVal = currVal.replaceAt(paleteIndex, newVote);
+                currVote = voteNum
+                currVote = 0 
+            }
+            else {currVote = -1}
+        }
+        else if (currVal.charAt(paleteIndex) == '1'){
+            console.log("die")
+            if (Number(voteNum) == -1) {
+                console.log("die3")
+                var addVote = ":" + palette + " 1"
+                currVal = currVal.replace(addVote, "");
+                var addVote =  palette + " 1";
+                currVal = currVal.replace(addVote, "");
+        
+                currVote = voteNum
+                currVote = 0 
+            }
+            else {currVote = 1}
+        }
     }
     else{
       var addVote = ":" + palette + " " + voteNum;
-    
       currVal += addVote;
+      currVote = voteNum
     }
     document.getElementById("vote").value = currVal;
     console.log(document.getElementById("vote").value )
-    console.log($keywords)
+
+    pID = "p" + pID
+    console.log(pID)
+    document.getElementById(pID).textContent = currVote;
+
 }
 function openPicker(open, p, type, paletteId) {
     if (open) {
