@@ -784,7 +784,7 @@ def isClose(palette1, palette2, threshold):
         lst.append(minScore)
     # print("minScore", minScore)
     avg = sum(minScore)/len(minScore)
-    print("avg", avg)
+    # print("avg", avg)
     # threshold = 115
     if avg < threshold:
         return True
@@ -1069,7 +1069,7 @@ def palette_generator(hex_codes, n, energy):
 
     input_lst = []
     for hex in hex_codes:
-        print(hex)
+        # print(hex)
         # print('---------HEX--------')
         # print(hex)
         input_lst.append(convertColor(hex, "hex", "rgb"))
@@ -1091,8 +1091,8 @@ def palette_generator(hex_codes, n, energy):
     # print(data)
     start = time.time()
     res = requests.post(url, data=json.dumps(data))
-    print('API TIMES')
-    print(time.time() - start)
+    # print('API TIMES')
+    # print(time.time() - start)
 
     hex = []
     for rgb in res.json()['result']:
@@ -1201,14 +1201,14 @@ def create_combinations(top_colors, necessary_colors, top_colors_hues, energy):
                                 combinations.append(tup)
                                 seen[tup] = True
     print("combos")
-    print(combinations)
+    # print(combinations)
     random.shuffle(combinations)
     combinations = combinations[:30]
     combo_hex_code_lst = []
     for i in range(len(combinations)):
         n = len(combinations)+len(necessary_colors)
         hex_codes = necessary_colors + list(combinations[i])
-        print("generate")
+
         combo_hex_code_lst.append(palette_generator(hex_codes, n, energy))
 
     # print(combinations)
@@ -1290,7 +1290,7 @@ def getPalettes(keywords, reqColors, energy):
     ranked = sorted(scored.items(), key=lambda scored: scored[1][1], reverse=True)
 
     print("\nGENERATED")
-    print(ranked)
+#    print(ranked)
 
     i = 0
     if int(energy) < 2:
@@ -1482,8 +1482,9 @@ def setupForCsv(voteAndPaletteLst, keywords):
     for i in range(len(palettes)):
         print(palettes[i])
         print(votes[i])
-        if(not palettes[i]=="" and (int(votes[i]) == 1 or int(votes[i]) == -1)):
+        if(not palettes[i]=="" and len(keywords)==0 and (int(votes[i]) == 1 or int(votes[i]) == -1)):
             paletteToCSV(palettes[i], keywords, votes[i])
+    return palettes, votes
 
 @irsystem.route("/", methods=["GET", "POST"])
 def search():
@@ -1553,27 +1554,51 @@ def search():
                         st += ')'
                     tup = eval(st)
                     sortedScored.append(tup)
-                print("sortedd scored")
-                print(sortedScored)
+                # print("sortedd scored")
+                # print(sortedScored)
 
                 voteAndPaletteLst = request.form.get("votes")
                 keywordBreakdown = request.form.get("keywordBreakdown")
                 keywordBreakdown = literal_eval(keywordBreakdown)
+                
+                print(keywordBreakdown)
 
                 keywordsVote = set()
-                print("KEY",keywordBreakdown)
+                # print("KEY",keywordBreakdown)
 
-                for word  in cymbolism:
-                    if word in keywordBreakdown :
-                        keywordsVote.add(word)
+                for _, val in keywordBreakdown.items():
+                    for tup in val:
+                        keywordsVote.add(tup[1])
 
                 keywordsVote = list(keywordsVote)
                 print(keywordsVote)
                 if not voteAndPaletteLst == None :
                     print("CSV", voteAndPaletteLst.split(":"), keywordsVote)
+                    votes = []
+                    palettesWithVotes = []
                     if(not voteAndPaletteLst.split(":")==[""]):
-                        setupForCsv(voteAndPaletteLst.split(":"), keywordsVote)
-                return render_template('search.html', netid=netid, sortedScored=sortedScored, keywordBreakdown=keywordBreakdown, keywordDefs=keywordDefDict, keywords=keywords, energy=energy, color1=color1, color2=color2, submit=submit)
+                        palettesWithVotes, votes = setupForCsv(voteAndPaletteLst.split(":"), keywordsVote)
+                    #[(5, (['0FF4F3', 'F6DA0D', 'DDC114', 'C44D2A', 'BD2456'], 9.116932314670592)),
+                    palettes = []
+                    
+                    for tup in sortedScored:
+                        palettes.append(tup[1][0]) # [[]]
+                    
+                    allVotes = listofzeros = [0] * len(palettes)
+
+                    for index, pal in enumerate(palettes):
+                        if pal in palettesWithVotes:
+                            # find index of pal for votes
+                            for voteID, pv in enumerate(palettesWithVotes):
+                                if pv == pal: 
+                                    allVotes[index] = math.trunc(int(votes[voteID]))
+                                    break
+
+
+                    print(allVotes)
+
+                    
+                return render_template('search.html', netid=netid, sortedScored=sortedScored, votes=allVotes, keywordBreakdown=keywordBreakdown, keywordDefs=keywordDefDict, keywords=keywords, energy=energy, color1=color1, color2=color2, submit=submit)
 
             reqColors = getReqColors(color1, color2)
             sortedScored, keywordBreakdown = getPalettes(keywordDefs, reqColors, energy)
@@ -1615,7 +1640,7 @@ def search():
         if request.form.get('submit-button') == 'definitions':
             multiDefList = multiDefs.split(",")
             for d in multiDefList:
-                print(d)
+                #print(d)
                 try:
                     if request.form[d]:
                         keywordDefs.append(

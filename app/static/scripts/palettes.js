@@ -350,10 +350,9 @@ function vote2(voteNum, palette, pID) {
       var addVote = palette + " " + voteNum;
       currVal = addVote
       currVote = voteNum
-      //console.log("first",currVal)
+      
     }
     else if (currVal.includes(palette)){
-
         var paletteSize = 0
         var paletteStr = String(palette)
         var paleteIndex = currVal.indexOf(paletteStr);
@@ -361,18 +360,12 @@ function vote2(voteNum, palette, pID) {
         palette.forEach(pal => {
             paletteSize += pal.length
         });
-        console.log("curr", currVal)
-        console.log(paletteSize)
-
         paleteIndex += paletteSize + 5;
-        console.log(paleteIndex, currVal.charAt(paleteIndex) )
-
         if (currVal.charAt(paleteIndex) == '-'){
             if (Number(voteNum) == 1) {
-                console.log("die1")
                 var addVote = ":" + palette + " -1"
                 currVal = currVal.replace(addVote, "");
-                var addVote = palette +  " -1"
+                addVote = palette +  " -1"
                 currVal = currVal.replace(addVote, "");
         
                 currVote = voteNum
@@ -381,12 +374,10 @@ function vote2(voteNum, palette, pID) {
             else {currVote = -1}
         }
         else if (currVal.charAt(paleteIndex) == '1'){
-            console.log("die")
             if (Number(voteNum) == -1) {
-                console.log("die3")
                 var addVote = ":" + palette + " 1"
                 currVal = currVal.replace(addVote, "");
-                var addVote =  palette + " 1";
+                addVote =  palette + " 1";
                 currVal = currVal.replace(addVote, "");
         
                 currVote = voteNum
@@ -399,9 +390,11 @@ function vote2(voteNum, palette, pID) {
       var addVote = ":" + palette + " " + voteNum;
       currVal += addVote;
       currVote = voteNum
+      // up change class to update
+
+      //change down 
     }
     document.getElementById("vote").value = currVal;
-    console.log(document.getElementById("vote").value )
 
     pID = "p" + pID
     console.log(pID)
