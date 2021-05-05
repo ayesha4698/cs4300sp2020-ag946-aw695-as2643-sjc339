@@ -684,41 +684,70 @@ def hslToRgb(color):
 
 def hue_adjuster(color, degree):
     # print()
+    # rgb_from_hex = convertColor(color, 'hex', 'rgb')
+
+    # r1 = rgb_from_hex[0]
+    # g1 = rgb_from_hex[1]
+    # b1 = rgb_from_hex[2]
+
+    # hsl = rgbToHsl(rgb_from_hex)
+    # rgb = hslToRgb(hsl)
+
+    # h = hsl[0]
+    # s = hsl[1]
+    # l = hsl[2]
+
+    # h += degree
+    # if h > 360:
+    #     h -= 360
+    # elif h < 0:
+    #     h += 360
+
+    # new_hsl = (h, s, l)
+
+    # new_rgb = hslToRgb(new_hsl)
+    # r2 = new_rgb[0]
+    # g2 = new_rgb[1]
+    # b2 = new_rgb[2]
+
+    # if r1 == g1 and r1 == b1:
+    #     avg = (r2 + g2 + b2) // 3
+    #     r2 = avg
+    #     g2 = avg
+    #     b2 = avg
+    # new_rgb = (r2, g2, b2)
+    # print(new_rgb)
+    # new_hex = convertColor(new_rgb, 'rgb', 'hex').upper()
+
+    # return new_hex
+
     rgb_from_hex = convertColor(color, 'hex', 'rgb')
+    print(rgb_from_hex)
+    if rgb_from_hex[0] == rgb_from_hex[1] == rgb_from_hex[2]:
+        val = (rgb_from_hex[0] + degree) % 255
+        print(val)
+        new_rgb = (val, val, val)
 
-    r1 = rgb_from_hex[0]
-    g1 = rgb_from_hex[1]
-    b1 = rgb_from_hex[2]
+    else:
 
-    hsl = rgbToHsl(rgb_from_hex)
-    rgb = hslToRgb(hsl)
+        hsl = rgbToHsl(rgb_from_hex)
+        rgb = hslToRgb(hsl)
 
-    h = hsl[0]
-    s = hsl[1]
-    l = hsl[2]
+        h = hsl[0]
+        s = hsl[1]
+        l = hsl[2]
 
-    h += degree
-    if h > 360:
-        h -= 360
-    elif h < 0:
-        h += 360
+        h += degree
+        if h > 360:
+            h -= 360
+        elif h < 0:
+            h += 360
 
-    new_hsl = (h, s, l)
+        new_hsl = (h, s, l)
 
-    new_rgb = hslToRgb(new_hsl)
-    r2 = new_rgb[0]
-    g2 = new_rgb[1]
-    b2 = new_rgb[2]
+        new_rgb = hslToRgb(new_hsl)
 
-    if r1 == g1 and r1 == b1:
-        avg = (r2 + g2 + b2) // 3
-        r2 = avg
-        g2 = avg
-        b2 = avg
-    new_rgb = (r2, g2, b2)
-    print(new_rgb)
     new_hex = convertColor(new_rgb, 'rgb', 'hex').upper()
-
     return new_hex
 
 
@@ -860,7 +889,7 @@ def energy_adjust(color, energy):
     # print('NEWHEX')
     # print(newHex)
     newHex = newHex.upper()
-    # print(newHex)
+    print(newHex)
     return newHex
 
 
@@ -978,6 +1007,8 @@ def top_colors_from_keywords(keywords, energy):
 
     top_colors_hues = {}
     for color, energy in top_colors.items():
+        # print('HERE')
+        # print(color)
         # if len(top_colors) < 2:
         # hue1 = hue_adjuster(color, 20)
         # hue2 = hue_adjuster(color, -20)
@@ -986,6 +1017,7 @@ def top_colors_from_keywords(keywords, energy):
         # top_colors_hues[color] = [color, hue1, hue2, hue3, hue4]
         # else:
         if len(top_colors) > 2:
+            print(color)
             hue1 = hue_adjuster(color, 10)
             hue2 = hue_adjuster(color, -10)
             energy1 = energy_adjust(color, -5)
@@ -996,11 +1028,14 @@ def top_colors_from_keywords(keywords, energy):
         else:
             hue1 = hue_adjuster(color, 20)
             hue2 = hue_adjuster(color, -20)
+            hue3 = hue_adjuster(color, 30)
+            hue4 = hue_adjuster(color, -30)
             energy1 = energy_adjust(color, -10)
             energy2 = energy_adjust(color, 10)
             # hue3 = hue_adjuster(color, 30)
             # hue4 = hue_adjuster(color, -30)
-            top_colors_hues[color] = [color, hue1, hue2, energy1, energy2]
+            top_colors_hues[color] = [color, hue1,
+                                      hue2, hue3, hue4, energy1, energy2]
     # print('----- TOP COLORS -----')
     # print(top_colors_hues)
     # return top_colors
@@ -1156,7 +1191,7 @@ def create_combinations(top_colors, necessary_colors, top_colors_hues, energy):
     print("combos")
     print(combinations)
     random.shuffle(combinations)
-    combinations = combinations[:20]
+    combinations = combinations[:30]
     combo_hex_code_lst = []
     for i in range(len(combinations)):
         n = len(combinations)+len(necessary_colors)
