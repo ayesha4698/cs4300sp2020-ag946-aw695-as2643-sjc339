@@ -838,7 +838,6 @@ def paletteToCSV(palette, keywords, vote):
         with open('data/votes.csv', 'r', newline='') as file:
             myreader = csv.reader(file, delimiter=',')
             for rows in myreader:
-                print(rows[invertedIndex['beach']])
                 if rows[0] == CSVpalette:
                     for idword in range(len(cymbolism)):
                         if(cymbolism[idword] in keywords):
@@ -854,7 +853,6 @@ def paletteToCSV(palette, keywords, vote):
         # reading the csv file
         df = pd.read_csv("data/votes.csv")
         for i, word in enumerate(cymbolism):
-            if word == 'beach': print("b", keywordsVotes[i])
             df.loc[df["Palette"]== CSVpalette, word] = keywordsVotes[i]
 
         df.to_csv("data/votes.csv", index=False)
