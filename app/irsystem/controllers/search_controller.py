@@ -1470,7 +1470,8 @@ def setupForCsv(voteAndPaletteLst, keywords):
     for i in range(len(palettes)):
         print(palettes[i])
         print(votes[i])
-        paletteToCSV(palettes[i], keywords, votes[i])
+        if(not palettes[i]=="" and (int(votes) == 1 or int(votes) == -1)):
+            paletteToCSV(palettes[i], keywords, votes[i])
 
 @irsystem.route("/", methods=["GET", "POST"])
 def search():
@@ -1489,7 +1490,8 @@ def search():
         if not voteAndPaletteLst == None :
 
             print("CSV", voteAndPaletteLst.split(":"), keywords.split(","))
-            setupForCsv(voteAndPaletteLst.split(":"), keywords.split(","))
+            if(not voteAndPaletteLst.split(":")==[""]):
+                setupForCsv(voteAndPaletteLst.split(":"), keywords.split(","))
            
 
         # print('HERE')
