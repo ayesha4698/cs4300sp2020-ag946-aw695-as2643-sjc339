@@ -49,7 +49,7 @@ $(document).ready(function () {
     // breakdown bars
     $(".bar").each(function (i, e) {
         percent = $(e).data("percent");
-        $(e).css("width", percent);
+        $(e).css("width", percent*210);
     })
 
     // show breakdown
