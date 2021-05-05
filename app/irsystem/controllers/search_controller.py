@@ -1273,7 +1273,7 @@ def setupForCsv(voteAndPaletteLst, keywords):
                 palettes.append(voteAndPalette.split(","))
 
     for i in range(len(palettes)):
-        if(not palettes[i]=="" and len(keywords)==0 and (int(votes[i]) == 1 or int(votes[i]) == -1)):
+        if(not palettes[i]=="" and len(keywords)!=0 and (int(votes[i]) == 1 or int(votes[i]) == -1)):
             paletteToCSV(palettes[i], keywords, votes[i])
     return palettes, votes
 
@@ -1318,7 +1318,7 @@ def search():
                 voteAndPaletteLst = request.form.get("votes")
                 keywordBreakdown = request.form.get("keywordBreakdown")
                 keywordBreakdown = literal_eval(keywordBreakdown)
-                
+
                 keywordsVote = set()
 
                 for _, val in keywordBreakdown.items():
@@ -1332,20 +1332,20 @@ def search():
                     if(not voteAndPaletteLst.split(":")==[""]):
                         palettesWithVotes, votes = setupForCsv(voteAndPaletteLst.split(":"), keywordsVote)
                     palettes = []
-                    
+
                     for tup in sortedScored:
                         palettes.append(tup[1][0]) # [[]]
-                    
+
                     allVotes = listofzeros = [0] * len(palettes)
 
                     for index, pal in enumerate(palettes):
                         if pal in palettesWithVotes:
                             # find index of pal for votes
                             for voteID, pv in enumerate(palettesWithVotes):
-                                if pv == pal: 
+                                if pv == pal:
                                     allVotes[index] = math.trunc(int(votes[voteID]))
                                     break
-                    
+
                 return render_template('search.html', netid=netid, sortedScored=sortedScored, votes=allVotes, keywordBreakdown=keywordBreakdown, keywordDefs=keywordDefDict, keywords=keywords, energy=energy, color1=color1, color2=color2, submit=submit)
 
             reqColors = getReqColors(color1, color2)
