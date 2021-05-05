@@ -57,6 +57,4 @@ easydev
 pillow
 colormap
 pandas
-
-
-
+ast

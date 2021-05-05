@@ -68,7 +68,7 @@
                     <input id="multiDefWords" name="multiDefs" class="hidden" type="text">
 
                     <div class="form-group mb-4">
-                        <label>Brightness</label>
+                        <label>Lightness</label>
                         <p class="subtext">Do you want your palettes to be darker (0) or lighter (10)?</p>
                         <!-- <label for="customRange3" class="form-label">Example range</label> -->
                         <input id="energyInput" name="energy" type="range" class="form-range" min="0" max="10" step="1"
@@ -200,10 +200,10 @@
             <input class="hidden" name="energy" value={{energy}}>
             <input class="hidden" name="color1" value="{{color1}}">
             <input class="hidden" name="color2" value="{{color2}}">
-            <input class="hidden" name="votes" id="vote">   
+            <input class="hidden" name="votes" id="vote">
             <input class="hidden" name="keywordBreakdown" value="{{keywordBreakdown}}">
             <input class="hidden" name="sortedScored" value="{{sortedScored}}">
-            
+
             <button type="submit" class="btn btn-primary mb-2" id="voteBtn" name="submit-button" value="regenerate" onclick="loading()">Regenerate</button>
             <button type="submit" class="btn btn-primary" id="regenerateBtn" name="submit-button" value="vote">Vote</button>
             <!-- <button type="submit" id="regenerateBtn" name="submit-button" value="regenerate" onclick="loading()"><img src="/static/images/refresh.png"></button>
@@ -211,7 +211,7 @@
         </form>
         <h2 class="mb-4 ms-5" name="keywordDefs" value={{keywordDefs}}>
             <input class="hidden" name="keywordDefs" value="{{keywordDefs}}">
-            <strong>Keywords:</strong> 
+            <strong>Keywords:</strong>
             {% for word in keywordDefs %}
                 {% if keywordDefs[word] and keywordDefs[word] != "" %}
                 <a data-bs-toggle="tooltip" data-bs-placement="top" title="{{ keywordDefs[word] }}">
@@ -222,12 +222,12 @@
                 {% endif %}
             {% endfor %}
         </h2>
-        
+
         {% for palette in sortedScored %}
         <div class="result position-relative">
             <h3 class="number ms-4">{{loop.index}}</h3>
             <!-- <h3 class="number">{% if loop.index < 10 %}0{{ loop.index }}{% else %}{{ loop.index }}{% endif %}</h3> -->
-            
+
             <div class="whitespace bg-white"></div>
             <div class="palette d-flex flex-row justify-between pt-4 mb-5" data-id={{ loop.index }}>
                 {% for color in palette[1][0] %}
@@ -283,7 +283,7 @@
             </div>
             {% endfor %}
         </div>
-     
+
         {% elif sortedScored == [] %}
         <div class="mt-5 mb-5 ms-5 pb-5 pt-4 noresult">
             <h2>No results found for keyword(s): {{ keywords }}.</h2>
