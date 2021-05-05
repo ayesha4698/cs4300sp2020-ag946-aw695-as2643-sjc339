@@ -56,7 +56,6 @@
                         <input id="tagsInput" type="text" name="keywords" value="{% if keywords %}{% autoescape true %}{{
                         keywords|e }}{% endautoescape %}{% endif %}">
                         <!-- <input id="keywordsInput" type="text" class="form-control" name="keywords" placeholder="keyword, keyword" value={% if keywords %}{{ keywords }}{% endif %}> -->
-                        <div id="suggestions"></div>
                         {% if submit and "keywords1" in errors %}
                         <p class="error">Please input at least one keyword.</p>
                         {% elif submit and "keywords2" in errors %}
@@ -192,78 +191,93 @@
             </div>
         </div>
 
-        {% if sortedScored %}
-        <div id="results" class="mt-5">
-            <h2 class="mb-4 ms-5">
-                <strong>Keywords:</strong>
-                {% for word in keywordDefs %}
-                {% if keywordDefs[word] != None %}
+    {% if sortedScored %}
+    <div id="results" class="pt-4 position-relative">
+        <h2 class="mb-4 ms-5" name="keywordDefs" value={{keywordDefs}}>
+            <input class="hidden" name="keywordDefs" value="{{keywordDefs}}">
+            <strong>Keywords:</strong> 
+            {% for word in keywordDefs %}
+                {% if keywordDefs[word] != "" %}
                 <a data-bs-toggle="tooltip" data-bs-placement="top" title="{{ keywordDefs[word] }}">
-                    {{ word }}{% if loop.index < keywordDefs|length() %},{% endif %} </a>
-                        {% else %}
-                        {{ word }}{% if loop.index < keywordDefs|length() %},{% endif %} {% endif %} {% endfor %} </h2>
-                            {% for palette in sortedScored %}
-                            <div class="result position-relative">
-                                <h3 class="number">{% if loop.index < 10 %}0{{ loop.index }}{% else %}{{ loop.index }}{%
-                                        endif %}</h3>
+                        {{ word }}{% if loop.index < keywordDefs|length() %},{% endif %}
+                </a>
+                {% else %}
+                    {{ word }}{% if loop.index < keywordDefs|length() %},{% endif %}
+                {% endif %}
+            {% endfor %}
+        </h2>
+        <form method="POST" action="/" id="regenerateForm">
+            <!-- sortedScored=sortedScored, keywordBreakdown=keywordBreakdown, keywordDefs=keywordDefDict, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit) -->
+            <input class="hidden" name="keywords" value='{{keywords}}'>
+            <input class="hidden" name="keywordDefs" value="{{keywordDefs}}">
+            <input class="hidden" name="energy" value={{energy}}>
+            <input class="hidden" name="color1" value="{{color1}}">
+            <input class="hidden" name="color2" value="{{color2}}">
+            <input class="hidden" name="keywordBreakdown" value="{{keywordBreakdown}}">
+            <input class="hidden" name="sortedScored" value="{{sortedScored}}">
+            <button type="submit" class="btn btn-primary" id="voteBtn" name="submit-button" value="vote">Submit Vote</button>
+            <button type="submit" class="btn btn-primary" id="regenerateBtn" name="submit-button" value="regenerate" onclick="loading()">Regenerate</button>
+        </form>
+        
+        {% for palette in sortedScored %}
+        <div class="result position-relative">
+            <h3 class="number ms-4">{{loop.index}}</h3>
+            <!-- <h3 class="number">{% if loop.index < 10 %}0{{ loop.index }}{% else %}{{ loop.index }}{% endif %}</h3> -->
+            
+            <div class="whitespace bg-white"></div>
+            <div class="palette d-flex flex-row justify-between pt-4 mb-5" data-id={{ loop.index }}>
+                {% for color in palette[1][0] %}
+                <div class="color result-color">
+                    <div class="swatch" class="copyTooltip" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-offset="0,5" data-bs-trigger="click" title="Copied!" onclick="copyHex('#{{color}}', this)">
+                        <img alt="copy" src="/static/images/copy.png" class="copy">
+                    </div>
+                    <p class="p-2 mb-0 bg-white">#{{ color }}</p>
+                </div>
+                {% endfor %}
 
-                                        <div class="whitespace bg-white"></div>
-                                        <div class="palette d-flex flex-row justify-between pt-4 mb-5" data-id={{
-                                            loop.index }}>
-                                            {% for color in palette[1][0] %}
-                                            <div class="color result-color">
-                                                <div class="swatch" class="copyTooltip" data-bs-toggle="tooltip"
-                                                    data-bs-placement="top" data-bs-offset="0,5" data-bs-trigger="click"
-                                                    title="Copied!" onclick="copyHex('#{{color}}', this)">
-                                                    <img alt="copy" src="/static/images/copy.png" class="copy">
-                                                </div>
-                                                <p class="p-2 mb-0 bg-white">#{{ color }}</p>
-                                            </div>
-                                            {% endfor %}
+                <div class="vote">
+                    <button type="submit" class="btn"> <img alt="arrow" class="arrow"
+                            src="/static/images/up.svg"> </button>
+                    <p data-bs-toggle="tooltip" data-bs-placement="right"
+                        title="Up/down votes per palette are based the top matched keyword">
+                        1
+                    </p>
+                    <button class="btn"><img alt="arrow" class="arrow"
+                            src="/static/images/down.svg"></button>
+                </div>
 
-                                            <div class="vote">
-                                                <button type="submit" class="btn"> <img alt="arrow" class="arrow"
-                                                        src="/static/images/up.svg"> </button>
-                                                <p data-bs-toggle="tooltip" data-bs-placement="right"
-                                                    title="Up/down votes per palette are based the top matched keyword">
-                                                    1
-                                                </p>
-                                                <button class="btn"><img alt="arrow" class="arrow"
-                                                        src="/static/images/down.svg"></button>
-                                            </div>
+                <img alt="copy" src="/static/images/copy.png" class="copy-palette"
+                    onclick="copyPalette({{palette[1][0]}}, this)" data-bs-toggle="tooltip"
+                    data-bs-placement="top" data-bs-offset="0,5" data-bs-trigger="click"
+                    title="Copied Palette!">
+            </div>
 
-                                            <img alt="copy" src="/static/images/copy.png" class="copy-palette"
-                                                onclick="copyPalette({{palette[1][0]}}, this)" data-bs-toggle="tooltip"
-                                                data-bs-placement="top" data-bs-offset="0,5" data-bs-trigger="click"
-                                                title="Copied Palette!">
-                                        </div>
+            <div class="score d-flex mb-3">
+                <p class="mb-0"><strong>Score:</strong> {{ palette[1][1]|round(2, 'common')
+                    }}</p>
+                <img id="more-info" class="more-info p-0 ms-3" data-value={{ loop.index }}
+                    src="/static/images/question.svg">
+                <!-- {{keywordBreakdown}} -->
+                <div id="breakdown" class="hidden breakdown position-absolute p-3 bg-white"
+                    data-value={{ loop.index }}>
+                    {% for breakdown in keywordBreakdown[palette[0]]|sort(reverse=True,
+                    attribute="2") %}
+                    <p class="mb-0">{{ breakdown[0] }}</p>
+                    <div class="breakdown-score d-flex">
+                        <div class="bar me-2" data-percent={{ breakdown[2] }}></div>
+                        <p>{{ breakdown[2]|round(1, 'common') }}%</p>
+                    </div>
+                    {% endfor %}
+                    <p class="search-descript mb-0">Scores are calculated based on each
+                        keyword's most closely matched word on <a
+                            href="http://cymbolism.com/words">Cymbolism</a> and the # of
+                        votes for each color in the palette.</p>
+                </div>
+            </div>
 
-                                        <div class="score d-flex mb-3">
-                                            <p class="mb-0"><strong>Score:</strong> {{ palette[1][1]|round(2, 'common')
-                                                }}</p>
-                                            <img id="more-info" class="more-info p-0 ms-3" data-value={{ loop.index }}
-                                                src="/static/images/question.svg">
-                                            <!-- {{keywordBreakdown}} -->
-                                            <div id="breakdown" class="hidden breakdown position-absolute p-3 bg-white"
-                                                data-value={{ loop.index }}>
-                                                {% for breakdown in keywordBreakdown[palette[0]]|sort(reverse=True,
-                                                attribute="2") %}
-                                                <p class="mb-0">{{ breakdown[0] }}</p>
-                                                <div class="breakdown-score d-flex">
-                                                    <div class="bar me-2" data-percent={{ breakdown[2] }}></div>
-                                                    <p>{{ breakdown[2]|round(1, 'common') }}%</p>
-                                                </div>
-                                                {% endfor %}
-                                                <p class="search-descript mb-0">Scores are calculated based on each
-                                                    keyword's most closely matched word on <a
-                                                        href="http://cymbolism.com/words">Cymbolism</a> and the # of
-                                                    votes for each color in the palette.</p>
-                                            </div>
-                                        </div>
-
-                                        <div data-id={{ loop.index }} class="gradient"></div>
-                            </div>
-                            {% endfor %}
+            <div data-id={{ loop.index }} class="gradient"></div>
+        </div>
+        {% endfor %}
 
         </div>
         {% elif sortedScored == [] %}

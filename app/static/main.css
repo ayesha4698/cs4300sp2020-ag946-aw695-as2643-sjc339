@@ -145,31 +145,17 @@ footer {
     padding-left: 3px;
 }
 
-/* .active {
-    color: #0d6efd !important;
-} */
-
 .item, .item.active {
     background-color: #0d6efd !important;
     border: 1px solid #0b60df !important;
     background-image: linear-gradient(to bottom, #0d6efd, #0c67f0) !important;
 }
 
-/* .item.active {
-    border: 1px solid navy !important;
-    color: navy !important;
-} */
-
 .invalid-word, .invalid-word.active {
     background-image: linear-gradient(to bottom, #f76473, #ce4956) !important;
     background-color: #f76473 !important;
     border: 1px solid #df5361 !important;
 }
-
-/* .invalid-word.active {
-    border: 1px solid #b62937 !important;
-    color: #b62937 !important;
-} */
 
 a.remove {
     border: none !important;
@@ -213,14 +199,14 @@ a.remove {
     border-radius: 10px;
 }
 
-#defBtn, #submitBtn {
-    width: 100px;
+#defBtn, #submitBtn, #addColorBtn, #clearBtn, #regenerateBtn, #voteBtn {
+    width: 120px;
 }
 
 #clearBtn {
     position: absolute;
     bottom: 25px;
-    right: 135px;
+    right: 155px;
 }
 
 #defForm {
@@ -496,6 +482,13 @@ a.remove {
 .bar {
     background-color: #0d6efd;
     height: 21px;
+}
+
+#regenerateForm {
+    position: absolute;
+    right: 50px;
+    z-index: 1;
+    top: 50px;
 }
 
 /* Code from https://tobiasahlin.com/spinkit/ */
