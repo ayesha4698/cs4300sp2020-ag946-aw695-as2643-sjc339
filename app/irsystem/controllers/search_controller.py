@@ -985,11 +985,13 @@ def top_colors_from_keywords(keywords, energy):
         # hue4 = hue_adjuster(color, -30)
         # top_colors_hues[color] = [color, hue1, hue2, hue3, hue4]
         # else:
-        hue1 = hue_adjuster(color, 20)
-        hue2 = hue_adjuster(color, -20)
+        hue1 = hue_adjuster(color, 10)
+        hue2 = hue_adjuster(color, -10)
+        energy1 = energy_adjust(color, -5)
+        energy2 = energy_adjust(color, 5)
         # hue3 = hue_adjuster(color, 30)
         # hue4 = hue_adjuster(color, -30)
-        top_colors_hues[color] = [color, hue1, hue2]
+        top_colors_hues[color] = [color, hue1, hue2, energy1, energy2]
     # print('----- TOP COLORS -----')
     # print(top_colors_hues)
     # return top_colors
@@ -1139,7 +1141,8 @@ def create_combinations(top_colors, necessary_colors, top_colors_hues, energy):
                                 seen[tup] = True
     print("combos")
     print(combinations)
-
+    random.shuffle(combinations)
+    combinations = combinations[:20]
     combo_hex_code_lst = []
     for i in range(len(combinations)):
         n = len(combinations)+len(necessary_colors)
