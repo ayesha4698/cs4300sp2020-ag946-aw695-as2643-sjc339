@@ -265,14 +265,18 @@ def keywordMatch(dfns):
     for w1 in synwords:
         match = ''
         maxSim = 0.0
+        tries = 10
+        syn_tries = []
+        got_first = False
 
-        while match == '':
+        while tries > 0 and not got_first:
             # keyword or keyword's synonyms are in Cymbolism
             if maxSim == 0.0:
                 for lem in w1.lemmas():
                     if lem.name() in cymData.keys() and lem.name() != 'word':
                         maxSim = 1.0
                         match = lem.name()
+                        got_first = True
                         break
 
             # keyword matches Cymbolism word's meanings
@@ -283,17 +287,30 @@ def keywordMatch(dfns):
             if maxSim == 0.0:
                 maxSim, match = searchKeywordDfn(w1)
 
-            if maxSim == 0.0:
+            # still no match, use random definition
+            if maxSim <= 60 and not got_first:
                 nam = w1.name()
                 syns = wordnet.synsets(nam[:nam.index('.')])
                 w1 = syns[random.randint(0,len(syns)-1)]
                 wordMatch[words[wordsInd]] = w1
 
-        for word,syn in wordMatch.items():
-            if type(syn) is not tuple and w1 == syn:
-                wordMatch[word] = (match, maxSim)
+            syn_tries.append((match, maxSim))
+            tries -= 1
 
-        keywords.append((match, maxSim))
+        if len(syn_tries) > 1:
+            sorted_tries = sorted(syn_tries, key=lambda x: x[1], reverse=True)
+            match = sorted_tries[0][0]
+            maxSim = sorted_tries[0][1]
+
+        if match != '':
+            for word,syn in wordMatch.items():
+                if type(syn) is not tuple and w1 == syn:
+                    wordMatch[word] = (match, maxSim)
+            keywords.append((match, maxSim))
+        else:
+            wordMatch.pop(words[wordsInd], None)
+
+
         wordsInd += 1
 
     print("\nKEYWORDS MATCH")
@@ -1153,11 +1170,9 @@ def scorePalettes(palettes, keywords, reqColors, top_colors, wordMatch):
         #                 votes = rows[cymWordsInvInd[tup[0]]]
         #                 total = int(votes[:votes.find(',')])
         #                 net = int(votes[votes.find(',')+1:])
-        #                 score += (100 - score)*(1 + net/total)*tup[1]
+        #                 score += (100 - score)*(net/total)*tup[1]
 
         # score *= net_updown/total_updown
-        # OR
-        # score += (100 - score)*(1 + net_updown/total_updown)
 
         scoreDict[id] = (palette, score)
 
