@@ -43,7 +43,7 @@
                 </div>
             </div>
 
-            <div id="form-container" class="position-relative mt-5 mb-4">
+            <div id="form-container" class="position-relative mb-4">
                 <h1 class="position-absolute">Find My Palette</h1>
                 <form id="search-form" class="box pt-5" action="/" method="POST"
                     onkeydown="return event.key != 'Enter';">
@@ -69,7 +69,7 @@
 
                     <div class="form-group mb-4">
                         <label>Brightness</label>
-                        <p class="subtext">Do you want your palettes to be darker (0) or brighter (10)?</p>
+                        <p class="subtext">Do you want your palettes to be darker (0) or lighter (10)?</p>
                         <!-- <label for="customRange3" class="form-label">Example range</label> -->
                         <input id="energyInput" name="energy" type="range" class="form-range" min="0" max="10" step="1"
                             value={% if energy %}{{ energy }}{% else %}{{ 5 }}{% endif %}>
@@ -193,20 +193,7 @@
 
     {% if sortedScored %}
     <div id="results" class="pt-4 position-relative">
-        <h2 class="mb-4 ms-5" name="keywordDefs" value={{keywordDefs}}>
-            <input class="hidden" name="keywordDefs" value="{{keywordDefs}}">
-            <strong>Keywords:</strong> 
-            {% for word in keywordDefs %}
-                {% if keywordDefs[word] != "" %}
-                <a data-bs-toggle="tooltip" data-bs-placement="top" title="{{ keywordDefs[word] }}">
-                        {{ word }}{% if loop.index < keywordDefs|length() %},{% endif %}
-                </a>
-                {% else %}
-                    {{ word }}{% if loop.index < keywordDefs|length() %},{% endif %}
-                {% endif %}
-            {% endfor %}
-        </h2>
-        <form method="POST" action="/" id="regenerateForm">
+        <form method="POST" action="/" id="regenerateForm" class="position-sticky d-flex flex-column justify-content-between me-4">
             <!-- sortedScored=sortedScored, keywordBreakdown=keywordBreakdown, keywordDefs=keywordDefDict, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit) -->
             <input class="hidden" name="keywords" value='{{keywords}}'>
             <input class="hidden" name="keywordDefs" value="{{keywordDefs}}">
@@ -216,9 +203,25 @@
             <input class="hidden" name="votes" id="vote">   
             <input class="hidden" name="keywordBreakdown" value="{{keywordBreakdown}}">
             <input class="hidden" name="sortedScored" value="{{sortedScored}}">
-            <button type="submit" class="btn btn-primary" id="voteBtn" name="submit-button" value="vote">Submit Vote</button>
-            <button type="submit" class="btn btn-primary" id="regenerateBtn" name="submit-button" value="regenerate" onclick="loading()">Regenerate</button>
+            
+            <button type="submit" class="btn btn-primary mb-2" id="voteBtn" name="submit-button" value="regenerate" onclick="loading()">Regenerate</button>
+            <button type="submit" class="btn btn-primary" id="regenerateBtn" name="submit-button" value="vote">Vote</button>
+            <!-- <button type="submit" id="regenerateBtn" name="submit-button" value="regenerate" onclick="loading()"><img src="/static/images/refresh.png"></button>
+            <button type="submit" id="voteBtn" name="submit-button" value="vote"><img src="/static/images/check.png"></button> -->
         </form>
+        <h2 class="mb-4 ms-5" name="keywordDefs" value={{keywordDefs}}>
+            <input class="hidden" name="keywordDefs" value="{{keywordDefs}}">
+            <strong>Keywords:</strong> 
+            {% for word in keywordDefs %}
+                {% if keywordDefs[word] and keywordDefs[word] != "" %}
+                <a data-bs-toggle="tooltip" data-bs-placement="top" title="{{ keywordDefs[word] }}">
+                        {{ word }}{% if loop.index < keywordDefs|length() %},{% endif %}
+                </a>
+                {% else %}
+                    {{ word }}{% if loop.index < keywordDefs|length() %},{% endif %}
+                {% endif %}
+            {% endfor %}
+        </h2>
         
         {% for palette in sortedScored %}
         <div class="result position-relative">
@@ -282,7 +285,7 @@
         </div>
      
         {% elif sortedScored == [] %}
-        <div class="mt-5 mb-5 ms-5">
+        <div class="mt-5 mb-5 ms-5 pb-5 pt-4 noresult">
             <h2>No results found for keyword(s): {{ keywords }}.</h2>
             <p>Try different keywords e.g. earthy, contemporary, elegant.</p>
         </div>
