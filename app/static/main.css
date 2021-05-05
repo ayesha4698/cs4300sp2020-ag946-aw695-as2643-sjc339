@@ -9,7 +9,7 @@ blue: #0d6efd
 
 @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Roboto:wght@400;700&display=swap');
 
-body, html {
+body, html, #content {
     font-family: "Roboto"; 
     height: 100%;
 }
@@ -69,7 +69,7 @@ footer {
 /* Search Styling */
 
 /* Gradient animation code from https://www.gradient-animator.com/ */
-#search-page {
+#search-page, #loader {
     background: linear-gradient(269deg, #f15252, #f9a42e, #f3e14f, #84e184, #2dae7c, #59cfd0, #537ce3, #af79e4, #e37dc8);
     background-size: 1800% 1800%;
 
@@ -145,31 +145,31 @@ footer {
     padding-left: 3px;
 }
 
-.active {
+/* .active {
     color: #0d6efd !important;
-}
+} */
 
-.item {
+.item, .item.active {
     background-color: #0d6efd !important;
     border: 1px solid #0b60df !important;
     background-image: linear-gradient(to bottom, #0d6efd, #0c67f0) !important;
 }
 
-.item.active {
+/* .item.active {
     border: 1px solid navy !important;
     color: navy !important;
-}
+} */
 
-.invalid-word {
+.invalid-word, .invalid-word.active {
     background-image: linear-gradient(to bottom, #f76473, #ce4956) !important;
     background-color: #f76473 !important;
     border: 1px solid #df5361 !important;
 }
 
-.invalid-word.active {
+/* .invalid-word.active {
     border: 1px solid #b62937 !important;
     color: #b62937 !important;
-}
+} */
 
 a.remove {
     border: none !important;
@@ -210,10 +210,17 @@ a.remove {
     right: 0;
     width: 100%;
     position: absolute;
+    border-radius: 10px;
 }
 
 #defBtn, #submitBtn {
     width: 100px;
+}
+
+#clearBtn {
+    position: absolute;
+    bottom: 25px;
+    right: 135px;
 }
 
 #defForm {
@@ -370,9 +377,35 @@ a.remove {
     width: 175px;
 }
 
+#results h2 {
+    margin-top: 3rem;
+}
+
 .swatch {
     width: 100px;
     height: 100px;
+}
+
+.swatch:hover > .copy {
+    opacity: 1;
+}
+
+.copy {
+    width: 30px;
+    height: 30px;
+    margin-left: 2.3rem;
+    margin-top: 2.3rem;
+    /* filter: invert(100%) sepia(9%) saturate(136%) hue-rotate(215deg) brightness(116%) contrast(84%);  */
+    transition: all 0.1s ease-in-out;
+    opacity: 0;
+}
+
+.copy-palette {
+    width: 30px;
+    height: 30px;
+    margin-top: 3.3rem;
+    margin-left: 0.3rem;
+    filter: invert(72%) sepia(2%) saturate(723%) hue-rotate(189deg) brightness(101%) contrast(96%);
 }
 
 .number {
@@ -463,4 +496,67 @@ a.remove {
 .bar {
     background-color: #0d6efd;
     height: 21px;
+}
+
+/* Code from https://tobiasahlin.com/spinkit/ */
+
+#loader {
+    align-items: center;
+    justify-content: center;
+    display: none;
+}
+
+.sk-chase {
+    width: 40px;
+    height: 40px;
+    position: relative;
+    animation: sk-chase 3s infinite linear both;
+}
+  
+.sk-chase-dot {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0; 
+    animation: sk-chase-dot 2.5s infinite ease-in-out both; 
+}
+  
+.sk-chase-dot:before {
+    content: '';
+    display: block;
+    width: 25%;
+    height: 25%;
+    background-color: #fff;
+    border-radius: 100%;
+    animation: sk-chase-dot-before 2.5s infinite ease-in-out both; 
+}
+  
+.sk-chase-dot:nth-child(1) { animation-delay: -1.1s; }
+.sk-chase-dot:nth-child(2) { animation-delay: -1.0s; }
+.sk-chase-dot:nth-child(3) { animation-delay: -0.9s; }
+.sk-chase-dot:nth-child(4) { animation-delay: -0.8s; }
+.sk-chase-dot:nth-child(5) { animation-delay: -0.7s; }
+.sk-chase-dot:nth-child(6) { animation-delay: -0.6s; }
+.sk-chase-dot:nth-child(1):before { animation-delay: -1.1s; }
+.sk-chase-dot:nth-child(2):before { animation-delay: -1.0s; }
+.sk-chase-dot:nth-child(3):before { animation-delay: -0.9s; }
+.sk-chase-dot:nth-child(4):before { animation-delay: -0.8s; }
+.sk-chase-dot:nth-child(5):before { animation-delay: -0.7s; }
+.sk-chase-dot:nth-child(6):before { animation-delay: -0.6s; }
+  
+@keyframes sk-chase {
+    100% { transform: rotate(360deg); } 
+}
+  
+@keyframes sk-chase-dot {
+    80%, 100% { transform: rotate(360deg); } 
+}
+  
+@keyframes sk-chase-dot-before {
+    50% {
+      transform: scale(0.4); 
+    } 100%, 0% {
+      transform: scale(1.0); 
+    } 
 }

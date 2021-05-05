@@ -37,14 +37,18 @@ nltk.download('averaged_perceptron_tagger')
 # dataset globals
 cymData = {}
 cymColorsInvInd = {}
+cymWordsInvInd = {}
 cymVotes = {}
 
 # /Users/ayesha/cs4300sp2020-ag946-aw695-as2643-sjc339/app/irsystem/controllers/IR_main.py
 with open('data/Cymbolism.csv', mode='r') as infile:
     reader = csv.reader(infile)
+    ind = 1
     for rows in reader:
         cymData[rows[0]] = rows[1:-1]
         cymVotes[rows[0]] = rows[-1]
+        cymWordsInvInd[rows[0]] = ind
+        ind += 1
 
 for i in range(len(cymData['word'])):
     color = cymData['word'][i]
@@ -86,7 +90,7 @@ def searchCymDfns(w1):
     Params: w1      Synset object
     """
     match = ''
-    maxSim = 0
+    maxSim = 0.0
     # dummy run for speed
     # arbitrary word that doesn't have match in dataset
     wt = wordnet.synsets('cool')[-1]
@@ -113,7 +117,7 @@ def searchCymDfns(w1):
                     maxSim = sim
                     match = cymW
 
-    # maxSim = max([0, maxSim - .1])                  # adjust? fix later
+    maxSim = max([0, maxSim - .1])                  # adjust? fix later
     return maxSim, match
 
 
@@ -126,7 +130,7 @@ def searchKeywordDfn(w1):
     Params: w1      Synset object
     """
     match = ''
-    maxSim = 0
+    maxSim = 0.0
     toks = tokenize(w1.definition())
     toks = [w for w in toks if not w in stop_words]
 
@@ -178,7 +182,7 @@ def searchKeywordDfn(w1):
                         maxSim = sim
                         match = cymW
 
-    # maxSim = max([0, maxSim - .2])                  # adjust? fix later
+    maxSim = max([0, maxSim - .2])                  # adjust? fix later
     return maxSim, match
 
 
@@ -190,14 +194,14 @@ def getSynset(dfn):
     Params: dfn     User's keyword in the format:
                         'word - definition' [String]
     """
-    #print('DFN_-----------------')
-    #print(dfn)
-    #print(dfn.find("-"))
+    # print('DFN_-----------------')
+    # print(dfn)
+    # print(dfn.find("-"))
     if not dfn.find("-") == -1:
         kw = dfn[:dfn.index("-")-1]         # skip the space
 
         kw = stemmer.stem(kw)
-        #print(kw)
+        # print(kw)
         syns = wordnet.synsets(kw.replace(" ", "_"))
         #print(syns, kw)
         if syns == []:
@@ -206,7 +210,12 @@ def getSynset(dfn):
 
         query = dfn[dfn.index("-")+2:]      # skip the space
     else:
-        return wordnet.synsets(dfn)[0]
+        kw = stemmer.stem(dfn)
+        syns = wordnet.synsets(kw.replace(" ", "_"))
+        if syns == []:
+            return wordnet.synsets(dfn.replace(" ", "_"))[0]
+        else:
+            return syns[0]
 
     # find Synset object based on definition
     msgs = []
@@ -238,7 +247,7 @@ def keywordMatch(dfns):
     synwords = []
     keywords = []
     wordMatch = {}
-    
+
     for dfn in dfns:
         if dfn in cymData.keys() and dfn != 'word':
             s = wordnet.synsets(dfn)[0]
@@ -250,39 +259,62 @@ def keywordMatch(dfns):
         else:
             kw = dfn
         wordMatch[kw] = s
-    
+
+    words = list(wordMatch.keys())
+    wordsInd = 0
     for w1 in synwords:
         match = ''
-        maxSim = 0
+        maxSim = 0.0
+        tries = 10
+        syn_tries = []
+        got_first = False
 
-        # keyword or keyword's synonyms are in Cymbolism
-        if maxSim == 0:
-            for lem in w1.lemmas():
-                if lem.name() in cymData.keys() and lem.name() != 'word':
-                    maxSim = 1.0
-                    match = lem.name()
-                    break
+        while tries > 0 and not got_first:
+            # keyword or keyword's synonyms are in Cymbolism
+            if maxSim == 0.0:
+                for lem in w1.lemmas():
+                    if lem.name() in cymData.keys() and lem.name() != 'word':
+                        maxSim = 1.0
+                        match = lem.name()
+                        got_first = True
+                        break
 
-        # keyword matches Cymbolism word's meanings
-        if maxSim == 0:
-            maxSim, match = searchCymDfns(w1)
+            # keyword matches Cymbolism word's meanings
+            if maxSim == 0.0:
+                maxSim, match = searchCymDfns(w1)
 
-        # keyword's definition matches Cymbolism word's meanings
-        if maxSim == 0:
-            maxSim, match = searchKeywordDfn(w1)
+            # keyword's definition matches Cymbolism word's meanings
+            if maxSim == 0.0:
+                maxSim, match = searchKeywordDfn(w1)
 
-        for word,syn in wordMatch.items():
-            if type(syn) is not tuple and w1 == syn:
-                wordMatch[word] = (match, maxSim)
-        # if two matches same, combine similarity score
-        matches = [x[0] for x in keywords]
-        if match not in matches:
+            # still no match, use random definition
+            if maxSim <= 60 and not got_first:
+                nam = w1.name()
+                syns = wordnet.synsets(nam[:nam.index('.')])
+                w1 = syns[random.randint(0, len(syns)-1)]
+                wordMatch[words[wordsInd]] = w1
+
+            syn_tries.append((match, maxSim))
+            tries -= 1
+
+        if len(syn_tries) > 1:
+            sorted_tries = sorted(syn_tries, key=lambda x: x[1], reverse=True)
+            match = sorted_tries[0][0]
+            maxSim = sorted_tries[0][1]
+
+        if match != '':
+            for word, syn in wordMatch.items():
+                if type(syn) is not tuple and w1 == syn:
+                    wordMatch[word] = (match, maxSim)
             keywords.append((match, maxSim))
         else:
-            ind = matches.find(match)
-            if ind != -1:
-                keywords[ind][1] = (keywords[ind][1] + maxSim)/2
-                
+            wordMatch.pop(words[wordsInd], None)
+
+        wordsInd += 1
+
+    print("\nKEYWORDS MATCH")
+    print(wordMatch)
+
     return keywords, wordMatch
 
 
@@ -354,9 +386,9 @@ def getRGBDists(reqColor, palettes):
 
     rgbDists = {}
 
-    #print("RGBDIST")
-    #print(palettes)
-    #print(reqColor)
+    # print("RGBDIST")
+    # print(palettes)
+    # print(reqColor)
 
     reqRGB = convertColor(reqColor, 'hex', 'rgb')
 
@@ -451,7 +483,7 @@ def CloseColorHelper(cymColors, colorToMatch):
     return ret
 
 
-def keyword(userWords, paletteDict):
+def keyword(userWords, paletteDict, wordMatch):
     """
       Returns one dictionary that includes the percentage score based on the colors and keywords
       Returns another dictionary that also includes the keyword and the corresponding percentage score
@@ -476,7 +508,7 @@ def keyword(userWords, paletteDict):
             wordScore = 0
             if word not in wordsDict:
                 wordsDict[word] = 0
-                
+
             lst = []
             for color in paletteDict[palette]:
                 closecolor = CloseColorHelper(cymColors, color)
@@ -495,14 +527,27 @@ def keyword(userWords, paletteDict):
 
     for id in colordict:
         colordict[id] /= maxScore
-    
-    for id,lst in keywordDict.items():
+
+    for id, lst in keywordDict.items():
         for i in range(len(lst)):
             word = keywordDict[id][i][0]
             percent = keywordDict[id][i][1]
-            keywordDict[id][i] = (word, percent*(1 + wordsDict[word]/100))
+            percent += (100 - percent)*(wordsDict[word]/100)/2
+            if percent >= 100:
+                percent = keywordDict[id][i][1]
+            keywordDict[id][i] = (word, percent)
 
-    return colordict, keywordDict
+    keywordBreakdown = {}
+    for id, lst in keywordDict.items():
+        keywordBreakdown[id] = []
+        for tup in lst:
+            for orig, cym in wordMatch.items():
+                if cym[0] == tup[0]:
+                    score = tup[1]*cym[1]
+                    new_tup = (orig, tup[0], score)
+                    keywordBreakdown[id].append(new_tup)
+
+    return colordict, keywordBreakdown
 
 
 def convertColor(color, fromCode, toCode):
@@ -551,30 +596,169 @@ def convertColor(color, fromCode, toCode):
                          + fromCode + ', ' + toCode)
 
 
-def hue_adjuster():
-    return 0
+def rgbToHsl(color):
+    r = color[0] / 255
+    g = color[1] / 255
+    b = color[2] / 255
 
-def isClose(palette1, palette2):
-    return palette1 == palette2
-    # endDict = {}
-    # lst = [] 
-    # for c1 in palette2: 
-    #     minScore = [] 
-    #     for c2 in palette1: 
-    #         ca = convertColor(c1, 'hex', 'rgb')
-    #         cb = convertColor(c2, 'hex', 'rgb')
-    #         score = colorDiff(ca, cb, "rgb")
-    #         print(score)
-    #         minScore.append(score)
-    #     lst.append(minScore)
+    cMax = max(r, g, b)
+    cMin = min(r, g, b)
+
+    delta = cMax - cMin
+    l = (cMax + cMin) / 2
+    h = 0
+    s = 0
+
+    if delta == 0:
+        h = 0
+    elif cMax == r:
+        h = 60 * (((g - b) / delta) % 6)
+    elif cMax == g:
+        h = 60 * (((b - r) / delta) + 2)
+    else:
+        h = 60 * (((r - g) / delta) + 4)
+
+    if delta == 0:
+        s = 0
+    else:
+        s = delta / (1 - abs(2 * l - 1))
+
+    hsl = (h, s, l)
+    return hsl
+
+
+def normalize_rbg(color, m):
+
+    color = math.floor((color + m) * 255)
+
+    if color < 0:
+        color = 0
+    elif color > 255:
+        color = 255
+
+    return color
+
+
+def hslToRgb(color):
+
+    h = color[0]
+    s = color[1]
+    l = color[2]
+
+    c = (1 - abs(2 * l - 1) * s)
+    x = c * (1 - abs((h / 60) % 2 - 1))
+    m = l - c / 2
+    r, g, b = 0, 0, 0
+
+    if h < 60:
+        r = c
+        g = x
+        b = 0
+    elif h < 120:
+        r = x
+        g = c
+        b = 0
+    elif h < 180:
+        r = 0
+        g = c
+        b = x
+    elif h < 240:
+        r = 0
+        g = x
+        b = c
+    elif h < 300:
+        r = x
+        g = 0
+        b = c
+    else:
+        r = c
+        g = 0
+        b = x
+
+    r = normalize_rbg(r, m)
+    g = normalize_rbg(g, m)
+    b = normalize_rbg(b, m)
+
+    return (r, g, b)
+
+
+def hue_adjuster(color, degree):
+    # print()
+    rgb_from_hex = convertColor(color, 'hex', 'rgb')
+
+    r1 = rgb_from_hex[0]
+    g1 = rgb_from_hex[1]
+    b1 = rgb_from_hex[2]
+
+    hsl = rgbToHsl(rgb_from_hex)
+    rgb = hslToRgb(hsl)
+
+    h = hsl[0]
+    s = hsl[1]
+    l = hsl[2]
+
+    h += degree
+    if h > 360:
+        h -= 360
+    elif h < 0:
+        h += 360
+
+    new_hsl = (h, s, l)
+
+    new_rgb = hslToRgb(new_hsl)
+    r2 = new_rgb[0]
+    g2 = new_rgb[1]
+    b2 = new_rgb[2]
+
+    if r1 == g1 and r1 == b1:
+        avg = (r2 + g2 + b2) // 3
+        r2 = avg
+        g2 = avg
+        b2 = avg
+    new_rgb = (r2, g2, b2)
+    print(new_rgb)
+    new_hex = convertColor(new_rgb, 'rgb', 'hex').upper()
+
+    return new_hex
+
+
+def isClose(palette1, palette2, threshold):
+    """
+    Check if the palette is close enough to palette that is already saved in the csv
+    If it is already in the csv, return true otherwise return false
+
+    Params:
+            palette1 -  a palette from the CSV
+            palette2 - a palette to compare
+
+    Returns: True if the palette is already in the csv or is below the threshold
+    and is similar to a palette already in the csv
+            False if the palette does not exist or the distance is above the threshold
+    """
+    endDict = {}
+    lst = []
+    if palette1 == palette2:
+        return True
+    for c1 in palette2:
+        minScore = []
+        for c2 in palette1:
+            ca = convertColor(c1, 'hex', 'rgb')
+            cb = convertColor(c2, 'hex', 'rgb')
+            score = colorDiff(ca, cb, "rgb")
+            # print(score)
+            minScore.append(score)
+        lst.append(minScore)
     # print("minScore", minScore)
-    # avg = sum(minScore)/len(minScore)
-    # print("avg", avg)
-    # threshold = 300
-    # if avg > threshold: 
-    #     return True
-    # else:
-    #     return False
+    avg = sum(minScore)/len(minScore)
+    print("avg", avg)
+    # threshold = 115
+    if avg < threshold:
+        return True
+    else:
+        return False
+    # print("same?", palette1, palette2)
+    # return palette1 == palette1
+
 
 def closestPalette(palette):
   # loop throught the csv palettes 
@@ -584,7 +768,7 @@ def closestPalette(palette):
             if rows[0] != 'Palette':
                 paletteToCompare = []
                 [paletteToCompare.extend(rows[0].split( ))] 
-                if(isClose(paletteToCompare, palette)):
+                if(isClose(paletteToCompare, palette, 200)):
                     print("close" , paletteToCompare)
                     return paletteToCompare, True
         
@@ -635,7 +819,7 @@ def paletteToCSV(palette, keywords, vote):
                         if(cymbolism[idword] in keywords):
                             currVotesArray = rows[idword+1].split()
                             totalVotes = int(currVotesArray[0]) + 1
-                            netVotes = int(currVotesArray[1]) + vote
+                            netVotes = int(currVotesArray[1]) + int(vote)
                             currVotesString = str(totalVotes) + " " + str(netVotes)
                             print(currVotesString)
                             keywordsVotes.append(currVotesString)
@@ -683,10 +867,10 @@ def energy_adjust(color, energy):
         newRGB = rgb
 
     newHex = convertColor(newRGB, 'rgb', 'hex')
-    #print('NEWHEX')
-    #print(newHex)
+    # print('NEWHEX')
+    # print(newHex)
     newHex = newHex.upper()
-    #print(newHex)
+    # print(newHex)
     return newHex
 
 
@@ -776,10 +960,10 @@ def top_colors_from_keywords(keywords, energy):
     total_votes_num = 0
     for tup in keywords:
         word = tup[0]
-        #print("----------WORDS")
-        #print(keywords)
+        # print("----------WORDS")
+        # print(keywords)
         # #print(total_votes)
-        #print(word)
+        # print(word)
         total_votes_num += total_votes[word]
 
     for tup in keywords:
@@ -793,21 +977,45 @@ def top_colors_from_keywords(keywords, energy):
                     score = tup[0]
                     color = tup[1]
                     if score >= 10:
-                        if color in top_colors:
-                            top_colors[color] += sim_score * normalize_score(
+                        if energy_adjust(color, energy) in top_colors:
+                            top_colors[energy_adjust(color, energy)] += sim_score * normalize_score(
                                 (score), total_votes[word], total_votes_num)
                         else:
-                            top_colors[color, energy] = sim_score * normalize_score(
+                            top_colors[energy_adjust(color, energy)] = sim_score * normalize_score(
                                 (score), total_votes[word], total_votes_num)
                     else:
                         above_thresh = False
 
-    return top_colors
-
-# top_colors_from_keywords([('beach', 1), ('beauty', 1)], 5)
-# top_colors_from_keywords([('baby', 0.5), ('beach', 1)], 5)
-# top_colors_from_keywords([('abuse', 1)], 5)
-# top_colors_from_keywords([('cold', 1), ('snorkel', 1)], 5)
+    top_colors_hues = {}
+    for color, energy in top_colors.items():
+        # if len(top_colors) < 2:
+        # hue1 = hue_adjuster(color, 20)
+        # hue2 = hue_adjuster(color, -20)
+        # hue3 = hue_adjuster(color, 30)
+        # hue4 = hue_adjuster(color, -30)
+        # top_colors_hues[color] = [color, hue1, hue2, hue3, hue4]
+        # else:
+        if len(top_colors) > 2:
+            hue1 = hue_adjuster(color, 10)
+            hue2 = hue_adjuster(color, -10)
+            energy1 = energy_adjust(color, -5)
+            energy2 = energy_adjust(color, 5)
+            # hue3 = hue_adjuster(color, 30)
+            # hue4 = hue_adjuster(color, -30)
+            top_colors_hues[color] = [color, hue1, hue2, energy1, energy2]
+        else:
+            hue1 = hue_adjuster(color, 20)
+            hue2 = hue_adjuster(color, -20)
+            energy1 = energy_adjust(color, -10)
+            energy2 = energy_adjust(color, 10)
+            # hue3 = hue_adjuster(color, 30)
+            # hue4 = hue_adjuster(color, -30)
+            top_colors_hues[color] = [color, hue1, hue2, energy1, energy2]
+    # print('----- TOP COLORS -----')
+    # print(top_colors_hues)
+    # return top_colors
+    print(top_colors)
+    return top_colors, top_colors_hues
 
 
 def palette_generator(hex_codes, n, energy):
@@ -819,36 +1027,48 @@ def palette_generator(hex_codes, n, energy):
 """
 
     #print("HEX CODES")
-    #print(hex_codes)
+    # print(hex_codes)
 
     url = "http://colormind.io/api/"
 
     input_lst = []
     for hex in hex_codes:
-        #print(hex)
-        input_lst.append(convertColor(hex[0], "hex", "rgb"))
+        # print(hex)
+        # print('---------HEX--------')
+        # print(hex)
+        input_lst.append(convertColor(hex, "hex", "rgb"))
         # input_lst.append(ImageColor.getcolor(hex, "RGB"))
+    # print(input_lst)
+
     n = len(input_lst)
     for add_color in range(n, 5):
         input_lst.append("N")
 
     #print("INPUT LIST")
-    #print(input_lst)
+    # print(input_lst)
     data = {
         "model": "default",
         "input": input_lst
     }
-    #print('DATA')
-    #print(data)
+    # print('DATA')
+    # print(data)
+    start = time.time()
     res = requests.post(url, data=json.dumps(data))
+    print('API TIMES')
+    print(time.time() - start)
 
     hex = []
     for rgb in res.json()['result']:
         color = rgb2hex(rgb[0], rgb[1], rgb[2])
-        hex.append(energy_adjust(color, energy))
+        # print('---Color----')
 
-    #print('HEX')
-    #print(hex)
+        # print(color)
+        # hex.append(energy_adjust(color, energy))
+
+        hex.append(clean_hex(color))
+
+    # print('HEX')
+    # print(hex)
     return hex
 
 
@@ -867,12 +1087,15 @@ def create_combo_hex_codes(top_keywords_color_lst, necessary_color_lst, energy):
 
     for c in necessary_color_lst:
         necessary_colors.append((c, 100))
-
-
+    # print('HERE')
+    # print(top_keywords_color_lst)
     keyword_lst = list(set(top_keywords_color_lst.keys()))
-
+    # print(keyword_lst)
     # start = time.time()
     combinations_object = list(itertools.combinations(keyword_lst, 2))
+
+    # print('object')
+    # print(combinations_object)
     #print('combinations time')
     #print(time.time() - start)
 
@@ -881,15 +1104,15 @@ def create_combo_hex_codes(top_keywords_color_lst, necessary_color_lst, energy):
     if(len(combinations_object) > 100):
         combinations_object = combinations_object[:100]
 
-    #print(len(combinations_object))
+    # print(len(combinations_object))
 
     for i in range(len(combinations_object)):
         n = len(combinations_object)+len(necessary_color_lst)
         hex_codes = necessary_colors + list(combinations_object[i])
 
         # start = time.time()
-        #print("HEX")
-        #print(hex_codes)
+        # print("HEX")
+        # print(hex_codes)
 
         combo_hex_code_lst.append(palette_generator(hex_codes, n, energy))
         #print('palette generator time')
@@ -907,6 +1130,54 @@ def create_combo_hex_codes(top_keywords_color_lst, necessary_color_lst, energy):
     return combo_hex_code_lst
 
 
+def create_combinations(top_colors, necessary_colors, top_colors_hues, energy):
+    combinations = []
+    seen = {}
+    if len(top_colors) > 2:
+        # print('LENGTH')
+        # print(len(top_colors))
+        for color1, lst1 in top_colors_hues.items():
+            for color2, lst2 in top_colors_hues.items():
+                if color1 != color2:
+                    for hue1 in lst1:
+                        for hue2 in lst2:
+                            if hue1 != hue2:
+                                tup = (hue1, hue2)
+                                tup_rev = (hue2, hue1)
+                                if tup not in seen and tup_rev not in seen:
+                                    combinations.append(tup)
+                                    seen[tup] = True
+                    # tup = (color1, color2)
+                    # if tup not in seen:
+                    #     combinations.append(tup)
+                    #     seen[tup] = True
+    else:
+        print(top_colors_hues)
+        for color1, lst1 in top_colors_hues.items():
+            for color2, lst2 in top_colors_hues.items():
+                for hue1 in lst1:
+                    for hue2 in lst2:
+                        if hue1 != hue2:
+                            tup = (hue1, hue2)
+                            tup_rev = (hue2, hue1)
+                            if tup not in seen and tup_rev not in seen:
+                                combinations.append(tup)
+                                seen[tup] = True
+    print("combos")
+    print(combinations)
+    random.shuffle(combinations)
+    combinations = combinations[:20]
+    combo_hex_code_lst = []
+    for i in range(len(combinations)):
+        n = len(combinations)+len(necessary_colors)
+        hex_codes = necessary_colors + list(combinations[i])
+
+        combo_hex_code_lst.append(palette_generator(hex_codes, n, energy))
+
+    # print(combinations)
+    return combo_hex_code_lst
+
+
 def input_to_color(keywords, necessary_colors, energy):
     """ compute the colors from the user input
 :param keywords: list of words
@@ -920,16 +1191,18 @@ def input_to_color(keywords, necessary_colors, energy):
     # #print('keywords', keywords)
 
     # start = time.time()
-    top_colors = top_colors_from_keywords(keywords, energy)
+    top_colors, top_colors_hues = top_colors_from_keywords(keywords, energy)
     #print('TOP COLORS')
-    #print(top_colors)
+    # print(top_colors)
     # #print('top colors time')
     # #print(time.time() - start)
 
     # start = time.time()
-    palettes = create_combo_hex_codes(top_colors, necessary_colors, energy)
-    #print('PALETTES')
-    #print(palettes)
+    palettes = create_combinations(
+        top_colors, necessary_colors, top_colors_hues, energy)
+    # palettes = create_combo_hex_codes(top_colors, necessary_colors, energy)
+    # print('PALETTES')
+    # print(palettes)
     # #print('combo hex codes time')
     # #print(time.time() - start)
 
@@ -940,7 +1213,7 @@ def input_to_color(keywords, necessary_colors, energy):
         for y in range(len(necessary_colors)):
             palettes[x][y] = necessary_colors[y]
     # #print()
-    #print(palettes)
+    # print(palettes)
     index = 0
     for p in palettes:
         palette_dict[index] = p
@@ -970,23 +1243,45 @@ def getPalettes(keywords, reqColors, energy):
     palettes, top_colors = input_to_color(cymKeywords, reqColors, energy)
 
     keywords = [i[0] for i in cymKeywords]
-    
+
     scored, keywordBreakdown = scorePalettes(palettes, keywords, reqColors,
-        top_colors, wordMatch)
-    
-    ranked = sorted(scored.items(), key=lambda scored: scored[1][1], reverse=True)
-    
+                                             top_colors, wordMatch)
+
+    ranked = sorted(
+        scored.items(), key=lambda scored: scored[1][1], reverse=True)
+
+    print("\nGENERATED")
+    print(ranked)
+
     sortedScored = []
     i = 0
+    if int(energy) < 2:
+        thresh = 130
+    elif int(energy) < 9:
+        thresh = 115
+    else:
+        thresh = 105
+
     while len(sortedScored) < 5 and i < len(ranked):
         tup = ranked[i]
-        if tup[1][0] is not None:   # TODO: check if similar palette is already in sortedScored
+        tooClose = False
+
+        for pal in sortedScored:
+            print(tup[0], ',', pal[0])
+            if isClose(tup[1][0], pal[1][0], thresh):
+                tooClose = True
+
+        if not tooClose:
             shuffled = tup[1][0]
             random.shuffle(shuffled)
             new_tup = (tup[0], (shuffled, tup[1][1]))
             sortedScored.append(new_tup)
+
         i += 1
-    
+
+    print("\nKEPT")
+    print(sortedScored)
+
     return sortedScored, keywordBreakdown
 
 
@@ -1008,7 +1303,6 @@ def scorePalettes(palettes, keywords, reqColors, top_colors, wordMatch):
             keywords    Cymbolism words matched to user input [List of Strings]
             reqColors   list of user-inputted clean hexcode color [List of String]
     """
-
     # preallocate
     scoreDict = {}
     rgbDists = {}
@@ -1016,23 +1310,31 @@ def scorePalettes(palettes, keywords, reqColors, top_colors, wordMatch):
     percDists = {}
 
     # weights
-    rgbW = .2
-    hsvW = .2
-    percW = .2
-    keyW = .4
+    if len(reqColors) == 0:
+        rgbW = .15
+        hsvW = .15
+        percW = .15
+        keyW = .3
+        compW = .25
+    else:
+        rgbW = .1
+        hsvW = .1
+        percW = .1
+        keyW = .3
+        compW = .4
 
     # maximums
     maxRGB = 0
     maxHSV = 0
     maxPerc = 0
 
+    # averages across top colors
     for rc in top_colors:
-        rc = rc[0]
+        # rc = rc[0]
         rgb = getRGBDists(rc, palettes)
         hsv = getHSVDists(rc, palettes)
         perc = getPerceptualDists(rc, palettes)
 
-        # average across top colors
         for id, dist in rgb.items():
             if dist > maxRGB:
                 maxRGB = dist
@@ -1057,18 +1359,22 @@ def scorePalettes(palettes, keywords, reqColors, top_colors, wordMatch):
             else:
                 percDists[id] += avg/len(top_colors)
 
-    keywordAvgs, keywordBreakdown = keyword(keywords, palettes)
-    
-    keywordAvgs, kwb = keyword(keywords, palettes)
-    keywordBreakdown = {}
-    for id, lst in kwb.items():
-        keywordBreakdown[id] = []
-        for tup in lst:
-            for orig,cym in wordMatch.items():
-                if cym[0] == tup[0]:
-                    score = tup[1]*cym[1]
-                    new_tup = (orig, tup[0], score)
-                    keywordBreakdown[id].append(new_tup)
+    keywordAvgs, keywordBreakdown = keyword(keywords, palettes, wordMatch)
+
+    complement = {}
+    for id, pal in palettes.items():
+        minDiff = 1000
+        for c1 in pal:
+            c1 = convertColor(c1, 'hex', 'rgb')
+            for c2 in pal:
+                c2 = convertColor(c2, 'hex', 'rgb')
+                if c1 != c2:
+                    diff = colorDiff(c1, c2, 'rgb')
+                    if diff < minDiff:
+                        minDiff = diff
+        complement[id] = minDiff
+
+    maxDiff = max(complement.values())
 
     # weighted average of scores
     for id, palette in palettes.items():
@@ -1081,9 +1387,29 @@ def scorePalettes(palettes, keywords, reqColors, top_colors, wordMatch):
             score += (1 - percDists[id]/maxPerc)*100*percW
         if (keywordAvgs != {}):
             score += keywordAvgs[id]*100*keyW
+        if (complement != {}):
+            score += (complement[id]/maxDiff)*100*compW
 
-        # TODO: uncomment this later when updown works
-        # score += (100 - score)*(1 + net_updown/total_updown)
+        # CSVpalette = (' '.join([str(elem)
+        #                         for elem in palette])).replace(",", " ")
+
+        print("score" , score)
+        with open('data/votes.csv', 'r', newline='') as file:
+            myreader = csv.reader(file, delimiter=',')
+            for rows in myreader:
+                if not rows[0] == "Palette":
+                    palette1 = rows[0].split(" ")
+                    if isClose(palette1, palette, 200):
+    
+                        for query,tup in wordMatch.items():
+                            votes = rows[cymWordsInvInd[tup[0]]]
+                            total = int(votes[:votes.find(' ')])
+                            if not total== 0:
+                                net = int(votes[votes.find(' ')+1:])
+                                score += (100 - score)*(net/total)*tup[1]
+
+        # score *= net_updown/total_updown
+        print(score)
 
         scoreDict[id] = (palette, score)
 
@@ -1096,6 +1422,7 @@ def search():
         errors = []
         keywords = request.form.get("keywords")
         keywordDefs = []
+        keywordDefDict = {}
         energy = request.form.get("energy")
         color1 = request.form.get("color1")
         color2 = request.form.get("color2")
@@ -1107,12 +1434,12 @@ def search():
         results = None
         showModal = False
 
-        print('HERE')
-        print(color1)
-        print(color2)
+        # print('HERE')
+        # print(color1)
+        # print(color2)
         # print(invalidWords)
-        #print(keywords)
-        #print(multiDefs)
+        # print(keywords)
+        # print(multiDefs)
 
         if (keywords is None and energy is None and color1 is None and color2 is None):
             submit = False
@@ -1132,7 +1459,7 @@ def search():
                         invalidWordsList.remove(w)
 
                 if len(invalidWordsList) > 0:
-                    #print("hello?????")
+                    # print("hello?????")
                     errors.append("keywords3")
 
         if color1 and re.search("^([A-Fa-f0-9]{6})$", color1) is None:
@@ -1140,7 +1467,7 @@ def search():
         if color2 and re.search("^([A-Fa-f0-9]{6})$", color2) is None:
             errors.append("color2")
 
-        multiDefList = []
+        multiDefList = [] 
 
         if request.form.get('submit-button') == 'definitions':
             multiDefList = multiDefs.split(",")
@@ -1150,6 +1477,7 @@ def search():
                     if request.form[d]:
                         keywordDefs.append(
                             d + " - " + request.form[d].replace("%", " "))
+                        keywordDefDict[d] = request.form[d].replace("%", " ")
                 except:
                     print("failed to get form element")
                     print(submit)
@@ -1165,12 +1493,13 @@ def search():
         for k in keywords.split(","):
             if k not in multiDefList:
                 keywordDefs.append(k)
+                keywordDefDict[k] = None
 
         reqColors = []
         if color1:
-            reqColors.append(color1)
+            reqColors.append(color1.upper())
         if color2:
-            reqColors.append(color2)
+            reqColors.append(color2.upper())
 
         # display results if no errors
         sortedScored = []
@@ -1180,7 +1509,7 @@ def search():
                 keywordDefs, reqColors, energy)
            
             print("return 3")
-            return render_template('search.html', netid=netid, sortedScored = sortedScored, keywordBreakdown=keywordBreakdown, keywordDefs=keywordDefs, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit)
+            return render_template('search.html', netid=netid, sortedScored=sortedScored, keywordBreakdown=keywordBreakdown, keywordDefs=keywordDefDict, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit)
 
         # display errors + sticky values
         print("return 4")
@@ -1194,9 +1523,9 @@ def search():
 @irsystem.route("/vote", methods=["GET", "POST"])
 def updateVote():
     if request.method == "POST":
-        keywords = request.form.get("keywords")
-        print("keywords", keywords)
-        #keywords =  ['agile', 'accessible', 'abuse']
+        # keywords = request.form.get("keywords")
+        # print("keywords", keywords)
+        keywords =  ['beach']
         voteAndPaletteLst = request.form.get("votes").split(":")
         print(voteAndPaletteLst)
         if not voteAndPaletteLst == "":
@@ -1214,16 +1543,11 @@ def updateVote():
                     voteAndPalette = voteAndPalette[:-2]
                     print(voteAndPalette)
                     palettes.append(voteAndPalette.split(","))
-
-        
-        
         
         for i in range(len(palettes)):
             print(palettes[i])
             print(votes[i])
-            # paletteToCSV(palettes[i], keywords, votes[i])
-
-        
+            paletteToCSV(palettes[i], keywords, votes[i])
 
         #paletteToCSV(['0FF4F6', 'F6DA00', '000000', '000000', '000000'], ['agile', 'accessible', 'abuse'] , -1)
        
@@ -1231,4 +1555,3 @@ def updateVote():
     if request.method == "GET":
         print("return 5")
         return render_template('search.html', netid=netid)
-    return render_template('search.html', netid=netid)
