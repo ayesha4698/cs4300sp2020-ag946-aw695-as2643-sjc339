@@ -90,7 +90,7 @@ def searchCymDfns(w1):
     Params: w1      Synset object
     """
     match = ''
-    maxSim = 0
+    maxSim = 0.0
     # dummy run for speed
     # arbitrary word that doesn't have match in dataset
     wt = wordnet.synsets('cool')[-1]
@@ -117,7 +117,7 @@ def searchCymDfns(w1):
                     maxSim = sim
                     match = cymW
 
-    # maxSim = max([0, maxSim - .1])                  # adjust? fix later
+    maxSim = max([0, maxSim - .1])                  # adjust? fix later
     return maxSim, match
 
 
@@ -130,7 +130,7 @@ def searchKeywordDfn(w1):
     Params: w1      Synset object
     """
     match = ''
-    maxSim = 0
+    maxSim = 0.0
     toks = tokenize(w1.definition())
     toks = [w for w in toks if not w in stop_words]
 
@@ -182,7 +182,7 @@ def searchKeywordDfn(w1):
                         maxSim = sim
                         match = cymW
 
-    # maxSim = max([0, maxSim - .2])                  # adjust? fix later
+    maxSim = max([0, maxSim - .2])                  # adjust? fix later
     return maxSim, match
 
 
@@ -260,31 +260,41 @@ def keywordMatch(dfns):
             kw = dfn
         wordMatch[kw] = s
 
+    words = list(wordMatch.keys())
+    wordsInd = 0
     for w1 in synwords:
         match = ''
-        maxSim = 0
+        maxSim = 0.0
 
-        # keyword or keyword's synonyms are in Cymbolism
-        if maxSim == 0:
-            for lem in w1.lemmas():
-                if lem.name() in cymData.keys() and lem.name() != 'word':
-                    maxSim = 1.0
-                    match = lem.name()
-                    break
+        while match == '':
+            # keyword or keyword's synonyms are in Cymbolism
+            if maxSim == 0.0:
+                for lem in w1.lemmas():
+                    if lem.name() in cymData.keys() and lem.name() != 'word':
+                        maxSim = 1.0
+                        match = lem.name()
+                        break
 
-        # keyword matches Cymbolism word's meanings
-        if maxSim == 0:
-            maxSim, match = searchCymDfns(w1)
+            # keyword matches Cymbolism word's meanings
+            if maxSim == 0.0:
+                maxSim, match = searchCymDfns(w1)
 
-        # keyword's definition matches Cymbolism word's meanings
-        if maxSim == 0:
-            maxSim, match = searchKeywordDfn(w1)
+            # keyword's definition matches Cymbolism word's meanings
+            if maxSim == 0.0:
+                maxSim, match = searchKeywordDfn(w1)
+
+            if maxSim == 0.0:
+                nam = w1.name()
+                syns = wordnet.synsets(nam[:nam.index('.')])
+                w1 = syns[random.randint(0,len(syns)-1)]
+                wordMatch[words[wordsInd]] = w1
 
         for word,syn in wordMatch.items():
             if type(syn) is not tuple and w1 == syn:
                 wordMatch[word] = (match, maxSim)
 
         keywords.append((match, maxSim))
+        wordsInd += 1
 
     print("\nKEYWORDS MATCH")
     print(wordMatch)
@@ -1009,8 +1019,7 @@ def getPalettes(keywords, reqColors, energy):
 
         tooClose = False
         for pal in sortedScored:
-            print(tup[0])
-            print(pal[0])
+            print(tup[0], ',', pal[0])
             if isClose(tup[1][0],pal[1][0]):
                 tooClose = True
 
