@@ -213,7 +213,9 @@ def getSynset(dfn):
         kw = stemmer.stem(dfn)
         syns = wordnet.synsets(kw.replace(" ", "_"))
         if syns == []:
-            return wordnet.synsets(dfn.replace(" ", "_"))[0]
+            syns = wordnet.synsets(dfn.replace(" ", "_"))
+        if syns == []:
+            return None
         else:
             return syns[0]
 
@@ -253,12 +255,14 @@ def keywordMatch(dfns):
             s = wordnet.synsets(dfn)[0]
         else:
             s = getSynset(dfn)
-        synwords.append(s)
-        if not dfn.find("-") == -1:
-            kw = dfn[:dfn.index("-")-1]
-        else:
-            kw = dfn
-        wordMatch[kw] = s
+
+        if s is not None:
+            synwords.append(s)
+            if not dfn.find("-") == -1:
+                kw = dfn[:dfn.index("-")-1]
+            else:
+                kw = dfn
+            wordMatch[kw] = s
 
     words = list(wordMatch.keys())
     wordsInd = 0
@@ -790,17 +794,17 @@ def isClose(palette1, palette2, threshold):
 
 
 def closestPalette(palette):
-  # loop throught the csv palettes 
+  # loop throught the csv palettes
     with open('data/votes.csv', 'r', newline='') as file:
         myreader = csv.reader(file, delimiter=',')
         for rows in myreader:
             if rows[0] != 'Palette':
                 paletteToCompare = []
-                [paletteToCompare.extend(rows[0].split( ))] 
-                if(isClose(paletteToCompare, palette, 140)):
+                [paletteToCompare.extend(rows[0].split( ))]
+                if(isClose(paletteToCompare, palette, 115)):
                     print("close" , paletteToCompare)
                     return paletteToCompare, True
-        
+
     print("not close")
     return palette, False
 
@@ -811,16 +815,16 @@ def append_list_as_row(file_name, list_of_elem):
         csv_writer = writer(write_obj)
         # Add contents of list as last row in the csv file
         csv_writer.writerow(list_of_elem)
-        
+
 cymbolism = ['abuse', 'accessible', 'addiction', 'agile', 'amusing', 'anger', 'anticipation', 'art deco', 'authentic', 'authority', 'average', 'baby', 'beach', 'beauty', 'beer', 'benign', 'bitter', 'blend', 'blissful', 'bold', 'book', 'boss', 'brooklyn', 'busy', 'calming', 'capable', 'car', 'cat', 'certain', 'charity', 'cheerful', 'chicago', 'classic', 'classy', 'clean', 'cold', 'colonial', 'comfort', 'commerce', 'compelling', 'competent', 'confident', 'consequence', 'conservative', 'contemporary', 'cookie', 'corporate', 'cottage', 'crass', 'creative', 'cute', 'dance', 'dangerous', 'decadent', 'decisive', 'deep', 'devil', 'discount', 'disgust', 'dismal', 'dog', 'drunk', 'dublin', 'duty', 'dynamic', 'earthy', 'easy', 'eclectic', 'efficient', 'elegant', 'elite', 'enduring', 'energetic', 'entrepreneur', 'environmental', 'erotic', 'excited', 'expensive', 'experience', 'fall', 'familiar', 'fast', 'fear', 'female', 'football', 'freedom', 'fresh', 'friendly', 'fun', 'furniture', 'future', 'gay', 'generic', 'georgian', 'gloomy', 'god', 'good', 'goth', 'government', 'grace', 'great', 'grow', 'happy', 'hard', 'hate', 'hazardous', 'hippie', 'hockey', 'honor', 'hope', 'hot', 'hunting', 'hurt', 'hygienic', 'ignorant', 'imagination', 'impossible', 'improbable', 'influence', 'influential', 'insecure', 'inviting', 'invulnerable', 'jacobean', 'jealous', 'joy', 'jubilant', 'junkie', 'knowledge', 'kudos', 'launch', 'lazy', 'leader', 'liberal', 'library', 'light', 'likely', 'lonely', 'love', 'magic', 'marriage', 'maximal', 'mean', 'medicine', 'melancholy', 'mellow', 'minimal', 'mission', 'modern', 'moment', 'money', 'music', 'mystical', 'narcissist', 'natural', 'naughty', 'new', 'nimble', 'now', 'objective', 'old', 'optimistic', 'organic', 'paradise', 'party', 'passion', 'passive', 'peace', 'peaceful', 'personal', 'playful', 'pleasing', 'possible', 'powerful', 'preceding', 'predatory', 'prime', 'probable', 'productive', 'professional', 'profit', 'progress', 'public', 'pure', 'radical', 'railway', 'rain', 'real', 'rebellious', 'recession', 'reconciliation', 'recovery', 'relaxed', 'reliability', 'retro', 'rich', 'risk', 'rococo', 'romantic', 'royal', 'rustic', 'sad', 'sadness', 'safe', 'sarcasm', 'secure', 'sensible', 'sensual', 'sex', 'shabby', 'silly', 'simple', 'slow', 'smart', 'smooth', 'snorkel', 'soft', 'solar', 'sold', 'solid', 'somber', 'spiffy', 'sport', 'spring', 'stability', 'star', 'strong', 'studio', 'style', 'stylish', 'submit', 'suburban', 'success', 'summer', 'sun', 'sunny', 'surprise', 'sweet', 'symbol', 'tasty', 'therapeutic', 'threat', 'time', 'tomorrow', 'treason', 'trust', 'trustworthy', 'uncertain', 'uniform', 'unlikely', 'unsafe', 'urban', 'value', 'vanity', 'victorian', 'vitamin', 'vulnerability', 'vulnerable', 'war', 'warm', 'winter', 'wise', 'wish', 'work', 'worm', 'young'];
 invertedIndex = {}
 for i, word in enumerate(cymbolism):
-  invertedIndex[word] = i 
+  invertedIndex[word] = i
 
 def paletteToCSV(palette, keywords, vote):
     CSVpalette, found = closestPalette(palette)
     CSVpalette = (' '.join([str(elem) for elem in CSVpalette])).replace(",", " ")
-    if not found : 
+    if not found :
         votes =  "1 "+ str(vote)
         row_contents = [CSVpalette]
         keywordsVotes = np.empty(len(cymbolism), dtype=object)
@@ -832,7 +836,7 @@ def paletteToCSV(palette, keywords, vote):
         # Append a list as new line to an old csv file
         append_list_as_row('data/votes.csv', row_contents)
 
-    else: 
+    else:
         # already in csv
         keywordsVotes = []
         with open('data/votes.csv', 'r', newline='') as file:
@@ -849,7 +853,7 @@ def paletteToCSV(palette, keywords, vote):
                         else:
                             keywordsVotes.append(rows[idword+1])
                     break
-           
+
         # reading the csv file
         df = pd.read_csv("data/votes.csv")
         for i, word in enumerate(cymbolism):
@@ -1272,6 +1276,9 @@ def getPalettes(keywords, reqColors, energy):
     """
     cymKeywords, wordMatch = keywordMatch(keywords)
 
+    if cymKeywords == []:
+        return [], {}
+
     palettes, top_colors = input_to_color(cymKeywords, reqColors, energy)
 
     keywords = [i[0] for i in cymKeywords]
@@ -1279,13 +1286,11 @@ def getPalettes(keywords, reqColors, energy):
     scored, keywordBreakdown = scorePalettes(palettes, keywords, reqColors,
                                              top_colors, wordMatch)
 
-    ranked = sorted(
-        scored.items(), key=lambda scored: scored[1][1], reverse=True)
+    ranked = sorted(scored.items(), key=lambda scored: scored[1][1], reverse=True)
 
     print("\nGENERATED")
     print(ranked)
 
-    sortedScored = []
     i = 0
     if int(energy) < 2:
         thresh = 130
@@ -1431,8 +1436,8 @@ def scorePalettes(palettes, keywords, reqColors, top_colors, wordMatch):
             for rows in myreader:
                 if not rows[0] == "Palette":
                     palette1 = rows[0].split(" ")
-                    if isClose(palette1, palette, 200):
-    
+                    if isClose(palette1, palette, 115):
+
                         for query,tup in wordMatch.items():
                             votes = rows[cymWordsInvInd[tup[0]]]
                             total = int(votes[:votes.find(' ')])
@@ -1464,7 +1469,7 @@ def setupForCsv(voteAndPaletteLst, keywords):
             if(voteAndPalette[m-2]=='-'):
                 votes.append(voteAndPalette[-2:])
                 voteAndPalette = voteAndPalette[:-3]
-        
+
                 palettes.append(voteAndPalette.split(","))
             else:
                 votes.append(voteAndPalette[m-1])
@@ -1487,7 +1492,7 @@ def search():
         energy = request.form.get("energy")
         color1 = request.form.get("color1")
         color2 = request.form.get("color2")
-        
+
 
         submit = True
 
@@ -1498,18 +1503,18 @@ def search():
             #keywordBreakdown={0: [('beach', 'beach', 59.26734239322961), ('cool', 'cold', 75.88183700692531)], 1: [('cool', 'cold', 60.63718348112445), ('beach', 'beach', 77.6741907104524)], 2: [('cool', 'cold', 57.686154394631124), ('beach', 'beach', 74.90704815062111)], 3: [('cool', 'cold', 65.86606260520283), ('beach', 'beach', 81.09119250781961)], 4: [('cool', 'cold', 54.66467633790308), ('beach', 'beach', 82.34898458047067)], 5: [('cool', 'cold', 54.66467633790297), ('beach', 'beach', 79.59232362124457)], 6: [('cool', 'cold', 65.46685177387367), ('beach', 'beach', 70.67248150603079)], 7: [('cool', 'cold', 65.51381775403013), ('beach', 'beach', 67.66426213227481)], 8: [('cool', 'cold', 70.99318210560921), ('beach', 'beach', 77.87334112195532)], 9: [('cool', 'cold', 61.5843307476117), ('beach', 'beach', 70.90307671935022)], 10: [('cool', 'cold', 54.23415485313615), ('beach', 'beach', 79.83340043516927)], 11: [('cool', 'cold', 64.64494712113688), ('beach', 'beach', 69.87587986001874)], 12: [('cool', 'cold', 69.40416644365125), ('beach', 'beach', 87.66315608741903)], 13: [('cool', 'cold', 56.590281524315216), ('beach', 'beach', 80.91300529752775)], 14: [('cool', 'cold', 55.650961921187374), ('beach', 'beach', 78.18778914011818)], 15: [('cool', 'cold', 71.15756303615665), ('beach', 'beach', 74.4248945227715)], 16: [('cool', 'cold', 55.50223631735883), ('beach', 'beach', 71.2489695393291)], 17: [('cool', 'cold', 60.43366423378012), ('beach', 'beach', 75.0013825560699)], 18: [('cool', 'cold', 63.063759122538016), ('beach', 'beach', 85.0637191372745)], 19: [('cool', 'cold', 63.88566377527488), ('beach', 'beach', 83.1560678270878)], 20: [('cool', 'cold', 50.265529529920784), ('beach', 'beach', 76.19628502508809)]},
             keywordsVote = set()
             print("KEY",keywordBreakdown)
-        
+
             for word  in cymbolism:
                 if word in keywordBreakdown :
                     keywordsVote.add(word)
-                    
+
             keywordsVote = list(keywordsVote)
             print(keywordsVote)
             if not voteAndPaletteLst == None :
                 print("CSV", voteAndPaletteLst.split(":"), keywordsVote)
                 if(not voteAndPaletteLst.split(":")==[""]):
                     setupForCsv(voteAndPaletteLst.split(":"), keywordsVote)
-           
+
 
         # print('HERE')
         # print(color1)
@@ -1529,7 +1534,7 @@ def search():
             keywordDefs = []
             for word, d in keywordDefDict.items():
                 if keywords != "": keywords += ","
-                keywords += word 
+                keywords += word
                 if d == "":
                     keywordDefs.append(word)
                 else:
@@ -1571,7 +1576,7 @@ def search():
         if color2 and re.search("^([A-Fa-f0-9]{6})$", color2) is None:
             errors.append("color2")
 
-        multiDefList = [] 
+        multiDefList = []
 
         if request.form.get('submit-button') == 'definitions':
             multiDefList = multiDefs.split(",")
@@ -1593,7 +1598,7 @@ def search():
         if request.form.get('submit-button') == 'general' and multiDefs:
             print("return 2")
             return render_template('search.html', netid=netid, results=None, keywords=keywords, energy=energy, color1=color1, color2=color2, errors=errors, submit=submit, multiDefs=multiDefs, showModal=True)
-        
+
         for k in keywords.split(","):
             if k not in multiDefList:
                 keywordDefs.append(k)
@@ -1612,7 +1617,7 @@ def search():
         if len(errors) == 0:
             sortedScored, keywordBreakdown = getPalettes(
                 keywordDefs, reqColors, energy)
-            
+
 
             print("return 3")
             return render_template('search.html', netid=netid, sortedScored=sortedScored, keywordBreakdown=keywordBreakdown, keywordDefs=keywordDefDict, keywords=keywords, energy=energy, color1=color1, color2=color2, submit=submit)
