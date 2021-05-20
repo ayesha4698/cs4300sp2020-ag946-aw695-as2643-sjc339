@@ -468,7 +468,7 @@ def CloseColorHelper(cymColors, colorToMatch):
         if v < small:
             small = v
             ret = k
-    return ret
+    return ret,small
 
 
 def keyword(userWords, paletteDict, wordMatch):
@@ -487,11 +487,14 @@ def keyword(userWords, paletteDict, wordMatch):
     colordict = {}
     keywordDict = {}
     wordsDict = {}
+    colorKeywordDict = {}
+
     cymColors = list(cymColorsInvInd.keys())
     maxScore = 0
     for palette in paletteDict.keys():
         score = 0
         keywordDict[palette] = []
+        colorKeywordDict[palette] = {}
 
         for word in userWords:
             wordScore = 0
@@ -500,11 +503,16 @@ def keyword(userWords, paletteDict, wordMatch):
 
             lst = []
             for color in paletteDict[palette]:
-                closecolor = CloseColorHelper(cymColors, color)
+                closecolor,dist = CloseColorHelper(cymColors, color)
                 lst = cymData[word]
                 ind = cymColorsInvInd[closecolor]
                 colorScore = float(lst[ind])
                 wordScore += colorScore
+
+                if color not in colorKeywordDict[palette]:
+                    colorKeywordDict[palette][color] = [(word, colorScore, dist)]
+                else:
+                    colorKeywordDict[palette][color].append((word, colorScore, dist))
 
             score += wordScore
             keywordDict[palette].append((word, wordScore))
@@ -514,6 +522,24 @@ def keyword(userWords, paletteDict, wordMatch):
         if score > maxScore:
             maxScore = score
         colordict[palette] = score
+
+    maxColorScore = 0
+    maxColorDist = 0
+    for id,colors in colorKeywordDict.items():
+        for c,l in colors.items():
+            for tup in l:
+                if tup[1] > maxColorScore:
+                    maxColorScore = tup[1]
+                if tup[2] > maxColorDist:
+                    maxColorDist = tup[2]
+
+    for id,colors in colorKeywordDict.items():
+        for c,l in colors.items():
+            for i in range(len(l)):
+                old = colorKeywordDict[id][c][i]
+                newScore = (1 - old[2]/maxColorDist)*100
+                newScore += (100 - newScore)*old[1]/maxColorScore
+                colorKeywordDict[id][c][i] = (old[0],newScore)
 
     for id in colordict:
         colordict[id] /= maxScore
@@ -537,7 +563,7 @@ def keyword(userWords, paletteDict, wordMatch):
                     new_tup = (orig, tup[0], score)
                     keywordBreakdown[id].append(new_tup)
 
-    return colordict, keywordBreakdown
+    return colordict, keywordBreakdown, colorKeywordDict
 
 
 def convertColor(color, fromCode, toCode):
@@ -1091,8 +1117,8 @@ def getPalettes(keywords, reqColors, energy):
 
     keywords = [i[0] for i in cymKeywords]
 
-    scored, keywordBreakdown = scorePalettes(palettes, keywords, reqColors,
-                                             top_colors, wordMatch)
+    scored, keywordBreakdown, ctk = scorePalettes(palettes, keywords,
+                                            reqColors, top_colors, wordMatch)
 
     ranked = sorted(scored.items(), key=lambda scored: scored[1][1], reverse=True)
 
@@ -1105,6 +1131,7 @@ def getPalettes(keywords, reqColors, energy):
         thresh = 105
 
     sortedScored = []
+    colorToKeywords = {}
 
     while len(sortedScored) < 5 and i < len(ranked):
         tup = ranked[i]
@@ -1120,9 +1147,15 @@ def getPalettes(keywords, reqColors, energy):
             new_tup = (tup[0], (shuffled, tup[1][1]))
             sortedScored.append(new_tup)
 
+        id = tup[0]
+        colorToKeywords[id] = ctk[id]
+
         i += 1
 
-    return sortedScored, keywordBreakdown
+    print(sortedScored)
+    print(colorToKeywords)
+
+    return sortedScored, keywordBreakdown, colorToKeywords
 
 
 def scorePalettes(palettes, keywords, reqColors, top_colors, wordMatch):
@@ -1199,7 +1232,7 @@ def scorePalettes(palettes, keywords, reqColors, top_colors, wordMatch):
             else:
                 percDists[id] += avg/len(top_colors)
 
-    keywordAvgs, keywordBreakdown = keyword(keywords, palettes, wordMatch)
+    keywordAvgs, keywordBreakdown, colorToKeywords = keyword(keywords, palettes, wordMatch)
 
     complement = {}
     for id, pal in palettes.items():
@@ -1246,7 +1279,7 @@ def scorePalettes(palettes, keywords, reqColors, top_colors, wordMatch):
 
         scoreDict[id] = (palette, score)
 
-    return scoreDict, keywordBreakdown
+    return scoreDict, keywordBreakdown, colorToKeywords
 
 def getReqColors(color1, color2):
     reqColors = []
@@ -1349,7 +1382,7 @@ def search():
                 return render_template('search.html', netid=netid, sortedScored=sortedScored, votes=allVotes, keywordBreakdown=keywordBreakdown, keywordDefs=keywordDefDict, keywords=keywords, energy=energy, color1=color1, color2=color2, submit=submit)
 
             reqColors = getReqColors(color1, color2)
-            sortedScored, keywordBreakdown = getPalettes(keywordDefs, reqColors, energy)
+            sortedScored, keywordBreakdown, colorToKeywords = getPalettes(keywordDefs, reqColors, energy)
             return render_template('search.html', netid=netid, sortedScored=sortedScored, keywordBreakdown=keywordBreakdown, keywordDefs=keywordDefDict, keywords=keywords, energy=energy, color1=color1, color2=color2, submit=submit)
 
         multiDefs = request.form.get("multiDefs")
@@ -1411,7 +1444,7 @@ def search():
         sortedScored = []
         keywordBreakdown = {}
         if len(errors) == 0:
-            sortedScored, keywordBreakdown = getPalettes(
+            sortedScored, keywordBreakdown, colorToKeywords = getPalettes(
                 keywordDefs, reqColors, energy)
 
             return render_template('search.html', netid=netid, sortedScored=sortedScored, keywordBreakdown=keywordBreakdown, keywordDefs=keywordDefDict, keywords=keywords, energy=energy, color1=color1, color2=color2, submit=submit)
