@@ -225,43 +225,54 @@
 
         {% for palette in sortedScored %}
         <div class="result position-relative">
-            <h3 class="number ms-4">{{loop.index}}</h3>
+            <!-- <h3 class="number ms-4">{{loop.index}}</h3> -->
             <!-- <h3 class="number">{% if loop.index < 10 %}0{{ loop.index }}{% else %}{{ loop.index }}{% endif %}</h3> -->
 
             <div class="whitespace bg-white"></div>
-            <div class="palette d-flex flex-row justify-between pt-4 mb-5" data-id={{ loop.index }}>
-                {% for color in palette[1][0] %}
-                <div class="color result-color">
-                    <div class="swatch" class="copyTooltip" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-offset="0,5" data-bs-trigger="click" title="Copied!" onclick="copyHex('#{{color}}', this)">
-                        <img alt="copy" src="/static/images/copy.png" class="copy">
+            <div class="palette-container d-flex flex-row justify-between pt-4 mb-5" data-id={{ loop.index }}>
+                <h3 class="number ms-4">{{loop.index}}</h3>
+                
+                <div class="palette d-flex flex-row justify-between" data-id={{ loop.index }}>
+                    {% for color in palette[1][0] %}
+                    <div class="color result-color">
+                        <div class="swatch" class="copyTooltip" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-offset="0,5" data-bs-trigger="click" title="Copied!" onclick="copyHex('#{{color}}', this)">
+                            <img alt="copy" src="/static/images/copy.png" class="copy">
+                        </div>
+                        <p class="p-2 mb-0 bg-white">#{{ color }}</p>
                     </div>
-                    <p class="p-2 mb-0 bg-white">#{{ color }}</p>
-                </div>
-                {% endfor %}
+                    {% endfor %}
 
-                <div class="vote">
-                    <button onclick="vote2(1,{{palette[1][0]}},{{loop.index}})" type="submit" class="btn"> <img alt="arrow" class="arrow"
-                            src="/static/images/up.svg"> </button>
-                    <p id='p{{loop.index}}' data-bs-toggle="tooltip" data-bs-placement="right"
-                        title="Up/down votes per palette are based the top matched keyword">
-                        {% if votes|length() > 0  %} {{votes[loop.index0]}} {%else%} 0 {% endif %}
-                    </p>
-                    <button onclick="vote2(-1, {{palette[1][0]}},{{loop.index}})" class="btn"><img alt="arrow" class="arrow"
-                            src="/static/images/down.svg"></button>
+                    <div class="vote">
+                        <button onclick="vote2(1,{{palette[1][0]}},{{loop.index}})" type="submit" class="btn"> <img alt="arrow" class="arrow"
+                                src="/static/images/up.svg"> </button>
+                        <p id='p{{loop.index}}' data-bs-toggle="tooltip" data-bs-placement="right"
+                            title="Up/down votes per palette are based the top matched keyword">
+                            {% if votes|length() > 0  %} {{votes[loop.index0]}} {%else%} 0 {% endif %}
+                        </p>
+                        <button onclick="vote2(-1, {{palette[1][0]}},{{loop.index}})" class="btn"><img alt="arrow" class="arrow"
+                                src="/static/images/down.svg"></button>
+                    </div>
+
+                    <img alt="copy" src="/static/images/copy.png" class="copy-palette"
+                        onclick="copyPalette({{palette[1][0]}}, this)" data-bs-toggle="tooltip"
+                        data-bs-placement="top" data-bs-offset="0,5" data-bs-trigger="click"
+                        title="Copied Palette!">
                 </div>
 
-                <img alt="copy" src="/static/images/copy.png" class="copy-palette"
-                    onclick="copyPalette({{palette[1][0]}}, this)" data-bs-toggle="tooltip"
-                    data-bs-placement="top" data-bs-offset="0,5" data-bs-trigger="click"
-                    title="Copied Palette!">
+                <div class="score d-flex mb-3">
+                    <p class="mb-0"><strong>Score:</strong> {{ palette[1][1]|round(2, 'common')
+                        }}</p>
+                    <img class="more-info p-0 ms-3" data-value={{ loop.index }}
+                        src="/static/images/question.svg">
+                </div>
+                
             </div>
 
-            <div class="score d-flex mb-3">
+            <!-- <div class="score d-flex mb-3">
                 <p class="mb-0"><strong>Score:</strong> {{ palette[1][1]|round(2, 'common')
                     }}</p>
                 <img id="more-info" class="more-info p-0 ms-3" data-value={{ loop.index }}
                     src="/static/images/question.svg">
-                <!-- {{keywordBreakdown}} -->
                 <div id="breakdown" class="hidden breakdown position-absolute p-3 bg-white"
                     data-value={{ loop.index }}>
                     {% for breakdown in keywordBreakdown[palette[0]]|sort(reverse=True,
@@ -277,6 +288,61 @@
                             href="http://cymbolism.com/words">Cymbolism</a> and the # of
                         votes for each color in the palette.</p>
                 </div>
+            </div> -->
+
+            <div class="breakdown-container hidden p-5 bg-light position-relative" data-value={{ loop.index }}>
+                <div class="breakdown2 d-flex flex-row justify-content-between">
+                    <a class="hide-info position-absolute" data-value={{ loop.index }}>Hide Info</a>                
+                    <div class="keyword-breakdown">
+                        <div class="d-flex flex-row">
+                            <h3>Keyword Breakdown</h3>
+                            <a data-bs-toggle="tooltip" data-bs-placement="top" class="mb-0 p-1 d-flex justify-content-center" 
+                            title="Scores are calculated based on each keyword's most closely matched word on Cymbolism and its color-word association votes.">
+                                <img class="keyword-info p-0" src="/static/images/question.svg">
+                            </a>
+                        </div>
+                        {% for breakdown in keywordBreakdown[palette[0]]|sort(reverse=True,
+                            attribute="2") %}
+                            <div class="d-flex flex-row">
+                                <p class="mb-0">{{ breakdown[0] }}</p>
+                                <p class="subtext mb-0">(matches to {{ breakdown[1] }})</p>
+                            </div>
+                
+                            <div class="breakdown-score d-flex">
+                                <div class="bar me-2" data-percent={{ breakdown[2] }}></div>
+                                <p>{{ breakdown[2]|round(1, 'common') }}%</p>
+                            </div>
+                        {% endfor %}
+                        <p class="search-descript mb-0">Matched words from <a
+                                href="http://cymbolism.com/words">Cymbolism</a>.</p>
+                    </div>
+
+                    <div class="ms-5">
+                        <div class="d-flex flex-row">
+                            <h3>Color Breakdown</h3>
+                            <a data-bs-toggle="tooltip" data-bs-placement="top" class="mb-0 p-1 d-flex justify-content-center" 
+                            title="Scores are calculated based on each color's closest matched Cymbolism color and the number of votes for that color per keyword.">
+                                <img class="keyword-info p-0" src="/static/images/question.svg">
+                            </a>
+                        </div>
+
+                        <div class="color-breakdown-container d-flex flex-row">
+                        {% for color in palette[1][0] %}
+                            <div class="color-breakdown">
+                                <h5 class="mt-2">#{{color}}</h5>
+                                {% for score in colorToKeywords[palette[0]][color]|sort(reverse=True,
+                                    attribute="1") %}
+                                    <p class="mb-0">{{ score[0] }}</p>
+                                    <div class="breakdown-score d-flex">
+                                        <div class="bar me-2" data-color={{color}} data-percent={{ score[1] }}></div>
+                                        <p>{{ score[1]|round(1, 'common') }}%</p>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                        </div>
+                    </div>
+                </div>   
             </div>
 
             <div data-id={{ loop.index }} class="gradient"></div>

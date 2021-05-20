@@ -255,7 +255,7 @@ a.remove {
     position: relative;
     z-index: 2;
     width: 750px;
-    left: calc(50% );
+    left: calc(50%);
     transform: translateX(-50%);
     margin: auto 0px;
     margin-left: 75px;
@@ -401,8 +401,7 @@ a.remove {
     font-family: "Merriweather";
     position: absolute;
     z-index: 0;
-    bottom: -60px;
-    margin-left: 20px;
+    line-height: 180px;
 }
 
 .vote {
@@ -432,26 +431,55 @@ a.remove {
 
 .score {
     position: absolute;
-    bottom: 20px;
+    top: 240px;
     right: 20px;
 }
 
-#more-info {
+.more-info {
     filter: invert(38%) sepia(55%) saturate(6515%) hue-rotate(210deg) brightness(100%) contrast(102%); /* #0d6efd */
     height: 1.3rem;
 }
 
-#more-info:hover {
+.more-info:hover {
     transition: all .2s ease;
     -webkit-transition: all .2s ease;   
     filter: invert(38%) sepia(55%) saturate(6515%) hue-rotate(210deg) brightness(80%) contrast(102%);
 }
 
-#more-info[data-event="click"] {
+.more-info[data-event="click"] {
     filter: invert(38%) sepia(55%) saturate(6515%) hue-rotate(210deg) brightness(80%) contrast(102%);
 }
 
-.breakdown {
+.more-info.disabled, .more-info.disabled:hover {
+    filter: invert(72%) sepia(2%) saturate(723%) hue-rotate(189deg) brightness(101%) contrast(96%);
+}
+
+.breakdown2 {
+    z-index: 1;
+}
+
+.keyword-breakdown .subtext {
+    font-style: normal;
+    margin-left: 0.3rem;
+    line-height: 1.5rem;
+}
+
+.keyword-info {
+    filter: invert(72%) sepia(2%) saturate(723%) hue-rotate(189deg) brightness(101%) contrast(96%);
+    width: 70%;
+    margin-bottom: 5px;
+}
+
+.hide-info {
+    background-color: none;
+    text-decoration: none;
+    color: #0b60df;
+    right: 20px;
+    top: 15px;
+    font-size: 0.8rem;
+}
+
+/* .breakdown {
     width: 250px;
     right: 0;
     bottom: 40px;
@@ -473,7 +501,7 @@ a.remove {
     right: 15px;
     bottom: -12px;
     transform: scaleX(-1);
-}
+} */
 
 .search-descript {
     font-size: 0.7rem;
@@ -487,6 +515,16 @@ a.remove {
 .bar {
     background-color: #0d6efd;
     height: 21px;
+}
+
+.color-breakdown-container {
+    flex-wrap: wrap;
+    max-width: 820px;
+}
+
+.color-breakdown {
+    width: 250px;
+    margin-right: 20px;
 }
 
 #regenerateForm {

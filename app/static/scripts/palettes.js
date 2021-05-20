@@ -27,7 +27,6 @@ $(document).ready(function () {
         });
     }
     if ($(".noresult").length > 0) {
-        console.log("hi?");
         $('html, body').animate({
             scrollTop: $(".noresult").offset().top
         });
@@ -50,29 +49,41 @@ $(document).ready(function () {
     $(".bar").each(function (i, e) {
         percent = $(e).attr("data-percent");
         $(e).css("width", percent*.01*200);
+        if ($(e).attr("data-color")) {
+            $(e).css("background-color", "#" + $(e).attr("data-color"));
+        }
     })
 
     // show breakdown
-    $(".more-info").hover(function(i) {
-       $(".breakdown[data-value=" + $(i.target).data("value") + "]").removeClass("hidden");
-    }, function(i) {
-        if($(i.target).attr("data-event") != "click") {
-            $(".breakdown[data-value=" + $(i.target).data("value") + "]").addClass("hidden");
-        }
+    $(".more-info").click(function(e) {
+        $(".breakdown-container[data-value=" + $(e.target).data("value") + "]").slideDown();
+        $(e.target).addClass("disabled");
     });
-    $("html").click(function(e) {
-        // hide breakdown when clicking outside of it
-        if (e.target.class != "breakdown" && $("[data-event='click']").length > 0) {
-            let val = $("[data-event='click']").data("value");
-            $(".breakdown[data-value=" + val + "]").addClass("hidden");
-            $("[data-event='click']").removeAttr("data-event");
-        }
-        // show breakdown when more info button is clicked
-        if (e.target.classList.contains("more-info")) {
-            $(".breakdown[data-value=" + $(e.target).data("value") + "]").removeClass("hidden");
-            $(e.target).attr("data-event", "click");
-        }
+    // hide breakdown 
+    $(".hide-info").click(function(e) {
+        $(".breakdown-container[data-value=" + $(e.target).data("value") + "]").slideUp();
+        $(".more-info[data-value=" + + $(e.target).data("value") + "]").removeClass("disabled");
     });
+    // $(".more-info").hover(function(i) {
+    //    $(".breakdown[data-value=" + $(i.target).data("value") + "]").removeClass("hidden");
+    // }, function(i) {
+    //     if($(i.target).attr("data-event") != "click") {
+    //         $(".breakdown[data-value=" + $(i.target).data("value") + "]").addClass("hidden");
+    //     }
+    // });
+    // $("html").click(function(e) {
+    //     // hide breakdown when clicking outside of it
+    //     if (e.target.class != "breakdown" && $("[data-event='click']").length > 0) {
+    //         let val = $("[data-event='click']").data("value");
+    //         $(".breakdown[data-value=" + val + "]").addClass("hidden");
+    //         $("[data-event='click']").removeAttr("data-event");
+    //     }
+    //     // show breakdown when more info button is clicked
+    //     if (e.target.classList.contains("more-info")) {
+    //         $(".breakdown[data-value=" + $(e.target).data("value") + "]").removeClass("hidden");
+    //         $(e.target).attr("data-event", "click");
+    //     }
+    // });
 
     // tooltip (bootstrap)
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
@@ -123,7 +134,6 @@ $(document).ready(function () {
     $(".color-input:not(.hidden)").each( function (i, e) {
         let swatch = $(e).find(".necessary-swatch");
         let hex = $(e).find("input").val();
-        console.log(swatch);
         let colorpicker = $(e).find("button").attr("value") == 1 ? colorPicker1 : colorPicker2;
         if (hex.match(hexRegex)) {
             $(swatch).css("background-color", "#"+hex);
@@ -146,7 +156,6 @@ $(document).ready(function () {
 
     // deleting color
     $(".close-swatch").on("click", function(e) {
-        console.log("closing swatch");
         color = $(e.target).attr("value");
         let colorpicker = color == 1 ? colorPicker1 : colorPicker2;
         removeColor(color, colorpicker);
@@ -154,7 +163,6 @@ $(document).ready(function () {
     
     // BUG: when pressing enter in hex input it submits?
     $("form input").keydown(function (e) {
-        console.log("keydown");
         if (e.keyCode == 13) {
             e.preventDefault();
             return false;
@@ -214,7 +222,6 @@ $(document).ready(function () {
                                 $("#options").append("<div id='" + word + "-options' class='mt-3'></div>");
                                 $("#" + word + "-options").append("<label class='options-label' for='" + word + "'><strong>" + word + "</strong></label><br>");
                                 definitions.forEach(d => {
-                                    console.log(d["partOfSpeech"]);
                                     let radio = '<div class="radio-input d-flex flex-row">' +
                                         '<input class="radio-button" type="radio" name=' + word + ' value=' + d["definition"].replaceAll(" ", "%") + '>' + 
                                         '<p class="def-text mb-1 ms-2">' + (d["partOfSpeech"] ? shorthand[d["partOfSpeech"]] : "") + " " + d["definition"] + '</p>' +
@@ -223,8 +230,6 @@ $(document).ready(function () {
                                 })
 
                                 let multiDefs = $("#multiDefWords").val();
-                                console.log("generating multi defs");
-                                console.log(multiDefs);
                                 if (multiDefs == "") {
                                     $("#multiDefWords").val(word);
                                 } else {
@@ -266,8 +271,6 @@ $(document).ready(function () {
     // remove from multiDefs when removing item
     var selectize = $select[0].selectize;
     selectize.on("item_remove", function (e) {
-        console.log("selectize remove");
-        console.log(e);
         selectize.removeOption(e);
         let multiDefs = $("#multiDefWords").val()
         if (multiDefs) {
@@ -323,12 +326,10 @@ function removeColor(c, colorpicker) {
     $("#swatch" + c).css("background-color","white");
     $("#swatch" + c).css("padding-top", "40px");
     $("#swatch" + c).html("Click here to activate color picker.");
-    console.log("resetting color");
     colorpicker.setColors(["#ffffff"]);
 
     // show add button?
     if ($(".color-input.hidden").length < 2) {
-        console.log("removed, showing add button");
         $("#addColorBtn").removeClass("hidden");
     }
 }
@@ -361,7 +362,6 @@ function vote2(voteNum, palette, pID) {
         var paletteSize = 0
         var paletteStr = String(palette)
         var paleteIndex = currVal.indexOf(paletteStr);
-        console.log(paleteIndex)
         palette.forEach(pal => {
             paletteSize += pal.length
         });
